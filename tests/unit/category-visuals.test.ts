@@ -3,6 +3,8 @@ import {
   CategoryVisualKey,
   categoryVisualFor,
 } from "@/shared/ui/icon-registry";
+import { IconKey } from "@/modules/ledger/application/icon-constants";
+import { CATEGORY_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
 
 describe("categoryVisualFor", () => {
   it("maps known household spending names to stable semantic visual keys", () => {
@@ -25,5 +27,22 @@ describe("categoryVisualFor", () => {
     });
     expect(visual.iconKey).toBe(CategoryVisualKey.OTHER);
     expect(visual.tone).toBe("neutral");
+  });
+
+  it("uses a valid saved icon and falls back for an unknown key", () => {
+    const saved = categoryVisualFor({
+      categoryId: "custom",
+      categoryName: "Pets",
+      iconKey: IconKey.PETS,
+    });
+    expect(saved.iconKey).toBe(IconKey.PETS);
+    expect(saved.icon).toBe(CATEGORY_ICON_BY_KEY[IconKey.PETS]);
+    expect(
+      categoryVisualFor({
+        categoryId: "custom",
+        categoryName: "Pets",
+        iconKey: "invalid",
+      }).iconKey,
+    ).toBe(CategoryVisualKey.OTHER);
   });
 });

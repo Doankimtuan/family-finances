@@ -40,7 +40,8 @@ import {
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { Button } from "@/shared/ui/button";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { categoryVisualFor } from "@/shared/ui/icon-registry";
+import { moneyAccountVisualFor } from "../money-account-visuals";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
@@ -675,9 +676,10 @@ export function CaptureTransactionForm({
                             icon={
                               <AppIcon
                                 icon={
-                                  account.type === AccountType.CREDIT_CARD
-                                    ? FINANCE_ICONS.card
-                                    : FINANCE_ICONS.wallet
+                                  moneyAccountVisualFor(
+                                    account.type,
+                                    account.iconKey,
+                                  ).icon
                                 }
                                 size="sm"
                               />
@@ -753,10 +755,29 @@ export function CaptureTransactionForm({
                   },
                   ...tags.map((tag) => ({
                     id: tag.id,
-                    label: localizeCatalogName(
+                    textValue: localizeCatalogName(
                       tCatalog,
                       CatalogGroup.TAGS,
                       tag.name,
+                    ),
+                    label: (
+                      <span className="flex items-center gap-(--space-2)">
+                        <AppIcon
+                          icon={
+                            categoryVisualFor({
+                              categoryId: tag.id,
+                              categoryName: tag.name,
+                              iconKey: tag.iconKey,
+                            }).icon
+                          }
+                          size="sm"
+                        />
+                        {localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.TAGS,
+                          tag.name,
+                        )}
+                      </span>
                     ),
                   })),
                 ]}

@@ -4,6 +4,7 @@ import {
   type AccountType as AccountTypeValue,
 } from "./ledger-constants";
 import { isLiquidAccountType } from "./account-constants";
+import { isAccountIconKey, type AccountIconKey } from "./icon-constants";
 import {
   FINANCIAL_SCOPE,
   isFinancialScope,
@@ -22,6 +23,7 @@ export type LedgerAccount = {
   id: string;
   name: string;
   type: AccountTypeValue;
+  iconKey: AccountIconKey | null;
   /** Minor-unit integer (VND whole đồng). Real ledger position for this account. */
   balance: number;
   isArchived: boolean;
@@ -63,6 +65,7 @@ export function mapAccountRow(
     id: string;
     name: string;
     type: string;
+    icon_key?: string | null;
     opening_balance: number | string;
     is_archived: boolean;
     financial_scope?: string | null;
@@ -93,6 +96,8 @@ export function mapAccountRow(
     id: row.id,
     name: row.name,
     type: asAccountType(row.type),
+    iconKey:
+      row.icon_key && isAccountIconKey(row.icon_key) ? row.icon_key : null,
     balance: Number.isFinite(balance) ? balance : 0,
     isArchived: Boolean(row.is_archived),
     ...ownership,

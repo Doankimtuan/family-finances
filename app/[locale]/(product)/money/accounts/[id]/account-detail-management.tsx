@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { AccountType as AccountTypeValue } from "@/modules/ledger/application/client";
+import type { AccountIconKey } from "@/modules/ledger/application/icon-constants";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet } from "@/shared/patterns/sheet";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
@@ -18,6 +19,7 @@ export type AccountDetailManagementProps = {
   accountId: string;
   initialName: string;
   initialType: AccountTypeValue;
+  initialIconKey: AccountIconKey | null;
   canMutate: boolean;
   children?: ReactNode;
 };
@@ -41,6 +43,7 @@ export function AccountDetailManagement({
   accountId,
   initialName,
   initialType,
+  initialIconKey,
   canMutate,
   children,
 }: AccountDetailManagementProps) {
@@ -79,6 +82,7 @@ export function AccountDetailManagement({
               accountId={accountId}
               initialName={initialName}
               initialType={initialType}
+              initialIconKey={initialIconKey}
               mode={mode}
               onModeChange={setMode}
             >

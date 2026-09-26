@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Icon Atlas 04 — ViNha Warm Precision</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #FAFAF9;
+      color: #18181B;
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .atlas-container {
+      width: 100%;
+      max-width: 1240px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Header */
+    .atlas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #E4E4E7;
+      padding-bottom: 24px;
+      gap: 24px;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .pill-badge {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #E7F5F1;
+      color: #0F766E;
+    }
+
+    .system-subtitle {
+      font-family: 'Geist Mono', monospace;
+      font-size: 12px;
+      color: #71717A;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #18181B;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      font-size: 14px;
+      color: #52525B;
+      max-width: 680px;
+      line-height: 1.5;
+    }
+
+    .specs-strip {
+      display: flex;
+      gap: 20px;
+      background: #FFFFFF;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1px solid #E4E4E7;
+      flex-shrink: 0;
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .spec-item .label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #71717A;
+    }
+
+    .spec-item .val {
+      font-family: 'Geist Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: #18181B;
+    }
+
+    .spec-item .val.teal {
+      color: #0F766E;
+    }
+
+    /* Section Subhead */
+    .section-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0 4px;
+    }
+
+    .section-bar .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #0F766E;
+      margin-right: 6px;
+    }
+
+    /* Grid Layout: 4 columns */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .icon-card {
+      background: #FFFFFF;
+      border: 1px solid #E4E4E7;
+      border-radius: 12px;
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      position: relative;
+      transition: border-color 0.15s ease;
+    }
+
+    .icon-card:hover {
+      border-color: #CBD5E1;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      color: #A1A1AA;
+    }
+
+    .tag-scope {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #F4F4F5;
+      color: #52525B;
+    }
+
+    .tag-scope.invest {
+      background: #F5F3FF;
+      color: #7C3AED;
+    }
+
+    .tag-scope.credit {
+      background: #FFF1F2;
+      color: #E11D48;
+    }
+
+    .tag-scope.loan {
+      background: #EFF6FF;
+      color: #2563EB;
+    }
+
+    .glyph-display-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px 0 6px;
+    }
+
+    .glyph-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .glyph-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FAFAF9;
+      border-radius: 8px;
+      border: 1px dashed #E4E4E7;
+      position: relative;
+    }
+
+    .glyph-box.size-24 {
+      width: 52px;
+      height: 52px;
+    }
+
+    .glyph-box.size-16 {
+      width: 36px;
+      height: 36px;
+    }
+
+    .glyph-size-label {
+      font-family: 'Geist Mono', monospace;
+      font-size: 9px;
+      color: #A1A1AA;
+    }
+
+    /* Common SVG properties */
+    svg.icon-master {
+      width: 24px;
+      height: 24px;
+      stroke: #18181B;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    svg.icon-reduction {
+      width: 16px;
+      height: 16px;
+      stroke: #18181B;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .card-footer {
+      border-top: 1px solid #F4F4F5;
+      padding-top: 10px;
+      text-align: center;
+    }
+
+    .semantic-key {
+      font-family: 'Geist Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: #18181B;
+      letter-spacing: -0.01em;
+      margin-bottom: 2px;
+    }
+
+    .semantic-meaning {
+      font-size: 11px;
+      color: #71717A;
+      line-height: 1.35;
+    }
+
+    /* Differentiation audit callout */
+    .audit-panel {
+      background: #FFFFFF;
+      border: 1px solid #E4E4E7;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .audit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #71717A;
+    }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .audit-item {
+      background: #FAFAF9;
+      border: 1px solid #E4E4E7;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .audit-title {
+      font-family: 'Geist Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0F766E;
+      margin-bottom: 6px;
+    }
+
+    .audit-desc {
+      font-size: 12px;
+      color: #52525B;
+      line-height: 1.45;
+    }
+
+    /* Dark Mode Verification Strip */
+    .dark-strip {
+      background: #141416;
+      border: 1px solid #27272A;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dark-strip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dark-strip-title {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #A1A1AA;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dark-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #2DD4BF;
+    }
+
+    .dark-token-pill {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      color: #2DD4BF;
+      background: #173B37;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .dark-icons-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 4px 0;
+    }
+
+    .dark-icon-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 80px;
+      padding: 10px;
+      background: #1C1C1F;
+      border: 1px solid #27272A;
+      border-radius: 8px;
+    }
+
+    .dark-icon-cell svg {
+      width: 24px;
+      height: 24px;
+      stroke: #F4F4F5;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .dark-icon-cell.accented svg {
+      stroke: #2DD4BF;
+    }
+
+    .dark-icon-name {
+      font-family: 'Geist Mono', monospace;
+      font-size: 10px;
+      color: #A1A1AA;
+    }
+
+    /* Page Footer */
+    .atlas-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      color: #71717A;
+      border-top: 1px solid #E4E4E7;
+      padding-top: 20px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="atlas-container">
+
+  <!-- Header -->
+  <header class="atlas-header">
+    <div>
+      <div class="badge-row">
+        <span class="pill-badge">Atlas Sheet 04 / 12</span>
+        <span class="system-subtitle">ViNha Warm Precision System • 22 Semantic Master Drawings</span>
+      </div>
+      <h1 class="title">Investments, Credit, Loans &amp; Debt</h1>
+      <p class="description">
+        Canonical contact sheet for asset valuation, secondary investments, credit lines, and specialized household liabilities (Group D [pt 2] &amp; Group E). Strict 24×24 master geometry, 1.5px baseline stroke with rounded caps/joins, optical breathing room, and verified 16px micro-reductions.
+      </p>
+    </div>
+
+    <div class="specs-strip">
+      <div class="spec-item">
+        <span class="label">Master Grid</span>
+        <span class="val">24 × 24 px</span>
+      </div>
+      <div class="spec-item">
+        <span class="label">Stroke Width</span>
+        <span class="val">1.5 px Round</span>
+      </div>
+      <div class="spec-item">
+        <span class="label">Batch Scope</span>
+        <span class="val teal">22 Glyphs</span>
+      </div>
+      <div class="spec-item">
+        <span class="label">Color Mode</span>
+        <span class="val">currentColor</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section Header -->
+  <div class="section-bar">
+    <div><span class="status-dot"></span>Contact Sheet Matrix (Group D: #01–#11 • Group E: #12–#22)</div>
+    <div>Displaying 24px Master &amp; 16px Optical Reduction</div>
+  </div>
+
+  <!-- 4-Column Icon Grid (22 Icons) -->
+  <main class="icon-grid">
+
+    <!-- 01: gold -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>01 • D</span>
+        <span class="tag-scope invest">Commodity</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Stacked trapezoidal gold ingots -->
+              <polygon points="5 19 19 19 17 14 7 14" />
+              <polygon points="8 14 16 14 14.5 10 9.5 10" />
+              <line x1="12" y1="10" x2="12" y2="14" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <polygon points="5 19 19 19 17 14 7 14" />
+              <polygon points="8 14 16 14 14.5 10 9.5 10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">gold</div>
+        <div class="semantic-meaning">Vàng tích trữ • Bullion ingots &amp; reserve</div>
+      </div>
+    </div>
+
+    <!-- 02: crypto -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>02 • D</span>
+        <span class="tag-scope invest">Digital</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Decentralized block/hex token with node points -->
+              <polygon points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5" />
+              <line x1="12" y1="3" x2="12" y2="21" />
+              <line x1="4" y1="7.5" x2="20" y2="16.5" />
+              <line x1="4" y1="16.5" x2="20" y2="7.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <polygon points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5" />
+              <line x1="12" y1="3" x2="12" y2="21" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">crypto</div>
+        <div class="semantic-meaning">Tài sản số • Decentralized blockchain asset</div>
+      </div>
+    </div>
+
+    <!-- 03: market-value -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>03 • D</span>
+        <span class="tag-scope invest">Valuation</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Market tag/badge with precision trend sparkline -->
+              <rect x="3" y="4" width="18" height="16" rx="3" />
+              <polyline points="7 14 10 11 13 13 17 8" />
+              <polyline points="15 8 17 8 17 10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="3" />
+              <polyline points="7 14 11 10 17 8" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">market-value</div>
+        <div class="semantic-meaning">Giá trị thị trường • Real-time asset benchmark</div>
+      </div>
+    </div>
+
+    <!-- 04: price-change -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>04 • D</span>
+        <span class="tag-scope invest">Volatility</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Dual opposing directional delta arrows (fluctuation) -->
+              <line x1="8" y1="18" x2="8" y2="6" />
+              <polyline points="5 9 8 6 11 9" />
+              <line x1="16" y1="6" x2="16" y2="18" />
+              <polyline points="13 15 16 18 19 15" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <line x1="8" y1="18" x2="8" y2="6" />
+              <polyline points="5 9 8 6 11 9" />
+              <line x1="16" y1="6" x2="16" y2="18" />
+              <polyline points="13 15 16 18 19 15" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">price-change</div>
+        <div class="semantic-meaning">Biến động giá • Bidirectional delta spread</div>
+      </div>
+    </div>
+
+    <!-- 05: profit -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>05 • D</span>
+        <span class="tag-scope invest">Gain</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Rising growth arrow emerging from solid ledger base with plus -->
+              <line x1="4" y1="20" x2="20" y2="20" />
+              <polyline points="6 15 11 10 15 13 20 6" />
+              <polyline points="16 6 20 6 20 10" />
+              <line x1="17" y1="14" x2="17" y2="18" />
+              <line x1="15" y1="16" x2="19" y2="16" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <line x1="4" y1="20" x2="20" y2="20" />
+              <polyline points="6 14 12 8 19 6" />
+              <polyline points="15 6 19 6 19 10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">profit</div>
+        <div class="semantic-meaning">Lợi nhuận ròng • Net capital gain &amp; surplus</div>
+      </div>
+    </div>
+
+    <!-- 06: loss -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>06 • D</span>
+        <span class="tag-scope invest">Deficit</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Descending trajectory piercing floor with minus -->
+              <line x1="4" y1="4" x2="20" y2="4" />
+              <polyline points="6 8 11 13 15 10 20 18" />
+              <polyline points="20 14 20 18 16 18" />
+              <line x1="15" y1="9" x2="19" y2="9" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <line x1="4" y1="4" x2="20" y2="4" />
+              <polyline points="6 9 12 15 19 18" />
+              <polyline points="15 18 19 18 19 14" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">loss</div>
+        <div class="semantic-meaning">Thua lỗ • Capital deficit &amp; drawdown</div>
+      </div>
+    </div>
+
+    <!-- 07: dividend -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>07 • D</span>
+        <span class="tag-scope invest">Payout</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Corporate share disk distributing coin droplets / outbound yield -->
+              <circle cx="9" cy="14" r="5" />
+              <line x1="9" y1="12" x2="9" y2="16" />
+              <line x1="7" y1="14" x2="11" y2="14" />
+              <path d="M15 9 C15 6 18 5 19 5" />
+              <polyline points="17 4 20 5 19 8" />
+              <circle cx="18" cy="13" r="2.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <circle cx="8" cy="14" r="4.5" />
+              <path d="M14 9 C14 6 17 5 18 5" />
+              <circle cx="17" cy="12" r="2" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">dividend</div>
+        <div class="semantic-meaning">Cổ tức • Shareholder profit distribution</div>
+      </div>
+    </div>
+
+    <!-- 08: buy -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>08 • D</span>
+        <span class="tag-scope invest">Order</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Shopping order basket with inbound acquisition arrow -->
+              <path d="M4 8 H20 L18 18 H6 Z" />
+              <line x1="12" y1="4" x2="12" y2="13" />
+              <polyline points="9 10 12 13 15 10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M4 8 H20 L18 18 H6 Z" />
+              <line x1="12" y1="4" x2="12" y2="13" />
+              <polyline points="9 10 12 13 15 10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">buy</div>
+        <div class="semantic-meaning">Lệnh mua • Acquisition trade order</div>
+      </div>
+    </div>
+
+    <!-- 09: sell -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>09 • D</span>
+        <span class="tag-scope invest">Order</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Order basket with outbound liquidation arrow -->
+              <path d="M4 11 H20 L18 20 H6 Z" />
+              <line x1="12" y1="14" x2="12" y2="4" />
+              <polyline points="9 7 12 4 15 7" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M4 11 H20 L18 20 H6 Z" />
+              <line x1="12" y1="14" x2="12" y2="4" />
+              <polyline points="9 7 12 4 15 7" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">sell</div>
+        <div class="semantic-meaning">Lệnh bán • Liquidation disposal order</div>
+      </div>
+    </div>
+
+    <!-- 10: valuation -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>10 • D</span>
+        <span class="tag-scope invest">Audit</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Loupe inspecting asset balance coin / ledger token -->
+              <circle cx="10" cy="10" r="6" />
+              <line x1="14.5" y1="14.5" x2="20" y2="20" />
+              <line x1="10" y1="7" x2="10" y2="13" />
+              <line x1="8" y1="10" x2="12" y2="10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <circle cx="10" cy="10" r="5.5" />
+              <line x1="14" y1="14" x2="19" y2="19" />
+              <circle cx="10" cy="10" r="2" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">valuation</div>
+        <div class="semantic-meaning">Định giá tài sản • Appraisal &amp; net worth audit</div>
+      </div>
+    </div>
+
+    <!-- 11: price-stale -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>11 • D</span>
+        <span class="tag-scope invest">Telemetry</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Outdated telemetry clock with dashed price line -->
+              <path d="M12 4 A8 8 0 1 0 20 12" />
+              <polyline points="12 8 12 12 15 14" />
+              <line x1="17" y1="6" x2="21" y2="6" stroke-dasharray="1.5 2" />
+              <line x1="19" y1="4" x2="19" y2="8" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="7.5" stroke-dasharray="3 2" />
+              <polyline points="12 8 12 12 15 12" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">price-stale</div>
+        <div class="semantic-meaning">Giá chưa cập nhật • Out-of-sync quote feed</div>
+      </div>
+    </div>
+
+    <!-- 12: loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>12 • E</span>
+        <span class="tag-scope loan">Credit Base</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Hand receiving formal promissory liability note -->
+              <path d="M3 15 C3 13.5 5 13 7 13 L14 13 C16 13 18 14 19 15 L21 16" />
+              <rect x="7" y="5" width="10" height="6" rx="1.5" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="12" y1="11" x2="12" y2="13" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <rect x="7" y="5" width="10" height="6" rx="1.5" />
+              <path d="M4 16 L10 14 L18 14" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">loan</div>
+        <div class="semantic-meaning">Khoản vay • Base credit obligation</div>
+      </div>
+    </div>
+
+    <!-- 13: bank-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>13 • E</span>
+        <span class="tag-scope loan">Institutional</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Banking pediment with outbound liability agreement note -->
+              <path d="M3 9 L11 4 L19 9" />
+              <line x1="5" y1="9" x2="5" y2="18" />
+              <line x1="9" y1="9" x2="9" y2="18" />
+              <line x1="3" y1="18" x2="11" y2="18" />
+              <rect x="13" y="11" width="8" height="9" rx="1.5" />
+              <line x1="15" y1="14" x2="19" y2="14" />
+              <line x1="15" y1="17" x2="18" y2="17" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M3 9 L10 4 L17 9" />
+              <line x1="5" y1="9" x2="5" y2="17" />
+              <line x1="9" y1="9" x2="9" y2="17" />
+              <rect x="13" y="11" width="7" height="8" rx="1" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">bank-loan</div>
+        <div class="semantic-meaning">Vay ngân hàng • Underwritten institutional debt</div>
+      </div>
+    </div>
+
+    <!-- 14: personal-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>14 • E</span>
+        <span class="tag-scope loan">Individual</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Single user silhouette bound with debt commitment document -->
+              <circle cx="8" cy="8" r="3.5" />
+              <path d="M3 18 C3 14.5 5.5 13.5 9 13.5" />
+              <rect x="13" y="9" width="8" height="11" rx="1.5" />
+              <line x1="15" y1="12" x2="19" y2="12" />
+              <line x1="15" y1="15" x2="18" y2="15" />
+              <circle cx="17" cy="18" r="0.75" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <circle cx="8" cy="8" r="3" />
+              <path d="M3 17 C3 14 5.5 13 9 13" />
+              <rect x="13" y="9" width="7" height="9" rx="1" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">personal-loan</div>
+        <div class="semantic-meaning">Vay cá nhân • Uncollateralized individual note</div>
+      </div>
+    </div>
+
+    <!-- 15: family-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>15 • E</span>
+        <span class="tag-scope loan">Household</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Dual interlocked family figures sharing a bilateral loan coin -->
+              <circle cx="6.5" cy="8" r="2.5" />
+              <circle cx="17.5" cy="8" r="2.5" />
+              <path d="M3 17 C3 14 5 13 6.5 13" />
+              <path d="M21 17 C21 14 19 13 17.5 13" />
+              <circle cx="12" cy="15" r="3.5" />
+              <path d="M10.5 15 H13.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <circle cx="7" cy="8" r="2.5" />
+              <circle cx="17" cy="8" r="2.5" />
+              <circle cx="12" cy="15" r="3" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">family-loan</div>
+        <div class="semantic-meaning">Vay gia đình • Intra-family shared trust debt</div>
+      </div>
+    </div>
+
+    <!-- 16: friend-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>16 • E</span>
+        <span class="tag-scope loan">Peer-to-Peer</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Friendly handshake clasped around promissory token -->
+              <path d="M3 11 L7 7 L12 11 L9 14 Z" />
+              <path d="M21 11 L17 7 L12 11 L14 14" />
+              <path d="M7 16 L10 19 L13 16" />
+              <circle cx="12" cy="6" r="2" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M4 11 L8 7 L12 10 L16 7 L20 11" />
+              <path d="M8 15 L12 18 L16 15" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">friend-loan</div>
+        <div class="semantic-meaning">Vay bạn bè • Peer-to-peer informal loan</div>
+      </div>
+    </div>
+
+    <!-- 17: store-financing -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>17 • E</span>
+        <span class="tag-scope credit">Merchant</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Merchant store awning with deferred credit card badge -->
+              <path d="M3 9 L5 4 H19 L21 9 Z" />
+              <path d="M3 9 C3 10.5 4.5 11.5 6 11.5 C7.5 11.5 9 10.5 9 9 C9 10.5 10.5 11.5 12 11.5 C13.5 11.5 15 10.5 15 9 C15 10.5 16.5 11.5 18 11.5 C19.5 11.5 21 10.5 21 9" />
+              <rect x="7" y="14" width="10" height="6" rx="1.5" />
+              <line x1="7" y1="16.5" x2="17" y2="16.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M3 8 L5 4 H19 L21 8 Z" />
+              <rect x="6" y="12" width="12" height="7" rx="1.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">store-financing</div>
+        <div class="semantic-meaning">Trả góp cửa hàng • Retail merchant installment</div>
+      </div>
+    </div>
+
+    <!-- 18: buy-now-pay-later -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>18 • E</span>
+        <span class="tag-scope credit">Fintech</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Instant shopping tag with delayed deferred clock hands -->
+              <path d="M4 6 L12 6 L20 14 L12 22 L4 14 Z" />
+              <circle cx="8" cy="10" r="1.5" />
+              <polyline points="12 13 14 15 17 13" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M4 6 L12 6 L20 14 L12 22 L4 14 Z" />
+              <circle cx="8" cy="10" r="1.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">buy-now-pay-later</div>
+        <div class="semantic-meaning">Mua trước trả sau • BNPL micro-credit tenure</div>
+      </div>
+    </div>
+
+    <!-- 19: tuition-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>19 • E</span>
+        <span class="tag-scope loan">Education</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Mortarboard graduation cap over scheduled payback voucher -->
+              <polygon points="12 4 22 9 12 14 2 9" />
+              <path d="M6 11.5 V16 C6 18 8.5 20 12 20 C15.5 20 18 18 18 16 V11.5" />
+              <line x1="21" y1="10" x2="21" y2="16" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <polygon points="12 4 21 8.5 12 13 3 8.5" />
+              <path d="M6 11.5 V15 C6 17 8.5 19 12 19 C15.5 19 18 17 18 15 V11.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">tuition-loan</div>
+        <div class="semantic-meaning">Vay học phí • Student education financing</div>
+      </div>
+    </div>
+
+    <!-- 20: medical-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>20 • E</span>
+        <span class="tag-scope loan">Emergency</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Clinical medical cross resting on liability ledger tray -->
+              <rect x="3" y="16" width="18" height="5" rx="1.5" />
+              <path d="M10 4 H14 V7 H17 V11 H14 V14 H10 V11 H7 V7 H10 Z" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <rect x="4" y="16" width="16" height="4" rx="1" />
+              <path d="M10 5 H14 V8 H17 V11 H14 V14 H10 V11 H7 V8 H10 Z" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">medical-loan</div>
+        <div class="semantic-meaning">Vay y tế • Emergency healthcare financing</div>
+      </div>
+    </div>
+
+    <!-- 21: vehicle-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>21 • E</span>
+        <span class="tag-scope loan">Asset Backed</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Automobile silhouette with amortized payment token -->
+              <path d="M4 14 L6 8 H18 L20 14" />
+              <rect x="3" y="13" width="18" height="5" rx="1.5" />
+              <circle cx="7" cy="18" r="2" />
+              <circle cx="17" cy="18" r="2" />
+              <line x1="10" y1="10" x2="14" y2="10" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M4 13 L6 8 H18 L20 13" />
+              <rect x="3" y="12" width="18" height="5" rx="1" />
+              <circle cx="7" cy="17" r="1.5" />
+              <circle cx="17" cy="17" r="1.5" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">vehicle-loan</div>
+        <div class="semantic-meaning">Vay mua xe • Vehicle asset collateral loan</div>
+      </div>
+    </div>
+
+    <!-- 22: home-loan -->
+    <div class="icon-card">
+      <div class="card-top">
+        <span>22 • E</span>
+        <span class="tag-scope loan">Mortgage</span>
+      </div>
+      <div class="glyph-display-row">
+        <div class="glyph-slot">
+          <div class="glyph-box size-24">
+            <svg class="icon-master" viewBox="0 0 24 24">
+              <!-- Household silhouette with deed/mortgage keyhole lock -->
+              <path d="M3 10 L12 3 L21 10 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 Z" />
+              <path d="M12 12 V15" />
+              <circle cx="12" cy="12" r="1.5" />
+              <line x1="9" y1="21" x2="15" y2="21" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">24px</span>
+        </div>
+        <div class="glyph-slot">
+          <div class="glyph-box size-16">
+            <svg class="icon-reduction" viewBox="0 0 24 24">
+              <path d="M3 10 L12 3 L21 10 V20 H4 Z" />
+              <line x1="12" y1="12" x2="12" y2="16" />
+            </svg>
+          </div>
+          <span class="glyph-size-label">16px</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="semantic-key">home-loan</div>
+        <div class="semantic-meaning">Vay mua nhà • Residential mortgage debt</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Semantic Disambiguation Audit -->
+  <section class="audit-panel">
+    <div class="audit-header">
+      <span>Semantic Disambiguation &amp; Meaning Differentiation Tests</span>
+      <span>Verified Zero-Confusion Pairs</span>
+    </div>
+    <div class="audit-grid">
+      <div class="audit-item">
+        <div class="audit-title">profit (05) vs. buy (08) vs. loss (06)</div>
+        <div class="audit-desc">
+          <strong>profit</strong> uses a grounded baseline with upward breakout plus (+) token. <strong>loss</strong> pierces the lower boundary. <strong>buy/sell</strong> specifically use commerce acquisition containers with directional flow.
+        </div>
+      </div>
+      <div class="audit-item">
+        <div class="audit-title">loan (12) vs. bank-loan (13) vs. personal-loan (14)</div>
+        <div class="audit-desc">
+          <strong>loan</strong> represents generic unencumbered credit receipt. <strong>bank-loan</strong> adds institutional neo-classical pillars. <strong>personal-loan</strong> ties liability explicitly to an individual user persona.
+        </div>
+      </div>
+      <div class="audit-item">
+        <div class="audit-title">store-financing (17) vs. buy-now-pay-later (18)</div>
+        <div class="audit-desc">
+          <strong>store-financing</strong> models retail storefront merchant awnings with physical credit card terminals. <strong>buy-now-pay-later</strong> models quick-tag digital vouchers with time-deferred clock marks.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dark Mode Verification Strip -->
+  <section class="dark-strip">
+    <div class="dark-strip-header">
+      <div class="dark-strip-title">
+        <span class="dark-dot"></span>
+        Dark Mode Verification Strip (#141416 Canvas) — Group D &amp; E
+      </div>
+      <span class="dark-token-pill">#2DD4BF Accent • #F4F4F5 Base Stroke</span>
+    </div>
+    <div class="dark-icons-flex">
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <polygon points="5 19 19 19 17 14 7 14" />
+          <polygon points="8 14 16 14 14.5 10 9.5 10" />
+          <line x1="12" y1="10" x2="12" y2="14" />
+        </svg>
+        <span class="dark-icon-name">gold</span>
+      </div>
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <polygon points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5" />
+          <line x1="12" y1="3" x2="12" y2="21" />
+          <line x1="4" y1="7.5" x2="20" y2="16.5" />
+          <line x1="4" y1="16.5" x2="20" y2="7.5" />
+        </svg>
+        <span class="dark-icon-name">crypto</span>
+      </div>
+      <div class="dark-icon-cell accented">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="16" rx="3" />
+          <polyline points="7 14 10 11 13 13 17 8" />
+          <polyline points="15 8 17 8 17 10" />
+        </svg>
+        <span class="dark-icon-name" style="color: #2DD4BF;">market-value</span>
+      </div>
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <line x1="4" y1="20" x2="20" y2="20" />
+          <polyline points="6 15 11 10 15 13 20 6" />
+          <polyline points="16 6 20 6 20 10" />
+          <line x1="17" y1="14" x2="17" y2="18" />
+          <line x1="15" y1="16" x2="19" y2="16" />
+        </svg>
+        <span class="dark-icon-name">profit</span>
+      </div>
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 15 C3 13.5 5 13 7 13 L14 13 C16 13 18 14 19 15 L21 16" />
+          <rect x="7" y="5" width="10" height="6" rx="1.5" />
+          <line x1="9" y1="8" x2="15" y2="8" />
+        </svg>
+        <span class="dark-icon-name">loan</span>
+      </div>
+      <div class="dark-icon-cell accented">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 6 L12 6 L20 14 L12 22 L4 14 Z" />
+          <circle cx="8" cy="10" r="1.5" />
+          <polyline points="12 13 14 15 17 13" />
+        </svg>
+        <span class="dark-icon-name" style="color: #2DD4BF;">bnpl</span>
+      </div>
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <polygon points="12 4 22 9 12 14 2 9" />
+          <path d="M6 11.5 V16 C6 18 8.5 20 12 20 C15.5 20 18 18 18 16 V11.5" />
+        </svg>
+        <span class="dark-icon-name">tuition-loan</span>
+      </div>
+      <div class="dark-icon-cell">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 10 L12 3 L21 10 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 Z" />
+          <circle cx="12" cy="12" r="1.5" />
+          <path d="M12 12 V15" />
+        </svg>
+        <span class="dark-icon-name">home-loan</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Info -->
+  <footer class="atlas-footer">
+    <div>Sheet 04 of 12 • ViNha Warm Precision System • Semantic Batch: 22 Icons (Group D &amp; E)</div>
+    <div>Strict currentColor SVG • Zero emoji / 3D / gradients • Bilingual validation: EN / VI</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

@@ -140,6 +140,7 @@ export default async function AccountDetailPage({
       accountId={account.id}
       initialName={account.name}
       initialType={account.type}
+      initialIconKey={account.iconKey}
       canMutate={account.canMutate}
     >
       {isCreditCard ? (
@@ -262,7 +263,7 @@ export default async function AccountDetailPage({
     );
   }
 
-  const accountVisual = moneyAccountVisualFor(account.type);
+  const accountVisual = moneyAccountVisualFor(account.type, account.iconKey);
   const health = accountHealthFromBalance(account.balance);
   const balanceLabel = formatCurrency(account.balance, currency, locale, {
     maximumFractionDigits: 0,

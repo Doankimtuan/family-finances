@@ -27,7 +27,7 @@ Use the existing stack:
 - HeroUI wrappers.
 - Tailwind v4 and semantic tokens.
 - Geist typography.
-- Hugeicons Free Stroke Rounded through the shared `AppIcon` boundary.
+- Stitch SVG artwork through the shared `AppIcon` boundary.
 - Motion only for purposeful feedback.
 - Recharts only when a chart answers a real question.
 

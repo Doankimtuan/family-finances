@@ -31,12 +31,14 @@ export function resolveAccountActivityLeading(transaction: {
   type: TransactionLedgerTypeValue;
   categoryId: string | null;
   categoryName: string | null;
+  categoryIconKey?: string | null;
 }) {
   const isCredit = isAccountActivityCredit(transaction.type);
   if (transaction.categoryName) {
     const visual = categoryVisualFor({
       categoryId: transaction.categoryId,
       categoryName: transaction.categoryName,
+      iconKey: transaction.categoryIconKey,
     });
     return { isCredit, icon: visual.icon, iconTone: visual.tone };
   }

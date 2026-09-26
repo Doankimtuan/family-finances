@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Alert02Icon } from "@hugeicons/core-free-icons";
+import { Alert02Icon } from "@/shared/ui/stitch-icon-compat";
 import { cn } from "@/shared/utils/cn";
 import { Heading } from "@/shared/ui/heading";
 import { Text } from "@/shared/ui/text";

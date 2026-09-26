@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Alert02Icon } from "@hugeicons/core-free-icons";
+import { Alert02Icon } from "@/shared/ui/stitch-icon-compat";
 import { Card } from "@/shared/patterns/card";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { Text } from "@/shared/ui/text";

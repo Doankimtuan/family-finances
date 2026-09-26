@@ -10,7 +10,7 @@ import {
   ShoppingBag01Icon,
   UserGroupIcon,
   Wallet02Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 import { LoanType } from "@/modules/ledger/application/loan-constants";
 
 const LOAN_TYPE_ICONS = {

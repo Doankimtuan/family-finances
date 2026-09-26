@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { EmptyState as HeroEmptyState } from "@heroui/react";
-import { InboxIcon } from "@hugeicons/core-free-icons";
+import { InboxIcon } from "@/shared/ui/stitch-icon-compat";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { Heading } from "@/shared/ui/heading";

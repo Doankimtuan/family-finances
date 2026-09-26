@@ -41,7 +41,7 @@ export type AppIconProps = {
   className?: string;
 };
 
-/** The only low-level rendering boundary for Free Hugeicons. */
+/** The low-level renderer for the app's Stitch SVG artwork. */
 export function AppIcon({
   icon,
   size = AppIconSize.MD,
@@ -50,9 +50,16 @@ export function AppIcon({
   decorative = !label,
   className,
 }: AppIconProps) {
+  const iconWithStableKeys: IconSvgElement = icon.map(
+    ([tag, attributes], index) => [
+      tag,
+      { ...attributes, key: attributes.key ?? index },
+    ],
+  );
+
   return (
     <HugeiconsIcon
-      icon={icon}
+      icon={iconWithStableKeys}
       size={ICON_SIZES[size]}
       strokeWidth={emphasized ? 1.9 : 1.5}
       aria-hidden={decorative ? true : undefined}

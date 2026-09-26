@@ -26,7 +26,7 @@ async function loadAccounts(options: {
     let accountsQuery = supabase
       .from("accounts")
       .select(
-        "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+        "id, name, type, icon_key, opening_balance, is_archived, financial_scope, owner_membership_id",
       )
       .eq("household_id", gate.householdId)
       .eq("is_archived", false)
@@ -125,7 +125,7 @@ export async function getAccount(
       supabase
         .from("accounts")
         .select(
-          "id, name, type, opening_balance, is_archived, financial_scope, owner_membership_id",
+          "id, name, type, icon_key, opening_balance, is_archived, financial_scope, owner_membership_id",
         )
         .eq("household_id", gate.householdId)
         .eq("id", accountId)

@@ -5,6 +5,7 @@ import {
   StatusAlertProvider,
 } from "@/providers/status-alert-provider";
 import { TransactionDirection } from "@/modules/ledger/application/client";
+import { DEFAULT_CATEGORY_ICON_KEY } from "@/modules/ledger/application/icon-constants";
 import { JarKind } from "@/modules/plan/application/client";
 import { CreateCategoryForm } from "@/app/[locale]/(product)/plan/jars/create-category-form";
 
@@ -79,6 +80,7 @@ describe("CreateCategoryForm", () => {
         name: "Salary",
         kind: TransactionDirection.INCOME,
         jarId: null,
+        iconKey: DEFAULT_CATEGORY_ICON_KEY,
       }),
     );
   });
@@ -97,6 +99,7 @@ describe("CreateCategoryForm", () => {
         name: "Pet Grooming",
         kind: TransactionDirection.EXPENSE,
         jarId: null,
+        iconKey: DEFAULT_CATEGORY_ICON_KEY,
       }),
     );
   });

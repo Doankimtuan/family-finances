@@ -94,7 +94,7 @@ describe("Home product summary query shape", () => {
       transactionQuery.indexOf("const HOME_TRANSACTION_SELECT"),
       transactionQuery.indexOf("function mapTransactionRows"),
     );
-    expect(source).toContain("categories(name)");
+    expect(source).toContain("categories(name, icon_key)");
     expect(source).not.toContain("accounts(name, type)");
     expect(source).not.toContain("jars(name)");
     expect(source).not.toContain("transaction_tag_assignments");

@@ -11,8 +11,8 @@ export const CLIENT_MESSAGE_NAMESPACES = {
   PRODUCT: ["a11y", "navigation"],
   HOME: ["a11y", "home", "system"],
   HEALTH: ["a11y"],
-  MONEY: ["a11y", "catalog", "money", "system"],
-  PLAN: ["a11y", "catalog", "plan", "system"],
+  MONEY: ["a11y", "catalog", "common", "money", "system"],
+  PLAN: ["a11y", "catalog", "common", "plan", "system"],
   INBOX: ["a11y", "catalog", "inbox", "system"],
   TOGETHER: ["a11y", "auth", "settings", "system", "together"],
 } as const satisfies Record<string, ClientMessageNamespaces>;

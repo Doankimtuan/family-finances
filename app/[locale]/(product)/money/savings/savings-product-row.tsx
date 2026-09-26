@@ -17,7 +17,7 @@ import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
-import { BankIcon, SmartPhoneIcon } from "@hugeicons/core-free-icons";
+import { BankIcon, SmartPhoneIcon } from "@/shared/ui/stitch-icon-compat";
 import { cn } from "@/shared/utils/cn";
 import { SavingsMaturityBadge } from "./savings-maturity-badge";
 

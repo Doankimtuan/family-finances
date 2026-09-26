@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { UserGroupIcon } from "@hugeicons/core-free-icons";
+import { UserGroupIcon } from "@/shared/ui/stitch-icon-compat";
 import type { FinancialScope } from "@/modules/shared-kernel/application/financial-scope";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {

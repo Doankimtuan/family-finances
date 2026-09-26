@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkCircle02Icon } from "@/shared/ui/stitch-icon-compat";
 import {
   MaturityFallbackPolicy,
   MaturityTargetMode,

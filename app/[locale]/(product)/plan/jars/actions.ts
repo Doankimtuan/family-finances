@@ -18,6 +18,8 @@ import {
 import {
   createCategory,
   type CreateCategoryInput,
+  updateCategoryIcon,
+  type UpdateCategoryIconInput,
 } from "@/modules/ledger/application";
 import type { ProductActionErrorCode } from "@/modules/tenancy/application/product-action-error";
 import type { LedgerActionErrorCode } from "@/modules/ledger/application/ledger-constants";
@@ -115,6 +117,10 @@ export async function createCategoryAction(
     return { status: "success", categoryId: result.categoryId };
   }
   return { status: "error", code: result.code };
+}
+
+export async function updateCategoryIconAction(input: UpdateCategoryIconInput) {
+  return updateCategoryIcon(input);
 }
 
 export type ReallocateJarCapacityActionState =

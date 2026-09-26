@@ -6,7 +6,7 @@ import {
   DatePicker,
   TimeField as HeroTimeField,
 } from "@heroui/react";
-import { Calendar03Icon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon } from "@/shared/ui/stitch-icon-compat";
 import { parseDate, parseTime } from "@internationalized/date";
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";

@@ -6,7 +6,7 @@ import {
   ComputerIcon,
   Moon02Icon,
   Sun03Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
 import { useTheme } from "@/providers/theme-provider";

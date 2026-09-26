@@ -235,7 +235,7 @@ export default async function MoneyHubPage({ params }: Props) {
     groups.map((group) => ({
       key: group.key,
       accounts: group.accounts.map((account) => {
-        const visual = moneyAccountVisualFor(account.type);
+        const visual = moneyAccountVisualFor(account.type, account.iconKey);
         return {
           id: account.id,
           title: localizeCatalogName(tCatalog, "accounts", account.name),

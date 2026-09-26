@@ -22,13 +22,14 @@ import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-s
 import { moneyLoanPath } from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { StitchLoanIcon } from "@/shared/ui/stitch-icon-artwork";
 import {
   BankIcon,
   BanknoteXIcon,
   Car01Icon,
   CreditCardIcon,
   GraduationCapIcon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children, ...props }: ComponentProps<"a">) => (
@@ -161,6 +162,6 @@ describe("Loan UI polish", () => {
   });
 
   it("keeps the loan finance icon on the debt concept", () => {
-    expect(FINANCE_ICONS.loan).toBe(BankIcon);
+    expect(FINANCE_ICONS.loan).toBe(StitchLoanIcon);
   });
 });

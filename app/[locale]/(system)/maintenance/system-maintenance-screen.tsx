@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Wrench01Icon } from "@hugeicons/core-free-icons";
+import { Wrench01Icon } from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { SystemShell } from "@/shared/patterns/system-shell";
 
@@ -17,7 +17,11 @@ export function SystemMaintenanceScreen() {
       title={t("title")}
       description={t("body")}
       icon={
-        <AppIcon icon={Wrench01Icon} size="xl" className="text-text-secondary" />
+        <AppIcon
+          icon={Wrench01Icon}
+          size="xl"
+          className="text-text-secondary"
+        />
       }
     />
   );

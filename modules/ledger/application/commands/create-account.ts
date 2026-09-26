@@ -83,6 +83,7 @@ export async function createAccount(
         household_id: gate.householdId,
         name: parsed.data.name,
         type: parsed.data.type,
+        icon_key: parsed.data.iconKey ?? null,
         opening_balance: openingBalance,
         created_by: gate.userId,
         financial_scope: ownership.financialScope,

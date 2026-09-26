@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { WifiOff01Icon } from "@hugeicons/core-free-icons";
+import { WifiOff01Icon } from "@/shared/ui/stitch-icon-compat";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { SystemShell } from "@/shared/patterns/system-shell";
@@ -26,9 +26,7 @@ export function SystemOfflineScreen() {
       data-testid="system-offline"
       title={t("title")}
       description={showStillOffline ? t("stillOffline") : t("body")}
-      icon={
-        <AppIcon icon={WifiOff01Icon} size="xl" className="text-warning" />
-      }
+      icon={<AppIcon icon={WifiOff01Icon} size="xl" className="text-warning" />}
       actions={
         <>
           <Button

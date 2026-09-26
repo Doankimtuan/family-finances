@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkCircle02Icon } from "@/shared/ui/stitch-icon-compat";
 
 export type ChoiceTileProps = {
   label?: string;

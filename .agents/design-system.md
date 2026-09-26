@@ -15,7 +15,7 @@ is needed):
 - `artifacts/design-system-evolution/CURRENT/` — Phase D visual package
 
 Implementation stack: Next.js App Router · HeroUI v3 · Tailwind semantic
-tokens · Hugeicons Free Stroke Rounded via `AppIcon` · `motion/react` via
+tokens · Stitch SVG artwork via `AppIcon` · `motion/react` via
 `shared/motion` · Recharts only when a chart answers a real question.
 
 ---
@@ -486,15 +486,15 @@ must not re-declare card CSS.
 
 ## 18. Iconography
 
-Hugeicons Free Stroke Rounded via `AppIcon` only. Semantic registries
-(navigation / finance / action / utility / category) for stable concepts;
+Stitch SVG artwork via `AppIcon` only. Semantic registries
+(navigation / finance / action / utility / account / category) for stable concepts;
 persist `iconKey` only.
 
 Sizes (`AppIconSize`): `xs` 14 · `sm` 16 · `md` 20 · `lg` 24 · `xl` 32 ·
 `display` 40. `IconContainer` for leading identity icons.
 
 - **Do:** consistent stroke; pair status icons with text.
-- **Don’t:** second icon family, Pro/solid/duotone, emoji as UI icons, SVG in
+- **Don’t:** second icon family, emoji as UI icons, SVG in
   persisted data.
 
 ---

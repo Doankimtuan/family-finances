@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useTranslations } from "next-intl";
-import { LockPasswordIcon } from "@hugeicons/core-free-icons";
+import { LockPasswordIcon } from "@/shared/ui/stitch-icon-compat";
 import { Link, useRouter } from "@/i18n/navigation";
 import { PASSWORD_MIN_LENGTH } from "@/modules/tenancy/application/auth-constants";
 import {

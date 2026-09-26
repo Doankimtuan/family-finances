@@ -1,20 +1,15 @@
 import {
   Add01Icon,
-  ArrowDataTransferHorizontalIcon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  ArrowTurnBackwardIcon,
   BankIcon,
-  BanknoteIcon,
   Building02Icon,
   Coins01Icon,
-  BanknoteXIcon,
   Calendar03Icon,
   Car01Icon,
   ChartBarLineIcon,
   CheckmarkCircle02Icon,
   Coffee01Icon,
-  CreditCardIcon,
   Delete02Icon,
   Edit02Icon,
   EyeIcon,
@@ -27,11 +22,9 @@ import {
   InformationCircleIcon,
   MoneyReceive01Icon,
   MoneySafeIcon,
-  MoneySend01Icon,
   MoreHorizontalIcon,
   Notification03Icon,
   PiggyBankIcon,
-  Restaurant01Icon,
   SafeBoxIcon,
   Search01Icon,
   Settings01Icon,
@@ -42,14 +35,40 @@ import {
   TravelBagIcon,
   UserGroupIcon,
   Wallet02Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 import type { IconContainerTone } from "./icon-container";
+import type { IconSvgElement } from "@hugeicons/react";
+import {
+  IconKey,
+  isCategoryIconKey,
+  type CategoryIconKey,
+} from "@/modules/ledger/application/icon-constants";
+import { CATEGORY_ICON_BY_KEY } from "./stitch-icon-choices";
+import {
+  StitchAccountIcon,
+  StitchCreditCardIcon,
+  StitchCashIcon,
+  StitchDebtIcon,
+  StitchExpenseIcon,
+  StitchFoodIcon,
+  StitchGoalIcon,
+  StitchIncomeIcon,
+  StitchInvestmentIcon,
+  StitchJarIcon,
+  StitchLoanIcon,
+  StitchMoneyIcon,
+  StitchPlanIcon,
+  StitchRecurringPaymentIcon,
+  StitchRefundIcon,
+  StitchSavingsIcon,
+  StitchTransferIcon,
+} from "./stitch-icon-artwork";
 
 /** Stable icons for the five-tab household shell. */
 export const NAVIGATION_ICONS = {
   home: Home01Icon,
-  money: Wallet02Icon,
-  plan: Calendar03Icon,
+  money: StitchMoneyIcon,
+  plan: StitchPlanIcon,
   inbox: InboxIcon,
   together: UserGroupIcon,
 } as const;
@@ -70,34 +89,34 @@ export const SAVINGS_PROVIDER_ICONS = {
 export type SavingsProviderIconKey = keyof typeof SAVINGS_PROVIDER_ICONS;
 
 export const FINANCE_ICONS = {
-  account: BankIcon,
+  account: StitchAccountIcon,
   wallet: Wallet02Icon,
-  cash: BanknoteIcon,
+  cash: StitchCashIcon,
   bank: BankIcon,
-  card: CreditCardIcon,
-  income: MoneyReceive01Icon,
-  expense: MoneySend01Icon,
-  transfer: ArrowDataTransferHorizontalIcon,
-  investment: ChartBarLineIcon,
-  savings: PiggyBankIcon,
-  debt: BanknoteXIcon,
-  loan: BankIcon,
-  refund: ArrowTurnBackwardIcon,
+  card: StitchCreditCardIcon,
+  income: StitchIncomeIcon,
+  expense: StitchExpenseIcon,
+  transfer: StitchTransferIcon,
+  investment: StitchInvestmentIcon,
+  savings: StitchSavingsIcon,
+  debt: StitchDebtIcon,
+  loan: StitchLoanIcon,
+  refund: StitchRefundIcon,
 } as const;
 
 /** Stable Plan-domain icons. Intention envelopes, not bank balances. */
 export const PLAN_ICONS = {
-  jar: Wallet02Icon,
-  goal: SafeBoxIcon,
-  recurring: ArrowDataTransferHorizontalIcon,
+  jar: StitchJarIcon,
+  goal: StitchGoalIcon,
+  recurring: StitchRecurringPaymentIcon,
   calendar: Calendar03Icon,
   ritual: CheckmarkCircle02Icon,
 } as const;
 
-/** Stable category keys are safe to persist; UI maps them to Hugeicons here. */
+/** Stable category keys are safe to persist; UI maps them to Stitch artwork here. */
 export const CATEGORY_ICONS = {
   coffee: Coffee01Icon,
-  food: Restaurant01Icon,
+  food: StitchFoodIcon,
   shopping: ShoppingBag01Icon,
   travel: TravelBagIcon,
   transport: Car01Icon,
@@ -110,20 +129,20 @@ export const CATEGORY_ICONS = {
 } as const;
 
 export const CategoryVisualKey = {
-  FOOD: "food",
-  TRANSPORT: "transport",
-  HOME: "home",
-  SHOPPING: "shopping",
-  HEALTH: "health",
-  EDUCATION: "education",
-  OTHER: "other",
+  FOOD: IconKey.FOOD,
+  TRANSPORT: IconKey.TRANSPORT,
+  HOME: IconKey.HOME,
+  SHOPPING: IconKey.SHOPPING,
+  HEALTH: IconKey.HEALTH,
+  EDUCATION: IconKey.EDUCATION,
+  OTHER: IconKey.OTHER,
 } as const;
 export type CategoryVisualKey =
   (typeof CategoryVisualKey)[keyof typeof CategoryVisualKey];
 
 export type CategoryVisual = {
-  iconKey: CategoryVisualKey;
-  icon: (typeof CATEGORY_ICONS)[keyof typeof CATEGORY_ICONS];
+  iconKey: CategoryIconKey;
+  icon: IconSvgElement;
   tone: IconContainerTone;
 };
 
@@ -165,11 +184,7 @@ const CATEGORY_VISUALS: Record<CategoryVisualKey, CategoryVisual> = {
   },
 };
 
-/**
- * Category records currently expose an immutable ID and display name, not a stored
- * icon field. This resolver produces a stable presentation key once in the view model,
- * rather than coupling Home JSX to raw names or icon components.
- */
+/** Prefer persisted category artwork and infer a safe default for legacy rows. */
 const CATEGORY_SEMANTIC_MATCHERS: Array<{
   visualKey: CategoryVisualKey;
   terms: readonly string[];
@@ -204,7 +219,16 @@ const CATEGORY_SEMANTIC_MATCHERS: Array<{
 export function categoryVisualFor(input: {
   categoryId: string | null;
   categoryName: string | null;
+  iconKey?: string | null;
 }): CategoryVisual {
+  if (input.iconKey && isCategoryIconKey(input.iconKey)) {
+    return {
+      iconKey: input.iconKey,
+      icon: CATEGORY_ICON_BY_KEY[input.iconKey],
+      tone:
+        CATEGORY_VISUALS[input.iconKey as CategoryVisualKey]?.tone ?? "neutral",
+    };
+  }
   const searchableValue =
     `${input.categoryId ?? ""} ${input.categoryName ?? ""}`.toLocaleLowerCase();
   const match = CATEGORY_SEMANTIC_MATCHERS.find(({ terms }) =>
@@ -254,14 +278,6 @@ export const FinanceIconKey = {
 export type FinanceIconKey =
   (typeof FinanceIconKey)[keyof typeof FinanceIconKey];
 
-export type CategoryIconKey = keyof typeof CATEGORY_ICONS;
-
-export function financeIconFor(key: string) {
-  return (
-    FINANCE_ICONS[key as keyof typeof FINANCE_ICONS] ?? FINANCE_ICONS.expense
-  );
-}
-
-export function categoryIconFor(key: string) {
-  return CATEGORY_ICONS[key as CategoryIconKey] ?? CATEGORY_ICONS.other;
+export function financeIconFor(key: FinanceIconKey) {
+  return FINANCE_ICONS[key];
 }

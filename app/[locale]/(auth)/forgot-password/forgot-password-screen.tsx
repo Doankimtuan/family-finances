@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { Mail01Icon } from "@hugeicons/core-free-icons";
+import { Mail01Icon } from "@/shared/ui/stitch-icon-compat";
 import { Link } from "@/i18n/navigation";
 import {
   forgotPasswordInputSchema,

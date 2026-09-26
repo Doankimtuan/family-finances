@@ -12,7 +12,7 @@ import {
   Ticket01Icon,
   UserGroupIcon,
   Car01Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 import type { IconSvgElement } from "@hugeicons/react";
 import type { TransactionTag } from "@/modules/ledger/application/client";
 import {

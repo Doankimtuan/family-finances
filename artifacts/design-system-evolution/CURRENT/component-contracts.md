@@ -110,6 +110,6 @@ Financial object rows use the shared account, credit-card, jar, transaction, and
 
 ### Empty States and Page Rhythm
 
-`EmptyState` uses one modest Hugeicons Free Stroke Rounded accent, a human title, a short explanation, and at most one useful next action. Empty states are calm and supportive; they must not introduce large illustrations, decorative hero art, or generic “No data” copy when a clearer explanation is available.
+`EmptyState` uses one modest Stitch SVG artwork accent, a human title, a short explanation, and at most one useful next action. Empty states are calm and supportive; they must not introduce large illustrations, decorative hero art, or generic “No data” copy when a clearer explanation is available.
 
 `Page` uses the shared gutter plus a compact body rhythm: 12px header-to-content offset, 16px standard content gaps, and 20px bottom spacing before the shell-reserved navigation area. Use `space-3` within compact metadata groups, `space-4` between related blocks, and `space-5` or above only when a clear region boundary warrants it.

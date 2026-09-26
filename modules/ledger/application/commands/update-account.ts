@@ -43,6 +43,9 @@ export async function updateAccount(
       .update({
         name: parsed.data.name,
         type: parsed.data.type,
+        ...(parsed.data.iconKey !== undefined
+          ? { icon_key: parsed.data.iconKey }
+          : {}),
       })
       .eq("id", parsed.data.accountId)
       .eq("household_id", gate.householdId)

@@ -145,6 +145,8 @@
       "availableToMoveValue": "Ý định còn có thể chuyển: <money>{amount}</money>"
     },
     "categoryForm": {
+      "manageIcons": "Quản lý biểu tượng danh mục",
+      "saveIcon": "Lưu biểu tượng",
       "open": "Tạo danh mục",
       "nameLabel": "Tên danh mục",
       "namePlaceholder": "vd. Chăm sóc thú cưng",

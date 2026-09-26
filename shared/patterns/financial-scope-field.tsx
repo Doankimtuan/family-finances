@@ -1,6 +1,6 @@
 "use client";
 
-import { UserGroupIcon, UserIcon } from "@hugeicons/core-free-icons";
+import { UserGroupIcon, UserIcon } from "@/shared/ui/stitch-icon-compat";
 import { useTranslations } from "next-intl";
 import {
   FINANCIAL_SCOPE,

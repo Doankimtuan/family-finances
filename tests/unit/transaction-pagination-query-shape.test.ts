@@ -79,7 +79,7 @@ describe("transaction event pagination query shape", () => {
   it("keeps the Loan breakdown on a privacy-aware detail surface", () => {
     const source = readFileSync(detailPath, "utf8");
 
-    expect(source).toContain('data-testid="loan-payment-breakdown"');
+    expect(source).toContain('testId="loan-payment-breakdown"');
     expect(source).toContain("detailPage.loanBreakdown.principal");
     expect(source).toContain("detailPage.loanBreakdown.interest");
     expect(source).toContain("<FinancialValue>");

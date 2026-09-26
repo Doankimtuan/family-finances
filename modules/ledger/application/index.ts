@@ -151,6 +151,14 @@ export {
   type CreateCategoryErrorCode,
 } from "./commands/create-category";
 export {
+  updateCategoryIcon,
+  type UpdateCategoryIconInput,
+} from "./commands/update-category-icon";
+export {
+  listEditableCategories,
+  type EditableCategory,
+} from "./queries/list-editable-categories";
+export {
   refundTransaction,
   type RefundTransactionInput,
   type RefundTransactionResult,

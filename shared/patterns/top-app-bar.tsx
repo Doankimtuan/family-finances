@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon } from "@/shared/ui/stitch-icon-compat";
 import { Link } from "@/i18n/navigation";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { cn } from "@/shared/utils/cn";

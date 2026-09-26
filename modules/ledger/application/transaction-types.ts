@@ -1,4 +1,5 @@
 import type { AccountType, LedgerAccount } from "./account-types";
+import { isCategoryIconKey, type CategoryIconKey } from "./icon-constants";
 import {
   isFinancialScope,
   type FinancialScope,
@@ -51,6 +52,7 @@ export type LedgerTransaction = {
   note: string | null;
   categoryId: string | null;
   categoryName: string | null;
+  categoryIconKey: CategoryIconKey | null;
   jarId: string | null;
   jarName: string | null;
   tags: TransactionTag[];
@@ -68,6 +70,7 @@ export type CategoryTag = {
   id: string;
   kind: TransactionDirection;
   name: string;
+  iconKey: CategoryIconKey | null;
   jarId: string | null;
 };
 
@@ -144,6 +147,7 @@ export function mapTransactionRow(row: {
   transaction_date: string;
   note: string | null;
   category_id: string | null;
+  categories?: { name: string; icon_key?: string | null } | null;
   jar_id: string | null;
   status?: string | null;
   transfer_group_id?: string | null;
@@ -158,7 +162,6 @@ export function mapTransactionRow(row: {
     type?: string | null;
     financial_scope?: string | null;
   } | null;
-  categories?: { name: string } | null;
   jars?: { name: string } | null;
   transaction_tag_assignments?: Array<{
     transaction_tags?: {
@@ -190,6 +193,10 @@ export function mapTransactionRow(row: {
     note: row.note,
     categoryId: row.category_id,
     categoryName: row.categories?.name ?? null,
+    categoryIconKey:
+      row.categories?.icon_key && isCategoryIconKey(row.categories.icon_key)
+        ? row.categories.icon_key
+        : null,
     jarId: row.jar_id,
     jarName: row.jars?.name ?? null,
     tags: (row.transaction_tag_assignments ?? [])

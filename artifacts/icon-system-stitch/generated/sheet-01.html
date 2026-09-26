@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icon Atlas 01 — Primary Navigation</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Geist', 'sans-serif'],
+          mono: ['Geist Mono', 'monospace'],
+        },
+        colors: {
+          brand: {
+            teal: '#0F766E',
+            tealDark: '#2DD4BF',
+            tealSoft: '#E7F5F1',
+            tealSoftDark: '#173B37',
+            canvas: '#FAFAF9',
+            surface: '#FFFFFF',
+            canvasDark: '#141416',
+            surfaceDark: '#1C1C1F',
+            border: '#E4E4E7',
+            borderDark: '#27272A',
+            text: '#18181B',
+            textDark: '#F4F4F5',
+            muted: '#71717A',
+            mutedDark: '#A1A1AA',
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .icon-svg {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+</head>
+<body class="bg-[#FAFAF9] text-[#18181B] font-sans antialiased min-h-screen p-8 lg:p-12">
+  <div class="max-w-5xl mx-auto space-y-10">
+
+    <!-- Header & Specification Bar -->
+    <header class="border-b border-[#E4E4E7] pb-6">
+      <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[11px] font-mono font-medium uppercase tracking-wider text-[#0F766E] bg-[#E7F5F1] px-2 py-0.5 rounded">Atlas 01</span>
+            <span class="text-xs text-[#71717A]">ViNha Warm Precision System</span>
+          </div>
+          <h1 class="text-2xl font-bold tracking-tight text-[#18181B]">Primary Navigation Specification</h1>
+          <p class="text-sm text-[#71717A] mt-1">Foundation icon grammar: 24×24 master geometry, 1.5px baseline stroke, round caps/joins, optical weight balance.</p>
+        </div>
+        <div class="flex items-center gap-6 text-xs text-[#71717A] font-mono border-t sm:border-t-0 sm:border-l border-[#E4E4E7] sm:pl-6 pt-3 sm:pt-0">
+          <div>
+            <span class="block text-[#A1A1AA] text-[10px]">VIEWBOX</span>
+            <span class="font-medium text-[#18181B]">24 × 24 px</span>
+          </div>
+          <div>
+            <span class="block text-[#A1A1AA] text-[10px]">STROKE</span>
+            <span class="font-medium text-[#18181B]">1.5px / 1.9px</span>
+          </div>
+          <div>
+            <span class="block text-[#A1A1AA] text-[10px]">CORNER</span>
+            <span class="font-medium text-[#18181B]">Round / Soft</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: Master 24px Baseline Glyphs (Resting State) -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-mono font-semibold uppercase tracking-wider text-[#71717A]">01 · Master 24px Glyphs (Resting / Inactive · 1.5px Stroke)</h2>
+        <span class="text-xs font-mono text-[#A1A1AA]">currentColor (#18181B)</span>
+      </div>
+
+      <div class="grid grid-cols-5 gap-4">
+        <!-- 1. HOME -->
+        <div class="bg-white rounded-xl border border-[#E4E4E7] p-6 flex flex-col items-center justify-center text-center shadow-sm">
+          <div class="w-14 h-14 rounded-lg bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center mb-4 text-[#18181B]">
+            <svg class="w-6 h-6 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <!-- Balanced roof with integrated gentle pitch & soft hearth chimney line -->
+              <path d="M3.75 10.5L12 3.75L20.25 10.5V19.25C20.25 19.8023 19.8023 20.25 19.25 20.25H4.75C4.19772 20.25 3.75 19.8023 3.75 19.25V10.5Z" />
+              <path d="M9.5 20.25V13.75C9.5 13.1977 9.94772 12.75 10.5 12.75H13.5C14.0523 12.75 14.5 13.1977 14.5 13.75V20.25" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm text-[#18181B]">Home</span>
+          <span class="text-[11px] font-mono text-[#71717A] mt-0.5">Trang chủ</span>
+          <span class="text-[10px] text-[#A1A1AA] mt-2 leading-tight">Household Hub</span>
+        </div>
+
+        <!-- 2. MONEY -->
+        <div class="bg-white rounded-xl border border-[#E4E4E7] p-6 flex flex-col items-center justify-center text-center shadow-sm">
+          <div class="w-14 h-14 rounded-lg bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center mb-4 text-[#18181B]">
+            <svg class="w-6 h-6 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <!-- Tiered coin stack ledger cylinders representing real liquidity & accounts -->
+              <ellipse cx="12" cy="6.25" rx="7.25" ry="2.75" />
+              <path d="M4.75 6.25V12C4.75 13.5 8 14.75 12 14.75C16 14.75 19.25 13.5 19.25 12V6.25" />
+              <path d="M4.75 12V17.75C4.75 19.25 8 20.5 12 20.5C16 20.5 19.25 19.25 19.25 17.75V12" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm text-[#18181B]">Money</span>
+          <span class="text-[11px] font-mono text-[#71717A] mt-0.5">Tiền tệ</span>
+          <span class="text-[10px] text-[#A1A1AA] mt-2 leading-tight">Balances & Cash</span>
+        </div>
+
+        <!-- 3. PLAN -->
+        <div class="bg-white rounded-xl border border-[#E4E4E7] p-6 flex flex-col items-center justify-center text-center shadow-sm">
+          <div class="w-14 h-14 rounded-lg bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center mb-4 text-[#18181B]">
+            <svg class="w-6 h-6 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <!-- Concentric intention rings / target milestone jar horizon -->
+              <circle cx="12" cy="12" r="8.25" />
+              <circle cx="12" cy="12" r="4.25" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm text-[#18181B]">Plan</span>
+          <span class="text-[11px] font-mono text-[#71717A] mt-0.5">Kế hoạch</span>
+          <span class="text-[10px] text-[#A1A1AA] mt-2 leading-tight">Jars & Intentions</span>
+        </div>
+
+        <!-- 4. INBOX -->
+        <div class="bg-white rounded-xl border border-[#E4E4E7] p-6 flex flex-col items-center justify-center text-center shadow-sm">
+          <div class="w-14 h-14 rounded-lg bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center mb-4 text-[#18181B]">
+            <svg class="w-6 h-6 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <!-- Decision queue tray with distinct notch drop silhouette -->
+              <path d="M4 13.5L5.75 5.5C5.9 4.8 6.5 4.25 7.25 4.25H16.75C17.5 4.25 18.1 4.8 18.25 5.5L20 13.5V18.25C20 18.94 19.44 19.5 18.75 19.5H5.25C4.56 19.5 4 18.94 4 18.25V13.5Z" />
+              <path d="M4 13.5H8.5L9.75 16H14.25L15.5 13.5H20" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm text-[#18181B]">Inbox</span>
+          <span class="text-[11px] font-mono text-[#71717A] mt-0.5">Hộp thư</span>
+          <span class="text-[10px] text-[#A1A1AA] mt-2 leading-tight">Decision Queue</span>
+        </div>
+
+        <!-- 5. TOGETHER -->
+        <div class="bg-white rounded-xl border border-[#E4E4E7] p-6 flex flex-col items-center justify-center text-center shadow-sm">
+          <div class="w-14 h-14 rounded-lg bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center mb-4 text-[#18181B]">
+            <svg class="w-6 h-6 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <!-- Linked partner / family figures sharing joint household finance -->
+              <circle cx="8.5" cy="8" r="3.25" />
+              <path d="M3.75 18.5C3.75 15.5 6 13.75 8.5 13.75C11 13.75 13.25 15.5 13.25 18.5" />
+              <circle cx="15.75" cy="9.25" r="2.75" />
+              <path d="M14.5 14.5C15.6 14.05 16.9 14.05 18 14.75C19.5 15.65 20.25 17 20.25 18.5" />
+            </svg>
+          </div>
+          <span class="font-semibold text-sm text-[#18181B]">Together</span>
+          <span class="text-[11px] font-mono text-[#71717A] mt-0.5">Chung tay</span>
+          <span class="text-[10px] text-[#A1A1AA] mt-2 leading-tight">Shared Family</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: 16px Reductions & Active Emphasized States -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <!-- 16px Micro Legibility Verification -->
+      <section class="bg-white rounded-xl border border-[#E4E4E7] p-6 shadow-sm space-y-4">
+        <div class="border-b border-[#F4F4F5] pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-[#71717A]">02 · 16px Reductions (Optical Clarity)</h3>
+            <p class="text-xs text-[#A1A1AA] mt-0.5">Preserving silhouette recognition with crisp unclipped strokes.</p>
+          </div>
+          <span class="text-[11px] font-mono text-[#0F766E] bg-[#E7F5F1] px-2 py-0.5 rounded">16×16 px</span>
+        </div>
+
+        <div class="flex items-center justify-around py-3">
+          <!-- 16px Home -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 rounded bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center text-[#18181B]">
+              <svg class="w-4 h-4 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M3.75 10.5L12 3.75L20.25 10.5V19.25C20.25 19.8023 19.8023 20.25 19.25 20.25H4.75C4.19772 20.25 3.75 19.8023 3.75 19.25V10.5Z" />
+                <path d="M9.5 20.25V13.75C9.5 13.1977 9.94772 12.75 10.5 12.75H13.5C14.0523 12.75 14.5 13.1977 14.5 13.75V20.25" />
+              </svg>
+            </div>
+            <span class="text-[11px] text-[#71717A]">Home</span>
+          </div>
+
+          <!-- 16px Money -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 rounded bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center text-[#18181B]">
+              <svg class="w-4 h-4 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <ellipse cx="12" cy="6.25" rx="7.25" ry="2.75" />
+                <path d="M4.75 6.25V12C4.75 13.5 8 14.75 12 14.75C16 14.75 19.25 13.5 19.25 12V6.25" />
+                <path d="M4.75 12V17.75C4.75 19.25 8 20.5 12 20.5C16 20.5 19.25 19.25 19.25 17.75V12" />
+              </svg>
+            </div>
+            <span class="text-[11px] text-[#71717A]">Money</span>
+          </div>
+
+          <!-- 16px Plan -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 rounded bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center text-[#18181B]">
+              <svg class="w-4 h-4 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="12" cy="12" r="8.25" />
+                <circle cx="12" cy="12" r="4.25" />
+                <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+              </svg>
+            </div>
+            <span class="text-[11px] text-[#71717A]">Plan</span>
+          </div>
+
+          <!-- 16px Inbox -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 rounded bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center text-[#18181B]">
+              <svg class="w-4 h-4 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M4 13.5L5.75 5.5C5.9 4.8 6.5 4.25 7.25 4.25H16.75C17.5 4.25 18.1 4.8 18.25 5.5L20 13.5V18.25C20 18.94 19.44 19.5 18.75 19.5H5.25C4.56 19.5 4 18.94 4 18.25V13.5Z" />
+                <path d="M4 13.5H8.5L9.75 16H14.25L15.5 13.5H20" />
+              </svg>
+            </div>
+            <span class="text-[11px] text-[#71717A]">Inbox</span>
+          </div>
+
+          <!-- 16px Together -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="w-8 h-8 rounded bg-[#FAFAF9] border border-[#F4F4F5] flex items-center justify-center text-[#18181B]">
+              <svg class="w-4 h-4 icon-svg text-[#18181B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="8.5" cy="8" r="3.25" />
+                <path d="M3.75 18.5C3.75 15.5 6 13.75 8.5 13.75C11 13.75 13.25 15.5 13.25 18.5" />
+                <circle cx="15.75" cy="9.25" r="2.75" />
+                <path d="M14.5 14.5C15.6 14.05 16.9 14.05 18 14.75C19.5 15.65 20.25 17 20.25 18.5" />
+              </svg>
+            </div>
+            <span class="text-[11px] text-[#71717A]">Together</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Emphasized State (Teal + Soft Selected Pill) -->
+      <section class="bg-white rounded-xl border border-[#E4E4E7] p-6 shadow-sm space-y-4">
+        <div class="border-b border-[#F4F4F5] pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-[#0F766E]">03 · Active Navigation State (24px · 1.9px Stroke)</h3>
+            <p class="text-xs text-[#71717A] mt-0.5">Teal (#0F766E) with soft selected surface (#E7F5F1) + weighted label.</p>
+          </div>
+          <span class="text-[11px] font-mono text-[#0F766E] bg-[#E7F5F1] px-2 py-0.5 rounded">Active #0F766E</span>
+        </div>
+
+        <div class="flex items-center justify-around py-1">
+          <!-- Active Home -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-9 rounded-full bg-[#E7F5F1] flex items-center justify-center text-[#0F766E] mb-1.5 transition-all">
+              <svg class="w-6 h-6 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                <path d="M3.75 10.5L12 3.75L20.25 10.5V19.25C20.25 19.8023 19.8023 20.25 19.25 20.25H4.75C4.19772 20.25 3.75 19.8023 3.75 19.25V10.5Z" />
+                <path d="M9.5 20.25V13.75C9.5 13.1977 9.94772 12.75 10.5 12.75H13.5C14.0523 12.75 14.5 13.1977 14.5 13.75V20.25" />
+              </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0F766E]">Home</span>
+          </div>
+
+          <!-- Active Money -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-9 rounded-full bg-[#E7F5F1] flex items-center justify-center text-[#0F766E] mb-1.5">
+              <svg class="w-6 h-6 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                <ellipse cx="12" cy="6.25" rx="7.25" ry="2.75" />
+                <path d="M4.75 6.25V12C4.75 13.5 8 14.75 12 14.75C16 14.75 19.25 13.5 19.25 12V6.25" />
+                <path d="M4.75 12V17.75C4.75 19.25 8 20.5 12 20.5C16 20.5 19.25 19.25 19.25 17.75V12" />
+              </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0F766E]">Money</span>
+          </div>
+
+          <!-- Active Plan -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-9 rounded-full bg-[#E7F5F1] flex items-center justify-center text-[#0F766E] mb-1.5">
+              <svg class="w-6 h-6 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                <circle cx="12" cy="12" r="8.25" />
+                <circle cx="12" cy="12" r="4.25" />
+                <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+              </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0F766E]">Plan</span>
+          </div>
+
+          <!-- Active Inbox -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-9 rounded-full bg-[#E7F5F1] flex items-center justify-center text-[#0F766E] mb-1.5">
+              <svg class="w-6 h-6 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                <path d="M4 13.5L5.75 5.5C5.9 4.8 6.5 4.25 7.25 4.25H16.75C17.5 4.25 18.1 4.8 18.25 5.5L20 13.5V18.25C20 18.94 19.44 19.5 18.75 19.5H5.25C4.56 19.5 4 18.94 4 18.25V13.5Z" />
+                <path d="M4 13.5H8.5L9.75 16H14.25L15.5 13.5H20" />
+              </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0F766E]">Inbox</span>
+          </div>
+
+          <!-- Active Together -->
+          <div class="flex flex-col items-center">
+            <div class="w-12 h-9 rounded-full bg-[#E7F5F1] flex items-center justify-center text-[#0F766E] mb-1.5">
+              <svg class="w-6 h-6 icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                <circle cx="8.5" cy="8" r="3.25" />
+                <path d="M3.75 18.5C3.75 15.5 6 13.75 8.5 13.75C11 13.75 13.25 15.5 13.25 18.5" />
+                <circle cx="15.75" cy="9.25" r="2.75" />
+                <path d="M14.5 14.5C15.6 14.05 16.9 14.05 18 14.75C19.5 15.65 20.25 17 20.25 18.5" />
+              </svg>
+            </div>
+            <span class="text-xs font-semibold text-[#0F766E]">Together</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- SECTION 3: Dark-Mode Comparative Row -->
+    <section class="bg-[#141416] rounded-xl border border-[#27272A] p-6 shadow-md text-[#F4F4F5] space-y-4">
+      <div class="flex items-center justify-between border-b border-[#27272A] pb-3">
+        <div>
+          <h2 class="text-xs font-mono font-semibold uppercase tracking-wider text-[#A1A1AA]">04 · Dark Mode Verification (#141416 Canvas · currentColor)</h2>
+          <p class="text-xs text-[#71717A] mt-0.5">High contrast vector balance with muted inactive state & #2DD4BF active teal glow.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#2DD4BF]"></span>
+          <span class="text-xs font-mono text-[#2DD4BF]">#2DD4BF Teal Accent</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-5 gap-4 pt-2">
+        <!-- Dark Home (Inactive) -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-[#1C1C1F] border border-[#27272A]">
+          <svg class="w-6 h-6 icon-svg text-[#A1A1AA] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3.75 10.5L12 3.75L20.25 10.5V19.25C20.25 19.8023 19.8023 20.25 19.25 20.25H4.75C4.19772 20.25 3.75 19.8023 3.75 19.25V10.5Z" />
+            <path d="M9.5 20.25V13.75C9.5 13.1977 9.94772 12.75 10.5 12.75H13.5C14.0523 12.75 14.5 13.1977 14.5 13.75V20.25" />
+          </svg>
+          <span class="text-xs font-medium text-[#A1A1AA]">Home</span>
+        </div>
+
+        <!-- Dark Money (Active) -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-[#173B37] border border-[#2DD4BF]/30">
+          <svg class="w-6 h-6 icon-svg text-[#2DD4BF] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+            <ellipse cx="12" cy="6.25" rx="7.25" ry="2.75" />
+            <path d="M4.75 6.25V12C4.75 13.5 8 14.75 12 14.75C16 14.75 19.25 13.5 19.25 12V6.25" />
+            <path d="M4.75 12V17.75C4.75 19.25 8 20.5 12 20.5C16 20.5 19.25 19.25 19.25 17.75V12" />
+          </svg>
+          <span class="text-xs font-semibold text-[#2DD4BF]">Money</span>
+        </div>
+
+        <!-- Dark Plan (Inactive) -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-[#1C1C1F] border border-[#27272A]">
+          <svg class="w-6 h-6 icon-svg text-[#A1A1AA] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="8.25" />
+            <circle cx="12" cy="12" r="4.25" />
+            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+          </svg>
+          <span class="text-xs font-medium text-[#A1A1AA]">Plan</span>
+        </div>
+
+        <!-- Dark Inbox (Inactive) -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-[#1C1C1F] border border-[#27272A]">
+          <svg class="w-6 h-6 icon-svg text-[#A1A1AA] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M4 13.5L5.75 5.5C5.9 4.8 6.5 4.25 7.25 4.25H16.75C17.5 4.25 18.1 4.8 18.25 5.5L20 13.5V18.25C20 18.94 19.44 19.5 18.75 19.5H5.25C4.56 19.5 4 18.94 4 18.25V13.5Z" />
+            <path d="M4 13.5H8.5L9.75 16H14.25L15.5 13.5H20" />
+          </svg>
+          <span class="text-xs font-medium text-[#A1A1AA]">Inbox</span>
+        </div>
+
+        <!-- Dark Together (Inactive) -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-[#1C1C1F] border border-[#27272A]">
+          <svg class="w-6 h-6 icon-svg text-[#A1A1AA] mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8.5" cy="8" r="3.25" />
+            <path d="M3.75 18.5C3.75 15.5 6 13.75 8.5 13.75C11 13.75 13.25 15.5 13.25 18.5" />
+            <circle cx="15.75" cy="9.25" r="2.75" />
+            <path d="M14.5 14.5C15.6 14.05 16.9 14.05 18 14.75C19.5 15.65 20.25 17 20.25 18.5" />
+          </svg>
+          <span class="text-xs font-medium text-[#A1A1AA]">Together</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Meta -->
+    <footer class="pt-4 border-t border-[#E4E4E7] flex flex-col sm:flex-row items-center justify-between text-xs text-[#A1A1AA] font-mono gap-2">
+      <div>Sheet 01 of 12 · Primary Navigation Specification</div>
+      <div>Strictly currentColor Vector Artwork · Round Joins & Caps</div>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -20,6 +20,7 @@ export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** Supabase RPC names used by ledger money-product commands. */
 export const LedgerRpcName = {
   CORRECT_TRANSACTION: "correct_transaction",
+  CREATE_CATEGORY_WITH_ICON: "create_category_with_icon",
   RECORD_TRANSACTION: "record_transaction",
   RECORD_CARD_TRANSACTION: "record_card_transaction",
   SETTLE_CARD_PAYMENT: "settle_card_payment",
@@ -43,6 +44,7 @@ export type LedgerRpcName = (typeof LedgerRpcName)[keyof typeof LedgerRpcName];
 /** Public relation names for ledger queries / mutations. */
 export const LedgerRelation = {
   ACCOUNTS: "accounts",
+  CATEGORIES: "categories",
   LIABILITIES: "liabilities",
   SAVINGS_ACCOUNTS: "savings_accounts",
   LOANS: "loans",
@@ -91,6 +93,8 @@ export const LEDGER_OPERATION = {
   GET_TRANSACTION: "getTransaction",
   GET_TRANSACTION_AUDIT_CHAIN: "getTransactionAuditChain",
   CREATE_CATEGORY: "createCategory",
+  UPDATE_CATEGORY_ICON: "updateCategoryIcon",
+  LIST_EDITABLE_CATEGORIES: "listEditableCategories",
   LIST_ACCOUNTS: "listAccounts",
   LIST_CAPTURE_JARS: "listCaptureJars",
   LIST_CATEGORY_TAGS: "listCategoryTags",

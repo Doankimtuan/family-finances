@@ -28,7 +28,7 @@ Headers should use the shared typography, `AppIcon`, `IconButton`, spacing, and 
 
 `BottomNavigation` is the only authenticated product navigation component. Its destinations and route ownership come from the information-architecture contract. It is data-driven through the stable tab registry so a future destination can be added without a new navigation implementation.
 
-Navigation labels remain visible and come from the existing i18n system. Navigation icons are Hugeicons Free Stroke Rounded rendered by `AppIcon`, normally 22–24px. Selected state combines `aria-current`, a soft primary surface, primary foreground, strengthened label weight, and an emphasized stroke; it must never rely on filled/Pro icons or color alone. Motion is limited to the existing short press/color/surface transitions and is disabled or reduced for reduced-motion preferences.
+Navigation labels remain visible and come from the existing i18n system. Navigation icons are Stitch SVG artwork rendered by `AppIcon`, normally 22–24px. Selected state combines `aria-current`, a soft primary surface, primary foreground, strengthened label weight, and an emphasized stroke; it must never rely on filled icons or color alone. Motion is limited to the existing short press/color/surface transitions and is disabled or reduced for reduced-motion preferences.
 
 The navigation is attached at small widths and may gain only restrained token-based surface separation inside the 440px shell on wider canvases. It must keep accessible tap targets, safe-area bottom padding, visible focus, and no content overlap.
 

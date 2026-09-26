@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkCircle02Icon } from "@/shared/ui/stitch-icon-compat";
 import {
   MaturityTargetMode,
   SettlementAction,

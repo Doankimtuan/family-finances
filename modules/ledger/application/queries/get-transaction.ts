@@ -44,8 +44,9 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
           financial_scope?: string;
         } | null),
     categories: Array.isArray(row.categories)
-      ? (row.categories[0] as { name: string } | undefined)
-      : (row.categories as { name: string } | null),
+      ? (row.categories[0] as
+          { name: string; icon_key: string | null } | undefined)
+      : (row.categories as { name: string; icon_key: string | null } | null),
     jars: Array.isArray(row.jars)
       ? (row.jars[0] as { name: string } | undefined)
       : (row.jars as { name: string } | null),
@@ -53,9 +54,9 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name, icon_key), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 const TX_SELECT_WITH_TAG_FILTER =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name), jars(name), transaction_tag_assignments!inner(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name, icon_key), jars(name), transaction_tag_assignments!inner(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 const TRANSFER_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
   TransactionLedgerType.TRANSFER_OUT,

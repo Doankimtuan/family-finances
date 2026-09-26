@@ -145,6 +145,8 @@
       "availableToMoveValue": "Remaining intention to move: <money>{amount}</money>"
     },
     "categoryForm": {
+      "manageIcons": "Manage category icons",
+      "saveIcon": "Save icon",
       "open": "Create category",
       "nameLabel": "Category name",
       "namePlaceholder": "e.g. Pet Grooming",

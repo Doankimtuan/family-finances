@@ -86,6 +86,7 @@ export function HomeSpendingSection({
           const visual = categoryVisualFor({
             categoryId: category.id,
             categoryName: category.name,
+            iconKey: category.iconKey,
           });
           const categoryName = category.name ?? t("spending.uncategorized");
           const percentage = formatPercent(category.proportion, locale, {

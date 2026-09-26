@@ -28,6 +28,13 @@ import {
   type ProductActionErrorCode,
 } from "@/modules/tenancy/application/product-action-error";
 import { createCategoryAction } from "./actions";
+import {
+  CATEGORY_ICON_KEYS,
+  DEFAULT_CATEGORY_ICON_KEY,
+  type CategoryIconKey,
+} from "@/modules/ledger/application/icon-constants";
+import { CATEGORY_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
+import { IconPickerField } from "@/shared/ui/form";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -41,6 +48,7 @@ function createCategoryDefaults() {
     name: "",
     kind: TransactionDirection.EXPENSE,
     mappedJarId: "",
+    iconKey: DEFAULT_CATEGORY_ICON_KEY,
   };
 }
 
@@ -48,6 +56,7 @@ function createCategoryDefaults() {
 export function CreateCategoryForm({ jars }: Props) {
   const t = useTranslations("plan.jars.categoryForm");
   const tCatalog = useTranslations("catalog");
+  const tIcons = useTranslations("common.iconPicker");
   const router = useRouter();
   const nameId = useId();
   const jarId = useId();
@@ -59,6 +68,9 @@ export function CreateCategoryForm({ jars }: Props) {
     TransactionDirection.EXPENSE,
   );
   const [mappedJarId, setMappedJarId] = useState("");
+  const [iconKey, setIconKey] = useState<CategoryIconKey>(
+    DEFAULT_CATEGORY_ICON_KEY,
+  );
   const [nameError, setNameError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -67,6 +79,7 @@ export function CreateCategoryForm({ jars }: Props) {
     setName(defaults.name);
     setKind(defaults.kind);
     setMappedJarId(defaults.mappedJarId);
+    setIconKey(defaults.iconKey);
     setNameError(null);
   };
 
@@ -105,6 +118,7 @@ export function CreateCategoryForm({ jars }: Props) {
       name: trimmedName,
       kind,
       jarId: mappedJarId || null,
+      iconKey,
     };
 
     startTransition(async () => {
@@ -200,6 +214,20 @@ export function CreateCategoryForm({ jars }: Props) {
                         jar.name,
                       ) || jar.name,
                   }))}
+                />
+                <IconPickerField
+                  id="category-icon"
+                  label={tIcons("label")}
+                  value={iconKey}
+                  onChange={setIconKey}
+                  options={CATEGORY_ICON_KEYS.map((key) => ({
+                    key,
+                    label: tIcons(`choices.${key}`),
+                    icon: CATEGORY_ICON_BY_KEY[key],
+                  }))}
+                  searchLabel={tIcons("search")}
+                  emptyLabel={tIcons("empty")}
+                  data-testid="category-icon"
                 />
               </div>
             ) : null}

@@ -1,11 +1,12 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { ChartBarLineIcon, UserGroupIcon } from "@hugeicons/core-free-icons";
+import {
+  ChartBarLineIcon,
+  UserGroupIcon,
+} from "@/shared/ui/stitch-icon-compat";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
-import { formatCurrency } from "@/shared/i18n/formatters";
 import {
   AUTH_PRIMARY_ACTION_CLASS_NAME,
   AuthScreenShell,
@@ -24,10 +25,6 @@ import {
 import { CATEGORY_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import type { IconSvgElement } from "@hugeicons/react";
-
-/** Static illustration values — decorative welcome preview, never user data. */
-const PREVIEW_BALANCE = 24_800_000;
-const PREVIEW_NET = 4_250_000;
 
 const PREVIEW_SPENDING_ROWS: Array<{
   key: string;
@@ -64,7 +61,7 @@ const WELCOME_POINTS: Array<{
  * Decorative product preview quoting Home's hero card + spending rows.
  * Clearly badged "Preview"; values are static illustration, not user data.
  */
-function WelcomePreview({ locale }: { locale: string }) {
+function WelcomePreview() {
   const t = useTranslations("auth.welcome");
 
   return (
@@ -98,19 +95,9 @@ function WelcomePreview({ locale }: { locale: string }) {
             {t("previewBadge")}
           </span>
         </div>
-        <p className="mt-(--space-2) text-3xl font-semibold tracking-tight text-hero-fg tabular-nums">
-          {formatCurrency(PREVIEW_BALANCE, DEFAULT_CURRENCY, locale, {
-            maximumFractionDigits: 0,
-          })}
-        </p>
         <div className="mt-(--space-4) flex items-center gap-(--space-2) border-t border-white/15 pt-(--space-3)">
           <span className="inline-flex min-h-7 items-center gap-(--space-1) rounded-full bg-white/15 px-(--space-2)">
             <AppIcon icon={FINANCE_ICONS.income} size="xs" />
-            <Text size="sm" weight="semibold" tabular className="text-hero-fg">
-              {formatCurrency(PREVIEW_NET, DEFAULT_CURRENCY, locale, {
-                maximumFractionDigits: 0,
-              })}
-            </Text>
           </span>
           <Text size="xs" className="text-hero-muted">
             {t("previewHint")}
@@ -127,7 +114,6 @@ function WelcomePreview({ locale }: { locale: string }) {
  */
 export function WelcomeScreen() {
   const router = useRouter();
-  const locale = useLocale();
   const t = useTranslations("auth.welcome");
   const tCommon = useTranslations("common");
 
@@ -159,7 +145,7 @@ export function WelcomeScreen() {
         </Text>
       </div>
 
-      <WelcomePreview locale={locale} />
+      <WelcomePreview />
 
       <ul className="flex flex-col gap-(--space-3)">
         {WELCOME_POINTS.map((point) => (

@@ -26,6 +26,8 @@ import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { SelectField, TextField } from "@/shared/ui/form";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { categoryVisualFor } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -574,10 +576,29 @@ export function CorrectTransactionForm({
                   { id: "", label: t("tagNone") },
                   ...tags.map((tag) => ({
                     id: tag.id,
-                    label: localizeCatalogName(
+                    textValue: localizeCatalogName(
                       tCatalog,
                       CatalogGroup.TAGS,
                       tag.name,
+                    ),
+                    label: (
+                      <span className="flex items-center gap-(--space-2)">
+                        <AppIcon
+                          icon={
+                            categoryVisualFor({
+                              categoryId: tag.id,
+                              categoryName: tag.name,
+                              iconKey: tag.iconKey,
+                            }).icon
+                          }
+                          size="sm"
+                        />
+                        {localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.TAGS,
+                          tag.name,
+                        )}
+                      </span>
                     ),
                   })),
                 ]}

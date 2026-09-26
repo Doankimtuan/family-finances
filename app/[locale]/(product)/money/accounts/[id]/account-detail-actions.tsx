@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
-import { SelectField, TextField } from "@/shared/ui/form";
+import { IconPickerField, SelectField, TextField } from "@/shared/ui/form";
 import { Button, ButtonVariant } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -34,6 +34,12 @@ import {
   ACCOUNT_DETAIL_MODE,
   type AccountDetailMode,
 } from "./detail-constants";
+import {
+  ACCOUNT_ICON_KEYS,
+  DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE,
+  type AccountIconKey,
+} from "@/modules/ledger/application/icon-constants";
+import { ACCOUNT_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -42,6 +48,7 @@ type Props = {
   accountId: string;
   initialName: string;
   initialType: AccountTypeValue;
+  initialIconKey: AccountIconKey | null;
   mode: AccountDetailMode;
   onModeChange: (mode: AccountDetailMode) => void;
   children?: ReactNode;
@@ -63,12 +70,14 @@ export function AccountDetailActions({
   accountId,
   initialName,
   initialType,
+  initialIconKey,
   mode,
   onModeChange,
   children,
 }: Props) {
   const t = useTranslations("money.accountDetail");
   const tTypes = useTranslations("money.types");
+  const tIcons = useTranslations("common.iconPicker");
   const router = useRouter();
   const { online } = useOnlineStatusClient();
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
@@ -85,6 +94,7 @@ export function AccountDetailActions({
       accountId,
       name: initialName,
       type: resolveEditableType(initialType),
+      iconKey: initialIconKey ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[initialType],
     },
   });
   function resetEditForm() {
@@ -92,6 +102,7 @@ export function AccountDetailActions({
       accountId,
       name: initialName,
       type: resolveEditableType(initialType),
+      iconKey: initialIconKey ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[initialType],
     });
     setErrorCode(null);
   }
@@ -221,6 +232,29 @@ export function AccountDetailActions({
                 )}
               />
             )}
+            <Controller
+              control={control}
+              name="iconKey"
+              render={({ field, fieldState }) => (
+                <IconPickerField
+                  id="account-edit-icon"
+                  label={tIcons("label")}
+                  value={
+                    field.value ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[initialType]
+                  }
+                  onChange={field.onChange}
+                  options={ACCOUNT_ICON_KEYS.map((key) => ({
+                    key,
+                    label: tIcons(`choices.${key}`),
+                    icon: ACCOUNT_ICON_BY_KEY[key],
+                  }))}
+                  searchLabel={tIcons("search")}
+                  emptyLabel={tIcons("empty")}
+                  error={fieldState.error ? t("errors.invalid") : undefined}
+                  data-testid="account-edit-icon"
+                />
+              )}
+            />
           </form>
         </ActionSheetLayout.Body>
         <SheetActionFooter

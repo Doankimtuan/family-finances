@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { SelectField, TextField } from "@/shared/ui/form";
+import { IconPickerField, SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -37,6 +37,11 @@ import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
+import {
+  ACCOUNT_ICON_KEYS,
+  DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE,
+} from "@/modules/ledger/application/icon-constants";
+import { ACCOUNT_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -78,6 +83,7 @@ export function AddAccountForm({
 }: Props) {
   const t = useTranslations("money.accountsPage");
   const tTypes = useTranslations("money.types");
+  const tIcons = useTranslations("common.iconPicker");
   const locale = useLocale();
   const { online } = useOnlineStatusClient();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
@@ -109,6 +115,7 @@ export function AddAccountForm({
     defaultValues: {
       name: "",
       type: AccountType.CASH,
+      iconKey: DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[AccountType.CASH],
       openingBalance: 0,
       financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
       creditCard: undefined,
@@ -142,6 +149,7 @@ export function AddAccountForm({
         const result = await createAccountAction({
           name: values.name,
           type: AccountType.CREDIT_CARD,
+          iconKey: values.iconKey,
           openingBalance: 0,
           financialScope: values.financialScope,
           creditCard: {
@@ -167,6 +175,7 @@ export function AddAccountForm({
       const result = await createAccountAction({
         name: values.name,
         type: values.type ?? AccountType.OTHER,
+        iconKey: values.iconKey,
         openingBalance: values.openingBalance ?? 0,
         financialScope: values.financialScope ?? FINANCIAL_SCOPE.HOUSEHOLD,
       });
@@ -296,6 +305,7 @@ export function AddAccountForm({
         onChange={(next) => {
           const nextType = next as AccountTypeValue;
           setValue("type", nextType, { shouldValidate: true });
+          setValue("iconKey", DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[nextType]);
           setValue(
             "creditCard",
             nextType === AccountType.CREDIT_CARD
@@ -318,6 +328,27 @@ export function AddAccountForm({
         placeholder={t("namePlaceholder")}
         registration={register("name")}
         error={errors.name ? t("errors.invalid") : undefined}
+      />
+      <Controller
+        control={control}
+        name="iconKey"
+        render={({ field, fieldState }) => (
+          <IconPickerField
+            id="account-icon"
+            label={tIcons("label")}
+            value={field.value ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[type]}
+            onChange={field.onChange}
+            options={ACCOUNT_ICON_KEYS.map((key) => ({
+              key,
+              label: tIcons(`choices.${key}`),
+              icon: ACCOUNT_ICON_BY_KEY[key],
+            }))}
+            searchLabel={tIcons("search")}
+            emptyLabel={tIcons("empty")}
+            error={fieldState.error ? t("errors.invalid") : undefined}
+            data-testid="account-icon"
+          />
+        )}
       />
       {!isCard ? (
         <div className="flex flex-col gap-(--space-1)">

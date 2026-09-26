@@ -22,7 +22,9 @@ import { MONEY_ACTION_DENIED_REASON } from "@/modules/tenancy/application/tenanc
 import { refundTransaction } from "@/modules/ledger/application/commands/refund-transaction";
 import { correctTransaction } from "@/modules/ledger/application/commands/correct-transaction";
 import { createCategory } from "@/modules/ledger/application/commands/create-category";
+import { DEFAULT_CATEGORY_ICON_KEY } from "@/modules/ledger/application/icon-constants";
 import {
+  LedgerRpcName,
   TransactionDirection,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
@@ -57,10 +59,11 @@ describe("Sprint 1 integration — refund / correct / category RPCs", () => {
     });
 
     expect(result).toEqual({ ok: true, categoryId: "expense-category" });
-    expect(rpc).toHaveBeenCalledWith("create_category", {
+    expect(rpc).toHaveBeenCalledWith(LedgerRpcName.CREATE_CATEGORY_WITH_ICON, {
       p_name: "Pet Grooming",
       p_kind: TransactionDirection.EXPENSE,
       p_jar_id: null,
+      p_icon_key: DEFAULT_CATEGORY_ICON_KEY,
     });
   });
 
@@ -83,10 +86,11 @@ describe("Sprint 1 integration — refund / correct / category RPCs", () => {
     });
 
     expect(result).toEqual({ ok: true, categoryId: "income-category" });
-    expect(rpc).toHaveBeenCalledWith("create_category", {
+    expect(rpc).toHaveBeenCalledWith(LedgerRpcName.CREATE_CATEGORY_WITH_ICON, {
       p_name: "Salary",
       p_kind: TransactionDirection.INCOME,
       p_jar_id: null,
+      p_icon_key: DEFAULT_CATEGORY_ICON_KEY,
     });
   });
 

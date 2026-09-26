@@ -8,6 +8,7 @@
 export * from "./account-constants";
 export * from "./credit-card-constants";
 export * from "./debt-constants";
+export * from "./icon-constants";
 export * from "./ledger-shared-constants";
 export * from "./loan-constants";
 export * from "./transaction-constants";

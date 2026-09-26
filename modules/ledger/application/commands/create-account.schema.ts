@@ -4,6 +4,7 @@ import {
   AccountType,
   DEFAULT_CARD_DUE_DAY,
   DEFAULT_CARD_STATEMENT_DAY,
+  ACCOUNT_ICON_KEYS,
 } from "../ledger-constants";
 import {
   FINANCIAL_SCOPE_VALUES,
@@ -26,6 +27,7 @@ export const createAccountInputSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
     type: z.enum(ACCOUNT_TYPE_VALUES).default(AccountType.CASH),
+    iconKey: z.enum(ACCOUNT_ICON_KEYS).nullable().optional(),
     openingBalance: z.number().finite().int().min(0).default(0),
     financialScope: z
       .enum(FINANCIAL_SCOPE_VALUES)

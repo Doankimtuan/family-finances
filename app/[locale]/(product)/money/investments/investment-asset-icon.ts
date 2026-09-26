@@ -4,7 +4,7 @@ import {
   ChartBarLineIcon,
   SmartPhoneIcon,
   Wallet02Icon,
-} from "@hugeicons/core-free-icons";
+} from "@/shared/ui/stitch-icon-compat";
 import { InvestmentAssetClass } from "@/modules/investments/application/investment-constants";
 import type { InvestmentUxType } from "@/modules/investments/application/investment-ux";
 

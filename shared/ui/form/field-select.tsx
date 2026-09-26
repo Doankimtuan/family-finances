@@ -3,7 +3,7 @@
 /* eslint-disable jsx-a11y/role-supports-aria-props -- FieldSelect exposes the requested readonly and validation metadata on its trigger. */
 
 import type { ReactNode } from "react";
-import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { FIELD_CONTROL_CLASS_NAME } from "@/shared/ui/select";
 import { cn } from "@/shared/utils/cn";
@@ -18,6 +18,8 @@ export type FieldSelectProps = {
   required?: boolean;
   isDisabled?: boolean;
   onPress?: () => void;
+  "aria-expanded"?: boolean;
+  "aria-controls"?: string;
   "data-testid"?: string;
 };
 
@@ -31,6 +33,8 @@ export function FieldSelect({
   required,
   isDisabled,
   onPress,
+  "aria-expanded": expanded,
+  "aria-controls": controls,
   "data-testid": testId,
 }: FieldSelectProps) {
   const hasError = Boolean(error);
@@ -54,6 +58,8 @@ export function FieldSelect({
         disabled={isDisabled}
         onClick={onPress}
         aria-readonly="true"
+        aria-expanded={expanded}
+        aria-controls={controls}
         {...a11y}
         data-testid={testId}
       >

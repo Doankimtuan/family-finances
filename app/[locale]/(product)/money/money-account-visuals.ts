@@ -1,12 +1,18 @@
 import type { IconContainerTone } from "@/shared/ui/icon-container";
-import { FINANCE_ICONS, type FinanceIconKey } from "@/shared/ui/icon-registry";
+import type { IconSvgElement } from "@hugeicons/react";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { ACCOUNT_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
+import {
+  isAccountIconKey,
+  type AccountIconKey,
+} from "@/modules/ledger/application/icon-constants";
 import {
   AccountType,
   type AccountType as AccountTypeValue,
-} from "@/modules/ledger/application";
+} from "@/modules/ledger/application/account-constants";
 
 export type MoneyAccountVisual = {
-  icon: (typeof FINANCE_ICONS)[FinanceIconKey];
+  icon: IconSvgElement;
   tone: IconContainerTone;
 };
 
@@ -47,6 +53,10 @@ const MONEY_ACCOUNT_VISUALS: Record<AccountTypeValue, MoneyAccountVisual> = {
 
 export function moneyAccountVisualFor(
   accountType: AccountTypeValue,
+  iconKey?: AccountIconKey | string | null,
 ): MoneyAccountVisual {
-  return MONEY_ACCOUNT_VISUALS[accountType];
+  const fallback = MONEY_ACCOUNT_VISUALS[accountType];
+  return iconKey && isAccountIconKey(iconKey)
+    ? { ...fallback, icon: ACCOUNT_ICON_BY_KEY[iconKey] }
+    : fallback;
 }

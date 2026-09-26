@@ -2,9 +2,9 @@
 
 ## Family
 
-Use Hugeicons Free Stroke Rounded as the canonical icon family. Import icons only from `@hugeicons/core-free-icons` and render them through `AppIcon` when a reusable wrapper is useful.
+Use Stitch SVG artwork from `artifacts/icon-system-stitch/DESIGN.md` as the canonical icon family. Production artwork lives in `shared/ui/stitch-icon-artwork.ts` and `shared/ui/stitch-icon-extensions.ts`. Render it through `AppIcon`.
 
-Do not use Pro, solid, duotone, paid, or additional icon libraries. `AppIcon` is the low-level renderer; semantic registries are reserved for navigation, finance concepts, transaction types, and persisted category keys.
+Do not add another icon library. `AppIcon` is the low-level renderer; semantic registries are reserved for navigation, finance concepts, transaction types, and persisted account/category keys.
 
 ## Style
 
@@ -33,9 +33,9 @@ Category icons are aids for recognition, not the category definition. They must 
 
 ## Forbidden
 
-- Hand-drawn SVG paths for common icons.
+- One-off SVG paths in feature screens.
 - Emoji as core navigation.
 - Random icon style per module.
 - Phosphor imports in active application code.
-- Pro, solid, duotone, or paid Hugeicons styles.
+- Another icon family in active product screens.
 - Cute icons for serious warnings.

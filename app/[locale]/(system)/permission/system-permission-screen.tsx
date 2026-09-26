@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { LockKeyIcon } from "@hugeicons/core-free-icons";
+import { LockKeyIcon } from "@/shared/ui/stitch-icon-compat";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { SystemShell } from "@/shared/patterns/system-shell";

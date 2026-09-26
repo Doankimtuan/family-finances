@@ -44,10 +44,8 @@ export {
   FinanceIconKey,
   NAVIGATION_ICONS,
   UTILITY_ICONS,
-  categoryIconFor,
   financeIconFor,
 } from "./icon-registry";
-export type { CategoryIconKey } from "./icon-registry";
 export {
   IconContainer,
   IconContainerTone,

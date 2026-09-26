@@ -11,11 +11,12 @@ import {
 } from "../transaction-types";
 import { TransactionDirection as Direction } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import { isCategoryIconKey } from "../icon-constants";
 
 const TRANSACTION_LIST_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name, icon_key), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 const HOME_TRANSACTION_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, categories(name)";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, categories(name, icon_key)";
 
 function mapTransactionRows(rows: unknown[]): LedgerTransaction[] {
   return rows.map((raw) => {
@@ -41,7 +42,10 @@ function mapTransactionRows(rows: unknown[]): LedgerTransaction[] {
         | { name: string; type?: string }
         | { name: string; type?: string }[]
         | null;
-      categories: { name: string } | { name: string }[] | null;
+      categories:
+        | { name: string; icon_key: string | null }
+        | { name: string; icon_key: string | null }[]
+        | null;
       jars: { name: string } | { name: string }[] | null;
       transaction_tag_assignments: Array<{
         transaction_tags: {
@@ -149,7 +153,7 @@ export async function listCategoryTags(
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("id, kind, name, household_id, jar_id")
+      .select("id, kind, name, household_id, jar_id, icon_key")
       .eq("kind", kind)
       .eq("is_active", true)
       .or(`household_id.is.null,household_id.eq.${gate.householdId}`)
@@ -165,6 +169,8 @@ export async function listCategoryTags(
       kind:
         row.kind === Direction.INCOME ? Direction.INCOME : Direction.EXPENSE,
       name: row.name,
+      iconKey:
+        row.icon_key && isCategoryIconKey(row.icon_key) ? row.icon_key : null,
       jarId: row.jar_id ?? null,
     }));
   } catch (error) {
@@ -220,7 +226,7 @@ export async function listTransactionFilterOptions(): Promise<{
     const [categoryResult, jarResult] = await Promise.all([
       supabase
         .from("categories")
-        .select("id, kind, name, household_id, jar_id, is_active")
+        .select("id, kind, name, household_id, jar_id, icon_key, is_active")
         .or(`household_id.is.null,household_id.eq.${gate.householdId}`)
         .order("sort_order", { ascending: true }),
       supabase
@@ -245,6 +251,8 @@ export async function listTransactionFilterOptions(): Promise<{
         kind:
           row.kind === Direction.INCOME ? Direction.INCOME : Direction.EXPENSE,
         name: row.name,
+        iconKey:
+          row.icon_key && isCategoryIconKey(row.icon_key) ? row.icon_key : null,
         jarId: row.jar_id ?? null,
         isActive: row.is_active,
       })),

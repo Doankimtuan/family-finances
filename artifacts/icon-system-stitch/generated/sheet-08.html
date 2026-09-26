@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icon Atlas 08 — ViNha Warm Precision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Geist', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      colors: {
+        canvas: { light: '#FAFAF9', dark: '#141416' },
+        surface: { light: '#FFFFFF', dark: '#1C1C1F' },
+        ink: { light: '#18181B', dark: '#F4F4F5' },
+        muted: { light: '#52525B', dark: '#A1A1AA' },
+        border: { light: '#E4E4E7', dark: '#27272A' },
+        primary: { light: '#0F766E', dark: '#2DD4BF' },
+        tag: { bg: '#F4F4F5', text: '#3F3F46' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  body {
+    background-color: #FAFAF9;
+    color: #18181B;
+    font-family: 'Geist', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .grid-pattern {
+    background-image: radial-gradient(#D4D4D8 1px, transparent 1px);
+    background-size: 8px 8px;
+  }
+  .icon-canvas {
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body class="p-8 md:p-12 min-h-screen">
+
+  <div class="max-w-[1240px] mx-auto space-y-10">
+
+    <!-- Header Block -->
+    <header class="border-b border-border-light pb-8">
+      <div class="flex items-center gap-3 text-xs font-mono uppercase tracking-wider text-primary-light font-semibold mb-2">
+        <span class="bg-[#E7F5F1] text-primary-light px-2 py-0.5 rounded">Atlas Sheet 08 / 12</span>
+        <span class="text-muted-light">•</span>
+        <span class="text-muted-light">ViNha Warm Precision System</span>
+        <span class="text-muted-light">•</span>
+        <span>22 Semantic Category Drawings</span>
+      </div>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 class="text-3xl font-semibold tracking-tight text-ink-light">Living, Household & Life Spending</h1>
+          <p class="text-sm text-muted-light mt-1 max-w-2xl leading-relaxed">
+            Essential household living, wellness, child & pet care, education, media, and civic contributions (Group H: #01 – #22). Strict 24×24 master geometry, 1.5px baseline stroke with rounded caps/joins, ~2px optical breathing room, and verified 16px micro-reductions.
+          </p>
+        </div>
+        <!-- Tech Specs Badge Pill -->
+        <div class="flex items-center gap-4 bg-white border border-border-light px-4 py-2 rounded-lg text-xs font-mono shadow-sm">
+          <div>
+            <div class="text-[10px] text-muted-light uppercase">Master Grid</div>
+            <div class="font-semibold text-ink-light">24 × 24 px</div>
+          </div>
+          <div class="h-6 w-px bg-border-light"></div>
+          <div>
+            <div class="text-[10px] text-muted-light uppercase">Stroke Width</div>
+            <div class="font-semibold text-ink-light">1.5 px <span class="font-normal text-muted-light">Round</span></div>
+          </div>
+          <div class="h-6 w-px bg-border-light"></div>
+          <div>
+            <div class="text-[10px] text-muted-light uppercase">Batch Scope</div>
+            <div class="font-semibold text-primary-light">22 Glyphs</div>
+          </div>
+          <div class="h-6 w-px bg-border-light"></div>
+          <div>
+            <div class="text-[10px] text-muted-light uppercase">Color Mode</div>
+            <div class="font-semibold text-ink-light">currentColor</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Subheader Note -->
+    <div class="flex items-center justify-between text-xs font-mono text-muted-light">
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-2 h-2 rounded-full bg-primary-light"></span>
+        <span class="font-semibold text-ink-light uppercase">Contact Sheet Matrix (Group H: #01 – #22)</span>
+      </div>
+      <div>Displaying 24px Master & 16px Optical Reduction</div>
+    </div>
+
+    <!-- Contact Sheet Matrix: 22 Icons (4 Columns) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- 01. electricity -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>01 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">UTILITY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2.5L5.5 13H12L11 21.5L18.5 11H12L13 2.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2.5L5.5 13H12L11 21.5L18.5 11H12L13 2.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">electricity</h2>
+          <p class="text-xs text-muted-light mt-0.5">Tiền điện • Electric power grid</p>
+        </div>
+      </div>
+
+      <!-- 02. water -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>02 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">UTILITY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2.75C12 2.75 6 9.5 6 14.5C6 17.81 8.69 20.5 12 20.5C15.31 20.5 18 17.81 18 14.5C18 9.5 12 2.75 12 2.75Z"/>
+              <path d="M9.5 14.5C9.5 13 10.5 11.5 12 11"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2.75C12 2.75 6 9.5 6 14.5C6 17.81 8.69 20.5 12 20.5C15.31 20.5 18 17.81 18 14.5C18 9.5 12 2.75 12 2.75Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">water</h2>
+          <p class="text-xs text-muted-light mt-0.5">Tiền nước • Domestic clean water</p>
+        </div>
+      </div>
+
+      <!-- 03. internet -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>03 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">CONNECTIVITY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8.5C8.42 4.5 15.58 4.5 20 8.5"/>
+              <path d="M7 12C9.76 9.5 14.24 9.5 17 12"/>
+              <path d="M10 15.5C11.1 14.5 12.9 14.5 14 15.5"/>
+              <circle cx="12" cy="19" r="1" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.5 9C8.6 5.5 15.4 5.5 19.5 9"/>
+              <path d="M8 13C10.2 11 13.8 11 16 13"/>
+              <circle cx="12" cy="18" r="1.25" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">internet</h2>
+          <p class="text-xs text-muted-light mt-0.5">Mạng Wi-Fi • Broadband connection</p>
+        </div>
+      </div>
+
+      <!-- 04. phone -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>04 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">TELECOM</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6.5" y="3" width="11" height="18" rx="2.5"/>
+              <line x1="10.5" y1="5.5" x2="13.5" y2="5.5"/>
+              <circle cx="12" cy="17.75" r="0.75" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6.5" y="3" width="11" height="18" rx="2.5"/>
+              <circle cx="12" cy="17.5" r="1" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">phone</h2>
+          <p class="text-xs text-muted-light mt-0.5">Cước di động • Cellular plan</p>
+        </div>
+      </div>
+
+      <!-- 05. household-supplies -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>05 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">DOMESTIC</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 3V6H14V3"/>
+              <path d="M8 6H16"/>
+              <path d="M14 6L16.5 10H7.5L10 6"/>
+              <rect x="7" y="10" width="10" height="11" rx="2"/>
+              <path d="M10 14H14"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 3V6H14V3"/>
+              <path d="M14 6L16.5 10H7.5L10 6"/>
+              <rect x="7" y="10" width="10" height="11" rx="2"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">household-supplies</h2>
+          <p class="text-xs text-muted-light mt-0.5">Đồ dùng gia đình • Consumables</p>
+        </div>
+      </div>
+
+      <!-- 06. repairs -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>06 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">MAINTENANCE</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 4.5A4.5 4.5 0 0 0 8.7 10.3L3.5 15.5C2.8 16.2 2.8 17.3 3.5 18L6 20.5C6.7 21.2 7.8 21.2 8.5 20.5L13.7 15.3A4.5 4.5 0 0 0 19.5 9.5L16.5 12.5L14 10L17 7L14.5 4.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 4.5A4.5 4.5 0 0 0 8.7 10.3L3.5 15.5C2.8 16.2 2.8 17.3 3.5 18L6 20.5C6.7 21.2 7.8 21.2 8.5 20.5L13.7 15.3A4.5 4.5 0 0 0 19.5 9.5L16.5 12.5L14 10L17 7L14.5 4.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">repairs</h2>
+          <p class="text-xs text-muted-light mt-0.5">Sửa chữa • Hardware maintenance</p>
+        </div>
+      </div>
+
+      <!-- 07. furniture -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>07 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">INTERIOR</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 11V6C5 4.9 5.9 4 7 4H17C18.1 4 19 4.9 19 6V11"/>
+              <path d="M3 13C3 11.9 3.9 11 5 11H19C20.1 11 21 11.9 21 13V16H3V13Z"/>
+              <path d="M5 16V20"/>
+              <path d="M19 16V20"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 11V6C5 4.9 5.9 4 7 4H17C18.1 4 19 4.9 19 6V11"/>
+              <path d="M3 13C3 11.9 3.9 11 5 11H19C20.1 11 21 11.9 21 13V16H3V13Z"/>
+              <path d="M5 16V20"/>
+              <path d="M19 16V20"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">furniture</h2>
+          <p class="text-xs text-muted-light mt-0.5">Nội thất • Home furnishings</p>
+        </div>
+      </div>
+
+      <!-- 08. health [stored] -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>08 • H</span>
+          <span class="bg-[#E7F5F1] text-primary-light px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">STORED KEY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14C20.5 12.5 21 10.5 20.5 8.5C19.8 6 17.5 4.5 15 4.5C13.5 4.5 12.5 5.2 12 6C11.5 5.2 10.5 4.5 9 4.5C6.5 4.5 4.2 6 3.5 8.5C3 10.5 3.5 12.5 5 14L12 20.5L19 14Z"/>
+              <path d="M3.5 12H7L9 9L11.5 14L13.5 11L15 13H20.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14C20.5 12.5 21 10.5 20.5 8.5C19.8 6 17.5 4.5 15 4.5C13.5 4.5 12.5 5.2 12 6C11.5 5.2 10.5 4.5 9 4.5C6.5 4.5 4.2 6 3.5 8.5C3 10.5 3.5 12.5 5 14L12 20.5L19 14Z"/>
+              <path d="M4.5 12H7.5L9.5 9.5L12 14L14 11.5L15.5 13H19.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">health <span class="text-[11px] font-normal text-muted-light">[stored]</span></h2>
+          <p class="text-xs text-muted-light mt-0.5">Sức khoẻ • Vital care & medical</p>
+        </div>
+      </div>
+
+      <!-- 09. medicine -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>09 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">PHARMACY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="7.5" width="15" height="9" rx="4.5" transform="rotate(-45 12 12)"/>
+              <line x1="8.8" y1="8.8" x2="15.2" y2="15.2"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="7.5" width="15" height="9" rx="4.5" transform="rotate(-45 12 12)"/>
+              <line x1="8.8" y1="8.8" x2="15.2" y2="15.2"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">medicine</h2>
+          <p class="text-xs text-muted-light mt-0.5">Thuốc men • Prescription capsule</p>
+        </div>
+      </div>
+
+      <!-- 10. fitness -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>10 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">WELLNESS</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6.5 6.5L17.5 17.5"/>
+              <path d="M4 10L10 4"/>
+              <path d="M2.5 7.5L7.5 2.5"/>
+              <path d="M14 20L20 14"/>
+              <path d="M16.5 21.5L21.5 16.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 7L17 17"/>
+              <path d="M4.5 9.5L9.5 4.5"/>
+              <path d="M14.5 19.5L19.5 14.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">fitness</h2>
+          <p class="text-xs text-muted-light mt-0.5">Thể thao • Dumbbell exercise</p>
+        </div>
+      </div>
+
+      <!-- 11. education [stored] -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>11 • H</span>
+          <span class="bg-[#E7F5F1] text-primary-light px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">STORED KEY</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3L2 8L12 13L22 8L12 3Z"/>
+              <path d="M6 10.5V16C6 17.5 8.7 19.5 12 19.5C15.3 19.5 18 17.5 18 16V10.5"/>
+              <path d="M22 8V15"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3L2 8L12 13L22 8L12 3Z"/>
+              <path d="M6 10.5V16C6 17.5 8.7 19.5 12 19.5C15.3 19.5 18 17.5 18 16V10.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">education <span class="text-[11px] font-normal text-muted-light">[stored]</span></h2>
+          <p class="text-xs text-muted-light mt-0.5">Giáo dục • Academic graduation cap</p>
+        </div>
+      </div>
+
+      <!-- 12. books -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>12 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">LEARNING</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5C6 18.5 9 18.5 12 20.5C15 18.5 18 18.5 20 19.5V5.5C18 4.5 15 4.5 12 6.5C9 4.5 6 4.5 4 5.5V19.5Z"/>
+              <path d="M12 6.5V20.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5C6 18.5 9 18.5 12 20.5C15 18.5 18 18.5 20 19.5V5.5C18 4.5 15 4.5 12 6.5C9 4.5 6 4.5 4 5.5V19.5Z"/>
+              <path d="M12 6.5V20.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">books</h2>
+          <p class="text-xs text-muted-light mt-0.5">Sách vở • Open study volume</p>
+        </div>
+      </div>
+
+      <!-- 13. childcare -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>13 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">DEPENDENT</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 8C5 8 7 3.5 12 3.5C17 3.5 19 8 19 8"/>
+              <path d="M5 8H19C19 12.5 16 15.5 12 15.5C8 15.5 5 12.5 5 8Z"/>
+              <circle cx="8" cy="19" r="2"/>
+              <circle cx="16" cy="19" r="2"/>
+              <path d="M19 6L21 4"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 8C5 8 7 3.5 12 3.5C17 3.5 19 8 19 8"/>
+              <path d="M5 8H19C19 12.5 16 15.5 12 15.5C8 15.5 5 12.5 5 8Z"/>
+              <circle cx="8" cy="19" r="1.75"/>
+              <circle cx="16" cy="19" r="1.75"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">childcare</h2>
+          <p class="text-xs text-muted-light mt-0.5">Chăm sóc con • Stroller & nursery</p>
+        </div>
+      </div>
+
+      <!-- 14. pets -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>14 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">COMPANION</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="7" cy="8.5" r="1.5"/>
+              <circle cx="11" cy="5.5" r="1.5"/>
+              <circle cx="15" cy="6.5" r="1.5"/>
+              <circle cx="18" cy="10" r="1.5"/>
+              <path d="M7.5 15C7.5 13 9 11.5 12.5 11.5C16 11.5 17.5 13 17.5 15C17.5 18 15.5 20 12.5 20C9.5 20 7.5 18 7.5 15Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="7.5" cy="8" r="1.25"/>
+              <circle cx="12" cy="5.5" r="1.25"/>
+              <circle cx="16.5" cy="8" r="1.25"/>
+              <path d="M7.5 14.5C7.5 12.5 9.5 11.5 12 11.5C14.5 11.5 16.5 12.5 16.5 14.5C16.5 17.5 14.5 19.5 12 19.5C9.5 19.5 7.5 17.5 7.5 14.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">pets</h2>
+          <p class="text-xs text-muted-light mt-0.5">Thú cưng • Domestic animal paw</p>
+        </div>
+      </div>
+
+      <!-- 15. entertainment -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>15 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">LEISURE</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8.5C4 7.4 4.9 6.5 6 6.5H18C19.1 6.5 20 7.4 20 8.5V11C19 11 18.2 11.8 18.2 12.8C18.2 13.8 19 14.6 20 14.6V17.5C20 18.6 19.1 19.5 18 19.5H6C4.9 19.5 4 18.6 4 17.5V14.6C5 14.6 5.8 13.8 5.8 12.8C5.8 11.8 5 11 4 11V8.5Z"/>
+              <line x1="10" y1="7" x2="10" y2="19" stroke-dasharray="2 2"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8.5C4 7.4 4.9 6.5 6 6.5H18C19.1 6.5 20 7.4 20 8.5V11C19 11 18.2 11.8 18.2 12.8C18.2 13.8 19 14.6 20 14.6V17.5C20 18.6 19.1 19.5 18 19.5H6C4.9 19.5 4 18.6 4 17.5V14.6C5 14.6 5.8 13.8 5.8 12.8C5.8 11.8 5 11 4 11V8.5Z"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">entertainment</h2>
+          <p class="text-xs text-muted-light mt-0.5">Giải trí • Cinema & event ticket</p>
+        </div>
+      </div>
+
+      <!-- 16. streaming -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>16 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">MEDIA</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="13" rx="2.5"/>
+              <path d="M10.5 9L15 11.5L10.5 14V9Z"/>
+              <path d="M8 20H16"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="13" rx="2"/>
+              <path d="M10.5 9.2L14.5 11.5L10.5 13.8V9.2Z"/>
+              <path d="M8 20H16"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">streaming</h2>
+          <p class="text-xs text-muted-light mt-0.5">Xem phim / Nhạc • Digital media</p>
+        </div>
+      </div>
+
+      <!-- 17. gaming -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>17 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">DIGITAL</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 7H18C20 7 21.5 8.8 21 11L19.5 17.5C19.2 18.7 18 19.5 16.8 19.5C15.5 19.5 14.5 18.5 14 17.5L13 15.5H11L10 17.5C9.5 18.5 8.5 19.5 7.2 19.5C6 19.5 4.8 18.7 4.5 17.5L3 11C2.5 8.8 4 7 6 7Z"/>
+              <path d="M7 11V13M6 12H8"/>
+              <circle cx="16.5" cy="11.5" r="0.75" fill="currentColor"/>
+              <circle cx="18" cy="13" r="0.75" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 7H18C20 7 21.5 8.8 21 11L19.5 17.5C19.2 18.7 18 19.5 16.8 19.5C15.5 19.5 14.5 18.5 14 17.5L13 15.5H11L10 17.5C9.5 18.5 8.5 19.5 7.2 19.5C6 19.5 4.8 18.7 4.5 17.5L3 11C2.5 8.8 4 7 6 7Z"/>
+              <path d="M7 11.5V13.5M6 12.5H8"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">gaming</h2>
+          <p class="text-xs text-muted-light mt-0.5">Trò chơi điện tử • Gamepad controller</p>
+        </div>
+      </div>
+
+      <!-- 18. family [stored] (Shared with Group G: Family #04) -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>18 • H</span>
+          <span class="bg-[#E7F5F1] text-primary-light px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">STORED / ALIAS</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="7.5" r="2.5"/>
+              <path d="M3.5 17.5C3.5 14.5 5.5 13 8 13C10.5 13 12.5 14.5 12.5 17.5"/>
+              <circle cx="16.5" cy="9.5" r="2"/>
+              <path d="M13.5 18C13.5 16 14.8 14.8 16.5 14.8C18.2 14.8 19.5 16 19.5 18"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8" cy="7.5" r="2.25"/>
+              <path d="M3.5 17.5C3.5 14.5 5.5 13 8 13C10.5 13 12.5 14.5 12.5 17.5"/>
+              <circle cx="16.5" cy="9.5" r="1.75"/>
+              <path d="M13.5 18C13.5 16 14.8 14.8 16.5 14.8C18.2 14.8 19.5 16 19.5 18"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">family <span class="text-[11px] font-normal text-muted-light">[stored]</span></h2>
+          <p class="text-xs text-muted-light mt-0.5">Chi tiêu gia đình • Alias: family (#04)</p>
+        </div>
+      </div>
+
+      <!-- 19. charity -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>19 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">GIVING</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4.2C10.5 2.5 8 2.2 6.2 3.8C4.3 5.4 4 8.2 5.5 10.2L12 17L18.5 10.2C20 8.2 19.7 5.4 17.8 3.8C16 2.2 13.5 2.5 12 4.2Z"/>
+              <path d="M2.5 14.5C2.5 14.5 4.5 14 7 15.5L10 17"/>
+              <path d="M2 18.5H7.5L11 20H17.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 4.5C10.5 2.8 8 2.5 6.2 4.1C4.3 5.7 4 8.5 5.5 10.5L12 17L18.5 10.5C20 8.5 19.7 5.7 17.8 4.1C16 2.5 13.5 2.8 12 4.5Z"/>
+              <path d="M3 18H8L11.5 20H17"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">charity</h2>
+          <p class="text-xs text-muted-light mt-0.5">Từ thiện • Heart in hand donation</p>
+        </div>
+      </div>
+
+      <!-- 20. insurance -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>20 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">PROTECTION</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3L4 6.5V11.5C4 16.5 7.5 20.2 12 21.5C16.5 20.2 20 16.5 20 11.5V6.5L12 3Z"/>
+              <path d="M9 12L11 14L15 10"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3L4 6.5V11.5C4 16.5 7.5 20.2 12 21.5C16.5 20.2 20 16.5 20 11.5V6.5L12 3Z"/>
+              <path d="M9 12L11 14L15 10"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">insurance</h2>
+          <p class="text-xs text-muted-light mt-0.5">Bảo hiểm • Underwriting shield</p>
+        </div>
+      </div>
+
+      <!-- 21. taxes -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>21 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">CIVIC</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 3H6C4.9 3 4 3.9 4 5V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V9L14 3Z"/>
+              <path d="M14 3V9H20"/>
+              <path d="M9.5 13.5L14.5 17.5M14.5 13.5L9.5 17.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 3H6C4.9 3 4 3.9 4 5V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V9L14 3Z"/>
+              <path d="M14 3V9H20"/>
+              <line x1="9" y1="15.5" x2="15" y2="15.5"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">taxes</h2>
+          <p class="text-xs text-muted-light mt-0.5">Thuế • Revenue declaration doc</p>
+        </div>
+      </div>
+
+      <!-- 22. fees -->
+      <div class="bg-white border border-border-light rounded-xl p-5 hover:border-primary-light transition-colors group">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted-light mb-4">
+          <span>22 • H</span>
+          <span class="bg-tag-bg text-tag-text px-1.5 py-0.5 rounded uppercase text-[10px] font-semibold">SURCHARGE</span>
+        </div>
+        <div class="icon-canvas grid-pattern flex items-center justify-around py-5 px-3 mb-4">
+          <!-- 24px Master -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-6 h-6 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <circle cx="9.5" cy="9.5" r="1.25" fill="currentColor"/>
+              <circle cx="14.5" cy="14.5" r="1.25" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">24px</span>
+          </div>
+          <!-- 16px Reduction -->
+          <div class="flex flex-col items-center gap-1.5">
+            <svg class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="14.5" y1="9.5" x2="9.5" y2="14.5"/>
+              <circle cx="10" cy="10" r="1" fill="currentColor"/>
+              <circle cx="14" cy="14" r="1" fill="currentColor"/>
+            </svg>
+            <span class="text-[10px] font-mono text-muted-light">16px</span>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-ink-light tracking-tight">fees</h2>
+          <p class="text-xs text-muted-light mt-0.5">Phí giao dịch • Percentage charge</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Semantic Disambiguation Audit Banner -->
+    <div class="bg-white border border-border-light rounded-xl p-6">
+      <div class="flex items-center gap-2 text-xs font-mono text-primary-light font-semibold mb-3">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="currentColor"/></svg>
+        <span>SEMANTIC DISAMBIGUATION &amp; SILHOUETTE INDEPENDENCE AUDIT (GROUP H BATCH 08)</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-muted-light leading-relaxed">
+        <div class="p-3 bg-canvas-light rounded-lg border border-border-light">
+          <span class="font-semibold text-ink-light block mb-1">health vs. medicine vs. fitness</span>
+          <span class="text-ink-light font-medium">Health (08)</span> models vital telemetry within a anatomical heart. <span class="text-ink-light font-medium">Medicine (09)</span> uses a diagonally split pharmaceutical capsule. <span class="text-ink-light font-medium">Fitness (10)</span> isolates an inclined barbell dumbbell silhouette.
+        </div>
+        <div class="p-3 bg-canvas-light rounded-lg border border-border-light">
+          <span class="font-semibold text-ink-light block mb-1">education vs. books vs. childcare</span>
+          <span class="text-ink-light font-medium">Education (11)</span> preserves the academic mortarboard cap. <span class="text-ink-light font-medium">Books (12)</span> renders an open spread book with center binding spine. <span class="text-ink-light font-medium">Childcare (13)</span> models a rolling pram/stroller with canopy.
+        </div>
+        <div class="p-3 bg-canvas-light rounded-lg border border-border-light">
+          <span class="font-semibold text-ink-light block mb-1">taxes vs. fees vs. charity</span>
+          <span class="text-ink-light font-medium">Taxes (21)</span> depicts a formal revenue filing parchment with folded header flap. <span class="text-ink-light font-medium">Fees (22)</span> renders a circular surcharge ratio coin. <span class="text-ink-light font-medium">Charity (19)</span> depicts a cupped hand offering a heart.
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark Mode Verification Strip -->
+    <div class="bg-canvas-dark rounded-2xl p-6 text-ink-dark border border-[#27272A] shadow-xl">
+      <div class="flex items-center justify-between border-b border-[#27272A] pb-4 mb-6 text-xs font-mono">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-primary-dark"></span>
+          <span class="text-white font-semibold">DARK MODE VERIFICATION STRIP (#141416 CANVAS)</span>
+        </div>
+        <div class="text-[#A1A1AA]">WCAG AAA Validated • currentColor (#F4F4F5 on Dark)</div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
+        <!-- electricity -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5L5.5 13H12L11 21.5L18.5 11H12L13 2.5Z"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">electricity</span>
+        </div>
+        <!-- water -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.75C12 2.75 6 9.5 6 14.5C6 17.81 8.69 20.5 12 20.5C15.31 20.5 18 17.81 18 14.5C18 9.5 12 2.75 12 2.75Z"/><path d="M9.5 14.5C9.5 13 10.5 11.5 12 11"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">water</span>
+        </div>
+        <!-- internet -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5C8.42 4.5 15.58 4.5 20 8.5"/><path d="M7 12C9.76 9.5 14.24 9.5 17 12"/><path d="M10 15.5C11.1 14.5 12.9 14.5 14 15.5"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">internet</span>
+        </div>
+        <!-- health [stored] -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-primary-dark mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14C20.5 12.5 21 10.5 20.5 8.5C19.8 6 17.5 4.5 15 4.5C13.5 4.5 12.5 5.2 12 6C11.5 5.2 10.5 4.5 9 4.5C6.5 4.5 4.2 6 3.5 8.5C3 10.5 3.5 12.5 5 14L12 20.5L19 14Z"/><path d="M3.5 12H7L9 9L11.5 14L13.5 11L15 13H20.5"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-primary-dark">health</span>
+        </div>
+        <!-- education [stored] -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-primary-dark mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8L12 13L22 8L12 3Z"/><path d="M6 10.5V16C6 17.5 8.7 19.5 12 19.5C15.3 19.5 18 17.5 18 16V10.5"/><path d="M22 8V15"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-primary-dark">education</span>
+        </div>
+        <!-- pets -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="8.5" r="1.5"/><circle cx="11" cy="5.5" r="1.5"/><circle cx="15" cy="6.5" r="1.5"/><circle cx="18" cy="10" r="1.5"/><path d="M7.5 15C7.5 13 9 11.5 12.5 11.5C16 11.5 17.5 13 17.5 15C17.5 18 15.5 20 12.5 20C9.5 20 7.5 18 7.5 15Z"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">pets</span>
+        </div>
+        <!-- gaming -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7H18C20 7 21.5 8.8 21 11L19.5 17.5C19.2 18.7 18 19.5 16.8 19.5C15.5 19.5 14.5 18.5 14 17.5L13 15.5H11L10 17.5C9.5 18.5 8.5 19.5 7.2 19.5C6 19.5 4.8 18.7 4.5 17.5L3 11C2.5 8.8 4 7 6 7Z"/><path d="M7 11V13M6 12H8"/><circle cx="16.5" cy="11.5" r="0.75" fill="currentColor"/><circle cx="18" cy="13" r="0.75" fill="currentColor"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">gaming</span>
+        </div>
+        <!-- charity -->
+        <div class="bg-surface-dark border border-[#27272A] rounded-xl p-3 flex flex-col items-center text-center">
+          <div class="w-8 h-8 flex items-center justify-center text-white mb-2">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2C10.5 2.5 8 2.2 6.2 3.8C4.3 5.4 4 8.2 5.5 10.2L12 17L18.5 10.2C20 8.2 19.7 5.4 17.8 3.8C16 2.2 13.5 2.5 12 4.2Z"/><path d="M2.5 14.5C2.5 14.5 4.5 14 7 15.5L10 17"/><path d="M2 18.5H7.5L11 20H17.5"/></svg>
+          </div>
+          <span class="text-[11px] font-mono text-[#A1A1AA]">charity</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Specification Metadata -->
+    <footer class="pt-6 border-t border-border-light flex flex-col md:flex-row items-center justify-between text-xs font-mono text-muted-light gap-4">
+      <div>Sheet 08 of 12 • ViNha Warm Precision System • Semantic Batch: 22 Icons (Group H)</div>
+      <div class="flex items-center gap-6">
+        <span>Zero emoji / 3D / gradients</span>
+        <span>•</span>
+        <span>Strict currentColor SVG</span>
+        <span>•</span>
+        <span>Bilingual validation: EN / VI</span>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>

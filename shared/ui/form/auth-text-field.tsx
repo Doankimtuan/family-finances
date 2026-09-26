@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import type { FieldError, UseFormRegisterReturn } from "react-hook-form";
-import { ViewOffIcon, ViewIcon } from "@hugeicons/core-free-icons";
+import { ViewOffIcon, ViewIcon } from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
 import { FormField, formFieldA11y } from "./form-field";

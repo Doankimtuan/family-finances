@@ -46,6 +46,7 @@ export type HomeCashFlowTrend = {
 export type HomeSpendingCategory = {
   id: string | null;
   name: string | null;
+  iconKey: LedgerTransaction["categoryIconKey"];
   amount: number;
   proportion: number;
   progressPercent: number;
@@ -272,7 +273,12 @@ function buildSpendingCategories(
 ): HomeSpendingCategory[] {
   const categories = new Map<
     string,
-    { id: string | null; name: string | null; amount: number }
+    {
+      id: string | null;
+      name: string | null;
+      iconKey: LedgerTransaction["categoryIconKey"];
+      amount: number;
+    }
   >();
   for (const transaction of transactions) {
     if (!countsTowardMonthlyExpense(transaction)) continue;
@@ -280,6 +286,7 @@ function buildSpendingCategories(
     const current = categories.get(key) ?? {
       id: transaction.categoryId,
       name: transaction.categoryName,
+      iconKey: transaction.categoryIconKey,
       amount: 0,
     };
     current.amount += transaction.amount;

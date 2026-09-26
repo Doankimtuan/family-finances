@@ -7,3 +7,4 @@ artifacts
 coverage
 package-lock.json
 *.tsbuildinfo
+shared/ui/stitch-icon-artwork.ts

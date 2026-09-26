@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { StitchBackIcon } from "@/shared/ui/stitch-icon-artwork";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { Button } from "@/shared/ui/button";
 import { DatePickerField, NumberField, TextField } from "@/shared/ui/form";
@@ -7,6 +9,19 @@ import { Select } from "@/shared/ui/select";
 import { Progress } from "@/shared/ui/progress";
 
 describe("shared/ui Pattern v1", () => {
+  it("renders Stitch SVG primitives with stable React keys", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    try {
+      render(<AppIcon icon={StitchBackIcon} />);
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
   it("renders StatusAlert compound", () => {
     render(
       <StatusAlert

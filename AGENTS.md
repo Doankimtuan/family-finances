@@ -46,10 +46,10 @@ Mandatory:
 ## Persistent UI Constitution
 
 - HeroUI v3 is the canonical component system; do not add a competing UI library.
-- Hugeicons Free Stroke Rounded is the canonical icon system. Use `AppIcon` for low-level rendering and semantic registries only for stable domain concepts.
+- Stitch SVG artwork in `shared/ui/stitch-icon-artwork.ts` is the canonical icon system. Render through `AppIcon` and use semantic registries for stable domain concepts.
 - The centered `max-width: 440px` app shell is intentional at every viewport. Desktop preserves the same single-column mobile layout and navigation.
 - Shared form primitives own labels, descriptions, validation, and state styling. Prefer HeroUI controls over native primary Select, Date, and Time inputs.
-- Do not use arbitrary HEX colors, radius values, icon libraries, Pro Hugeicons, one-off money formatting, or persisted formatted money strings.
+- Do not use arbitrary HEX colors, radius values, icon libraries, one-off money formatting, or persisted formatted money strings.
 - Significant UI work requires real-browser evidence at 390px, 440px, 768px, and 1280px.
 
 # UI Design Authority
@@ -76,7 +76,7 @@ For every UI task:
 
 - Build product controls from HeroUI v3 primitives and the shared `shared/ui` / `shared/patterns` layer before creating a local wrapper.
 - Use semantic design tokens for color, spacing, radius, elevation, typography, financial states, and focus behavior. Keep display formatting separate from persisted financial values.
-- Render Hugeicons via `AppIcon`. Use the navigation, finance, action, utility, and category registries for stable semantic concepts; persist category `iconKey` values only, never SVG markup or component identifiers.
+- Render Stitch artwork via `AppIcon`. Use the navigation, finance, action, utility, account, and category registries for stable semantic concepts; persist icon keys only, never SVG markup or component identifiers.
 - Make shared form components own their labels, descriptions, required state, validation message, disabled state, and accessible relationships. Preserve React Hook Form value contracts when adapting a field.
 - Use shared currency, percentage, quantity, and compact-number formatters rather than formatting values within feature screens.
 - Use `MoneyInput` or `AmountField` for monetary entry and `NumberField` for restricted numeric values. Ensure a formatted string is never saved as a financial domain value.
@@ -84,7 +84,7 @@ For every UI task:
 
 ### UI Constitution: Forbidden Practices
 
-- Do not add a competing UI component system or another icon library, use paid Hugeicons, or use emoji as production UI icons.
+- Do not add a competing UI component system or another icon library, or use emoji as production UI icons.
 - Do not use native Select, Date, or Time controls as primary product UX without a documented technical exception.
 - Do not introduce arbitrary HEX values, spacing, radius, shadow, icon size, or stroke width inside feature screens.
 - Do not create one-off form controls, duplicate labels outside a field component, format money ad hoc, or persist localized money display strings.

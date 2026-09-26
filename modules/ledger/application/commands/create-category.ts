@@ -9,9 +9,14 @@ import {
 import {
   TRANSACTION_DIRECTION_VALUES,
   LEDGER_OPERATION,
+  LedgerRpcName,
   type LedgerActionErrorCode,
 } from "../ledger-constants";
 import { classifyCategoryRpcError, logLedgerFailure } from "../ledger-error";
+import {
+  CATEGORY_ICON_KEYS,
+  DEFAULT_CATEGORY_ICON_KEY,
+} from "../icon-constants";
 
 const categoryNameSchema = z.string().trim().min(1).max(80);
 
@@ -19,6 +24,7 @@ export const createCategoryInputSchema = z.object({
   name: categoryNameSchema,
   kind: z.enum(TRANSACTION_DIRECTION_VALUES),
   jarId: z.string().uuid().nullable().optional(),
+  iconKey: z.enum(CATEGORY_ICON_KEYS).optional(),
 });
 
 export type CreateCategoryInput = z.infer<typeof createCategoryInputSchema>;
@@ -49,11 +55,15 @@ export async function createCategory(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.rpc("create_category", {
-      p_name: parsed.data.name,
-      p_kind: parsed.data.kind,
-      p_jar_id: parsed.data.jarId ?? null,
-    });
+    const { data, error } = await supabase.rpc(
+      LedgerRpcName.CREATE_CATEGORY_WITH_ICON,
+      {
+        p_name: parsed.data.name,
+        p_kind: parsed.data.kind,
+        p_jar_id: parsed.data.jarId ?? null,
+        p_icon_key: parsed.data.iconKey ?? DEFAULT_CATEGORY_ICON_KEY,
+      },
+    );
 
     if (error) {
       const classified = classifyCategoryRpcError(error);

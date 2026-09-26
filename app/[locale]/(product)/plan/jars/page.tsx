@@ -51,6 +51,8 @@ import {
   jarStateLabelKey,
 } from "./jar-presentations";
 import type { CaptureJarOption } from "@/modules/ledger/application/client";
+import { listEditableCategories } from "@/modules/ledger/application";
+import { ManageCategoryIcons } from "./manage-category-icons";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -179,13 +181,15 @@ export default async function PlanJarsPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tCatalog, listed, budgets, listedCategories] = await Promise.all([
-    getTranslations("plan.jars"),
-    getTranslations("catalog"),
-    listJars(),
-    getCurrentJarBudgets(),
-    listJarCategories(),
-  ]);
+  const [t, tCatalog, listed, budgets, listedCategories, editableCategories] =
+    await Promise.all([
+      getTranslations("plan.jars"),
+      getTranslations("catalog"),
+      listJars(),
+      getCurrentJarBudgets(),
+      listJarCategories(),
+      listEditableCategories(),
+    ]);
 
   const currency = listed?.currency ?? DEFAULT_CURRENCY;
   const active = listed?.active ?? [];
@@ -302,6 +306,7 @@ export default async function PlanJarsPage({ params }: Props) {
         qualifyingIncome={budgets?.qualifyingIncome ?? null}
       />
       <CreateCategoryForm jars={categoryJars} />
+      <ManageCategoryIcons categories={editableCategories ?? []} />
     </Page>
   );
 }
