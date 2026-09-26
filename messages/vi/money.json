@@ -1565,7 +1565,13 @@
       "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
       "convert_after_payment": "Hãy hoàn tất hoặc hoàn lại khoản thanh toán thẻ trước khi chuyển sang trả góp.",
       "unknown": "Không lưu được. Thử lại."
-    }
+    },
+    "personalJarLabel": "Hũ gia đình",
+    "personalJarHint": "Chọn hũ để tính khoản chi cá nhân này vào Plan gia đình. Mặc định không tính.",
+    "personalJarSuggestion": "Danh mục gợi ý hũ {jar}. Hãy chọn nếu muốn tính khoản chi này vào Plan.",
+    "personalJarUnmapped": "Không tính vào Plan gia đình",
+    "planIncluded": "Có · {jar}",
+    "planExcluded": "Không tính vào Plan gia đình"
   },
   "transferForm": {
     "amountLabel": "Số tiền ({currency})",
@@ -1893,6 +1899,31 @@
     "subtitle": "Thu, chi và các lần chuyển tiền",
     "filterLabel": "Loại giao dịch",
     "tagFilterLabel": "Nhãn",
+    "noteSearchLabel": "Tìm trong ghi chú",
+    "tagSearchLabel": "Tìm nhãn",
+    "search": "Tìm",
+    "openFilters": "Mở bộ lọc, {count} nhóm đang áp dụng",
+    "openFiltersLabel": "Bộ lọc",
+    "filterSheetTitle": "Lọc giao dịch",
+    "categoryFilterLabel": "Danh mục",
+    "jarFilterLabel": "Hũ",
+    "categorySearchLabel": "Tìm danh mục",
+    "jarSearchLabel": "Tìm hũ",
+    "anyCategory": "Mọi danh mục",
+    "anyJar": "Mọi hũ",
+    "applyFilters": "Áp dụng",
+    "cancel": "Đóng",
+    "inactive": "Ngừng dùng",
+    "archived": "Đã lưu trữ",
+    "paused": "Tạm dừng",
+    "noTagsMatch": "Không tìm thấy nhãn phù hợp",
+    "noCategoriesMatch": "Không tìm thấy danh mục phù hợp",
+    "noJarsMatch": "Không tìm thấy hũ phù hợp",
+    "loadingMore": "Đang tải thêm giao dịch…",
+    "allLoaded": "Đã tải hết giao dịch",
+    "activitiesLoaded": "Đã tải {count} giao dịch",
+    "loadMoreError": "Không tải thêm được giao dịch.",
+    "loadMore": "Tải thêm",
     "filters": {
       "all": "Tất cả",
       "expense": "Chi",
@@ -1918,12 +1949,10 @@
     },
     "clearFilters": "Xoá bộ lọc",
     "add": "Thêm giao dịch",
-    "manageTags": "Quản lý nhãn",
     "dates": {
       "today": "Hôm nay",
       "yesterday": "Hôm qua"
     },
-    "loadMore": "Tải thêm",
     "retry": "Thử lại",
     "loadErrorTitle": "Không tải được giao dịch",
     "loadErrorDescription": "Bộ lọc vẫn được giữ lại. Hãy thử lại.",
@@ -2067,7 +2096,10 @@
     "back": "Về hoạt động",
     "notFound": "Không tìm thấy giao dịch",
     "readErrorTitle": "Không thể tải giao dịch",
-    "readErrorBody": "Chưa thể tải sự kiện này lúc này. Thử lại nhé."
+    "readErrorBody": "Chưa thể tải sự kiện này lúc này. Thử lại nhé.",
+    "familyPlan": "Plan gia đình",
+    "planIncluded": "Có · {jar}",
+    "planExcluded": "Không tính vào Plan gia đình"
   },
   "status": {
     "pending_mapping": "Cần phân loại",
@@ -2202,7 +2234,13 @@
       "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
       "credit_limit_exceeded": "Giao dịch sẽ vượt hạn mức tín dụng.",
       "unknown": "Không lưu được. Thử lại."
-    }
+    },
+    "personalJarLabel": "Hũ gia đình",
+    "personalJarHint": "Chọn hũ để tính khoản chi cá nhân này vào Plan gia đình. Mặc định không tính.",
+    "personalJarSuggestion": "Danh mục gợi ý hũ {jar}. Hãy chọn nếu muốn tính khoản chi này vào Plan.",
+    "personalJarUnmapped": "Không tính vào Plan gia đình",
+    "planIncluded": "Có · {jar}",
+    "planExcluded": "Không tính vào Plan gia đình"
   },
   "savingsCatalog": {
     "title": "Nhà cung cấp & gói tiết kiệm",

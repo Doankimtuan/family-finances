@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { Card } from "@/shared/patterns/card";
 import { Heading } from "@/shared/ui/heading";

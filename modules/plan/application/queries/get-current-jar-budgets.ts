@@ -13,6 +13,7 @@ import {
   calculateJarBudgetMetrics,
   calculateJarRuleBudget,
   calculateJarSpentAmount,
+  isIncludedInJarBudgetInputs,
   calculateQualifyingPostedIncome,
   resolveQualifyingMonthlyIncome,
   resolveJarPlanForPeriod,
@@ -48,7 +49,7 @@ const HOUSEHOLD_SETTINGS_SELECT =
   "timezone, qualifying_monthly_income, base_currency";
 const HOUSEHOLD_SETTINGS_FALLBACK_SELECT = "timezone, base_currency";
 const TRANSACTION_PERIOD_SELECT =
-  "id, type, amount, status, jar_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal";
+  "id, type, amount, status, jar_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, accounts!inner(financial_scope)";
 const RECURRING_INCOME_SELECT =
   "id, name, direction, amount, frequency, interval_count, day_of_month, day_of_week, start_date, next_run_date, is_active";
 
@@ -340,6 +341,7 @@ function mapRawTransaction(row: JsonRecord): JarBudgetTransaction | null {
     type,
     amount,
     status: readNullableString(row.status),
+    financial_scope: readNullableString(row.financial_scope),
     jar_id: readNullableString(row.jar_id),
     savings_event_kind: readNullableString(row.savings_event_kind),
     reverses_transaction_id: readNullableString(row.reverses_transaction_id),
@@ -629,6 +631,7 @@ function mapTransactionRow(row: {
   reverses_transaction_id?: string | null;
   corrects_transaction_id?: string | null;
   is_reversal?: boolean | null;
+  financial_scope?: string | null;
 }): JarBudgetTransaction {
   return {
     id: row.id,
@@ -640,7 +643,14 @@ function mapTransactionRow(row: {
     reverses_transaction_id: row.reverses_transaction_id,
     corrects_transaction_id: row.corrects_transaction_id,
     is_reversal: row.is_reversal,
+    financial_scope: row.financial_scope,
   };
+}
+
+function joinedAccountFinancialScope(row: {
+  accounts?: unknown;
+}): string | null {
+  return readNullableString(readRawRow(row.accounts)?.financial_scope);
 }
 
 async function loadPeriodTransactions(
@@ -651,9 +661,12 @@ async function loadPeriodTransactions(
   const [txResult, loanResult] = await Promise.all([
     supabase
       .from("transactions")
-      .select(`${TRANSACTION_PERIOD_SELECT}, accounts!inner(financial_scope)`)
+      .select(TRANSACTION_PERIOD_SELECT)
       .eq("household_id", householdId)
-      .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
+      .in("accounts.financial_scope", [
+        FINANCIAL_SCOPE.HOUSEHOLD,
+        FINANCIAL_SCOPE.PERSONAL,
+      ])
       .gte("transaction_date", period.start)
       .lt("transaction_date", period.endExclusive)
       .order("transaction_date", { ascending: true })
@@ -669,10 +682,13 @@ async function loadPeriodTransactions(
   const loanPaymentIds = new Set(
     (loanResult.data ?? []).map((row) => String(row.transaction_id)),
   );
-  return (txResult.data ?? []).map((row) => ({
-    ...mapTransactionRow(row),
-    is_loan_payment: loanPaymentIds.has(row.id),
-  }));
+  return (txResult.data ?? [])
+    .map((row) => ({
+      ...mapTransactionRow(row),
+      financial_scope: joinedAccountFinancialScope(row),
+      is_loan_payment: loanPaymentIds.has(row.id),
+    }))
+    .filter(isIncludedInJarBudgetInputs);
 }
 
 async function loadHouseholdSettings(householdId: string): Promise<{

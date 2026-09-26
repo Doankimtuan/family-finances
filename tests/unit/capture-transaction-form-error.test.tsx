@@ -49,6 +49,8 @@ import {
   type TransactionTag,
 } from "@/modules/ledger/application/client";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
+import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
 import { formatDate } from "@/shared/i18n/formatters";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 
@@ -58,6 +60,20 @@ const account: LedgerAccount = {
   type: AccountType.CASH,
   balance: 0,
   isArchived: false,
+  financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
+  ownerMembershipId: null,
+  isPersonal: false,
+  isOwnedByMe: true,
+  canMutate: true,
+  ownerStatus: OWNER_STATUS.ACTIVE,
+};
+
+const personalAccount: LedgerAccount = {
+  ...account,
+  id: "00000000-0000-4000-8000-000000000002",
+  financialScope: FINANCIAL_SCOPE.PERSONAL,
+  ownerMembershipId: "00000000-0000-4000-8000-000000000009",
+  isPersonal: true,
 };
 
 const transactionTag: TransactionTag = {
@@ -165,6 +181,19 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     });
 
     expect(screen.getByText("Visa · creditCardLabel")).toBeInTheDocument();
+  });
+
+  it("defaults a personal expense outside the family Plan until a jar is chosen", async () => {
+    renderCaptureForm({
+      accounts: [personalAccount],
+      expenseTags: [expenseCategory],
+      jars: [captureJar],
+    });
+
+    expect(screen.getByTestId("capture-family-jar")).toHaveTextContent(
+      "personalJarUnmapped",
+    );
+    expect(screen.getByText("personalJarHint")).toBeInTheDocument();
   });
 
   it("keeps credit-card liability visible in the expanded account selector", () => {

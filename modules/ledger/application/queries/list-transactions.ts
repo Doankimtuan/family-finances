@@ -5,6 +5,8 @@ import {
   type CategoryTag,
   type CaptureJarOption,
   type LedgerTransaction,
+  type TransactionCategoryFilterOption,
+  type TransactionJarFilterOption,
   type TransactionDirection,
 } from "../transaction-types";
 import { TransactionDirection as Direction } from "../ledger-constants";
@@ -200,6 +202,62 @@ export async function listCaptureJars(): Promise<CaptureJarOption[] | null> {
     }));
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_CAPTURE_JARS, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+export async function listTransactionFilterOptions(): Promise<{
+  categories: TransactionCategoryFilterOption[];
+  jars: TransactionJarFilterOption[];
+} | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [categoryResult, jarResult] = await Promise.all([
+      supabase
+        .from("categories")
+        .select("id, kind, name, household_id, jar_id, is_active")
+        .or(`household_id.is.null,household_id.eq.${gate.householdId}`)
+        .order("sort_order", { ascending: true }),
+      supabase
+        .from("jars")
+        .select("id, name, kind, is_archived, is_paused")
+        .eq("household_id", gate.householdId)
+        .order("sort_order", { ascending: true }),
+    ]);
+
+    if (categoryResult.error || jarResult.error) {
+      logLedgerFailure(
+        categoryResult.error ?? jarResult.error,
+        LEDGER_OPERATION.LIST_CATEGORY_TAGS,
+        { householdId: gate.householdId },
+      );
+      return null;
+    }
+
+    return {
+      categories: (categoryResult.data ?? []).map((row) => ({
+        id: row.id,
+        kind:
+          row.kind === Direction.INCOME ? Direction.INCOME : Direction.EXPENSE,
+        name: row.name,
+        jarId: row.jar_id ?? null,
+        isActive: row.is_active,
+      })),
+      jars: (jarResult.data ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        kind: row.kind,
+        isArchived: row.is_archived,
+        isPaused: row.is_paused,
+      })),
+    };
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CATEGORY_TAGS, {
       householdId: gate.householdId,
     });
     return null;

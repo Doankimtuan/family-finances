@@ -107,4 +107,150 @@ describe("listTransactionEvents", () => {
       amount: 100,
     });
   });
+
+  it("applies note, category, and jar filters before returning a complete transfer", async () => {
+    const source = transactionRow({
+      id: "transfer-out",
+      account_id: "account-source",
+      type: TransactionLedgerType.TRANSFER_OUT,
+      amount: "250",
+      note: "Lunch refund",
+      category_id: "category-id",
+      jar_id: "jar-id",
+      transfer_group_id: "transfer-group-id",
+    });
+    const destination = transactionRow({
+      id: "transfer-in",
+      account_id: "account-destination",
+      type: TransactionLedgerType.TRANSFER_IN,
+      amount: "250",
+      note: null,
+      transfer_group_id: "transfer-group-id",
+      created_at: "2026-09-06T00:00:01.000Z",
+    });
+    const queryCalls: Array<Record<string, ReturnType<typeof vi.fn>>> = [];
+    const supabase = {
+      from: vi.fn(() => {
+        const queryIndex = queryCalls.length;
+        const calls = Object.fromEntries(
+          ["select", "eq", "in", "ilike", "or", "order", "limit"].map(
+            (method) => [method, vi.fn().mockReturnThis()],
+          ),
+        ) as Record<string, ReturnType<typeof vi.fn>>;
+        const query = {
+          ...calls,
+          then: (
+            resolve: (value: { data: unknown[]; error: null }) => unknown,
+          ) =>
+            resolve({
+              data: queryIndex === 0 ? [source] : [source, destination],
+              error: null,
+            }),
+        };
+        queryCalls.push(calls);
+        return query;
+      }),
+    };
+
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      householdId: "household",
+      userId: "user",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(supabase as never);
+
+    const resultSet = await listTransactionEvents({
+      type: TransactionFilterType.ALL,
+      q: "  LUNCH  ",
+      categoryIds: ["category-id", "category-id-2"],
+      jarIds: ["jar-id", "jar-id-2"],
+      limit: 10,
+    });
+
+    expect(queryCalls[0]?.ilike).toHaveBeenCalledWith("note", "%  LUNCH  %");
+    expect(queryCalls[0]?.in).toHaveBeenCalledWith("category_id", [
+      "category-id",
+      "category-id-2",
+    ]);
+    expect(queryCalls[0]?.in).toHaveBeenCalledWith("jar_id", [
+      "jar-id",
+      "jar-id-2",
+    ]);
+    expect(resultSet?.activities).toHaveLength(1);
+    expect(resultSet?.activities[0]).toMatchObject({
+      id: "transfer-group-id",
+      kind: TransactionActivityKind.TRANSFER,
+      relatedTransactionIds: ["transfer-out", "transfer-in"],
+      sourceAccount: { id: "account-source" },
+      destinationAccount: { id: "account-destination" },
+    });
+  });
+
+  it("keeps principal and interest together for a filtered loan payment", async () => {
+    const principal = transactionRow({
+      id: "loan-principal",
+      type: TransactionLedgerType.LIABILITY_PAYMENT,
+      amount: "500",
+      note: "Loan installment",
+      category_id: "category-id",
+      jar_id: "jar-id",
+      loan_payment_id: "loan-payment-id",
+    });
+    const interest = transactionRow({
+      id: "loan-interest",
+      type: TransactionLedgerType.LOAN_INTEREST,
+      amount: "20",
+      note: null,
+      loan_payment_id: "loan-payment-id",
+      created_at: "2026-09-06T00:00:01.000Z",
+    });
+    const queryCalls: Array<Record<string, ReturnType<typeof vi.fn>>> = [];
+    const supabase = {
+      from: vi.fn(() => {
+        const queryIndex = queryCalls.length;
+        const calls = Object.fromEntries(
+          ["select", "eq", "in", "ilike", "or", "order", "limit"].map(
+            (method) => [method, vi.fn().mockReturnThis()],
+          ),
+        ) as Record<string, ReturnType<typeof vi.fn>>;
+        const query = {
+          ...calls,
+          then: (
+            resolve: (value: { data: unknown[]; error: null }) => unknown,
+          ) =>
+            resolve({
+              data: queryIndex === 0 ? [principal] : [principal, interest],
+              error: null,
+            }),
+        };
+        queryCalls.push(calls);
+        return query;
+      }),
+    };
+
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      householdId: "household",
+      userId: "user",
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(supabase as never);
+
+    const resultSet = await listTransactionEvents({
+      type: TransactionFilterType.ALL,
+      categoryId: "category-id",
+      jarId: "jar-id",
+      limit: 10,
+    });
+
+    expect(queryCalls[1]?.in).toHaveBeenCalledWith("loan_payment_id", [
+      "loan-payment-id",
+    ]);
+    expect(resultSet?.activities).toHaveLength(1);
+    expect(resultSet?.activities[0]).toMatchObject({
+      id: "loan-payment-id",
+      kind: TransactionActivityKind.LIABILITY_PAYMENT,
+      relatedTransactionIds: ["loan-principal", "loan-interest"],
+      breakdown: { principalAmount: 500, interestAmount: 20 },
+    });
+  });
 });

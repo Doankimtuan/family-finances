@@ -55,6 +55,7 @@ export const APP_PATH = {
 export const APP_API_PATH = {
   EXPENSE_REMINDER_SUBSCRIPTION: "/api/daily-expense-reminder/subscription",
   EXPENSE_REMINDER_DISPATCH: "/api/admin/daily-expense-reminder",
+  TRANSACTION_EVENTS: "/api/transactions/events",
 } as const;
 
 export type AppPath = (typeof APP_PATH)[keyof typeof APP_PATH];

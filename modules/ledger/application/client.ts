@@ -10,6 +10,8 @@ export type {
   TransactionTag,
   CategoryTag,
   CaptureJarOption,
+  TransactionCategoryFilterOption,
+  TransactionJarFilterOption,
 } from "./transaction-types";
 export {
   refundTransactionInputSchema,
@@ -60,6 +62,12 @@ export {
   TRANSACTION_COMMON_FILTER_OPTIONS,
   TRANSACTION_TAG_FILTER_QUERY_PARAM,
   TRANSACTION_TYPE_QUERY_PARAM,
+  TRANSACTION_CURSOR_QUERY_PARAM,
+  TRANSACTION_SEARCH_QUERY_PARAM,
+  TRANSACTION_CATEGORY_QUERY_PARAM,
+  TRANSACTION_JAR_QUERY_PARAM,
+  TRANSACTION_SEARCH_MAX_LENGTH,
+  TRANSACTION_LIST_OBSERVER_ROOT_MARGIN,
   TransactionTagIconKey,
   TRANSACTION_TAG_ICON_KEYS,
   TransactionTagColorKey,

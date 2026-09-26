@@ -1565,7 +1565,13 @@
       "immutable": "Transactions cannot be changed in place. Use Correct or Refund.",
       "convert_after_payment": "Finish or reverse the card payment before converting to installments.",
       "unknown": "Could not save. Try again."
-    }
+    },
+    "personalJarLabel": "Family jar",
+    "personalJarHint": "Choose a jar to include this personal expense in the family plan. By default, it is excluded.",
+    "personalJarSuggestion": "This category suggests {jar}. Choose it to include this expense in the plan.",
+    "personalJarUnmapped": "Exclude from family plan",
+    "planIncluded": "Included · {jar}",
+    "planExcluded": "Excluded from the family plan"
   },
   "transferForm": {
     "amountLabel": "Amount ({currency})",
@@ -1893,6 +1899,31 @@
     "subtitle": "Income, spending, and money movements",
     "filterLabel": "Transaction type",
     "tagFilterLabel": "Tags",
+    "noteSearchLabel": "Search notes",
+    "tagSearchLabel": "Search tags",
+    "search": "Search",
+    "openFilters": "Open filters, {count} filter groups applied",
+    "openFiltersLabel": "Filters",
+    "filterSheetTitle": "Filter transactions",
+    "categoryFilterLabel": "Category",
+    "jarFilterLabel": "Jar",
+    "categorySearchLabel": "Search categories",
+    "jarSearchLabel": "Search jars",
+    "anyCategory": "Any category",
+    "anyJar": "Any jar",
+    "applyFilters": "Apply filters",
+    "cancel": "Close",
+    "inactive": "Inactive",
+    "archived": "Archived",
+    "paused": "Paused",
+    "noTagsMatch": "No matching tags",
+    "noCategoriesMatch": "No matching categories",
+    "noJarsMatch": "No matching jars",
+    "loadingMore": "Loading more transactions…",
+    "allLoaded": "All transactions loaded",
+    "activitiesLoaded": "Loaded {count} transactions",
+    "loadMoreError": "Couldn’t load more transactions.",
+    "loadMore": "Load more",
     "filters": {
       "all": "All",
       "expense": "Expense",
@@ -1918,12 +1949,10 @@
     },
     "clearFilters": "Clear filters",
     "add": "Add transaction",
-    "manageTags": "Manage tags",
     "dates": {
       "today": "Today",
       "yesterday": "Yesterday"
     },
-    "loadMore": "Load more",
     "retry": "Retry",
     "loadErrorTitle": "Couldn’t load transactions",
     "loadErrorDescription": "Your filters are preserved. Try again.",
@@ -2067,7 +2096,10 @@
     "back": "Back to activity",
     "notFound": "Transaction not found",
     "readErrorTitle": "Transaction unavailable",
-    "readErrorBody": "We could not load this event right now. Try again."
+    "readErrorBody": "We could not load this event right now. Try again.",
+    "familyPlan": "Family plan",
+    "planIncluded": "Included · {jar}",
+    "planExcluded": "Excluded from the family plan"
   },
   "status": {
     "pending_mapping": "Needs category",
@@ -2202,7 +2234,13 @@
       "offline": "Connect to save.",
       "no_account": "Choose an account.",
       "unknown": "Could not save. Try again."
-    }
+    },
+    "personalJarLabel": "Family jar",
+    "personalJarHint": "Choose a jar to include this personal expense in the family plan. By default, it is excluded.",
+    "personalJarSuggestion": "This category suggests {jar}. Choose it to include this expense in the plan.",
+    "personalJarUnmapped": "Exclude from family plan",
+    "planIncluded": "Included · {jar}",
+    "planExcluded": "Excluded from the family plan"
   },
   "savingsCatalog": {
     "title": "Savings providers & products",

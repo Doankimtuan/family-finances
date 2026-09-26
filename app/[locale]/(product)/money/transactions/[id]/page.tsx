@@ -31,6 +31,7 @@ import {
   TransactionProductEvent,
 } from "@/modules/ledger/application";
 import { SavingsEventKind } from "@/modules/savings/application/savings-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import {
   CatalogGroup,
@@ -342,6 +343,17 @@ export default async function TransactionDetailPage({ params }: Props) {
   }
 
   const tx = transactionResult.transaction;
+  const isPersonalExpense =
+    tx.type === TransactionLedgerType.EXPENSE &&
+    tx.accountFinancialScope === FINANCIAL_SCOPE.PERSONAL;
+  let jarFactValue = tx.jarName
+    ? localizeCatalogName(tCatalog, CatalogGroup.JARS, tx.jarName)
+    : t("detailPage.unmapped");
+  if (isPersonalExpense && tx.jarName) {
+    jarFactValue = t("detailPage.planIncluded", { jar: jarFactValue });
+  } else if (isPersonalExpense) {
+    jarFactValue = t("detailPage.planExcluded");
+  }
 
   if (activity?.kind === TransactionActivityKind.TRANSFER) {
     return (
@@ -522,12 +534,10 @@ export default async function TransactionDetailPage({ params }: Props) {
           value={t(`status.${statusKey}`)}
         />
         <TransactionFactRow
-          label={t("detailPage.jar")}
-          value={
-            tx.jarName
-              ? localizeCatalogName(tCatalog, CatalogGroup.JARS, tx.jarName)
-              : t("detailPage.unmapped")
+          label={
+            isPersonalExpense ? t("detailPage.familyPlan") : t("detailPage.jar")
           }
+          value={jarFactValue}
         />
         {tx.note ? (
           <TransactionFactRow label={t("detailPage.note")} value={tx.note} />

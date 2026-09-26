@@ -54,6 +54,14 @@ const tag: CategoryTag = {
   jarId: null,
 };
 
+const personalAccount: LedgerAccount = {
+  ...account,
+  id: "00000000-0000-4000-8000-000000000102",
+  financialScope: FINANCIAL_SCOPE.PERSONAL,
+  ownerMembershipId: "00000000-0000-4000-8000-000000000109",
+  isPersonal: true,
+};
+
 const jar: CaptureJarOption = {
   id: "00000000-0000-4000-8000-000000000301",
   name: "Home",
@@ -118,6 +126,37 @@ describe("CorrectTransactionForm", () => {
     );
     expect(screen.getByTestId("correct-after")).toBeInTheDocument();
     expect(correctTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("shows whether a personal correction will count toward a family jar", async () => {
+    render(
+      <CorrectTransactionForm
+        transaction={{
+          ...transaction,
+          accountId: personalAccount.id,
+          accountName: personalAccount.name,
+          accountFinancialScope: FINANCIAL_SCOPE.PERSONAL,
+          jarId: null,
+        }}
+        accounts={[personalAccount]}
+        expenseTags={[tag]}
+        incomeTags={[]}
+        jars={[jar]}
+        currency="VND"
+      />,
+    );
+
+    expect(screen.getByTestId("correct-jar")).toHaveTextContent(
+      "personalJarUnmapped",
+    );
+    fireEvent.click(screen.getByTestId("correct-submit"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId("correct-before")).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId("correct-after")).toHaveTextContent(
+      "planExcluded",
+    );
   });
 
   it("records the corrected event and hides implementation ids in the receipt", async () => {

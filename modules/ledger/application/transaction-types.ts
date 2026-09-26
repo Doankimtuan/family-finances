@@ -1,5 +1,9 @@
 import type { AccountType, LedgerAccount } from "./account-types";
 import {
+  isFinancialScope,
+  type FinancialScope,
+} from "@/modules/shared-kernel/application/financial-scope";
+import {
   DEFAULT_CURRENCY,
   ACCOUNT_TYPE_VALUES,
   TransactionDirection,
@@ -39,6 +43,7 @@ export type LedgerTransaction = {
   accountId: string;
   accountName?: string;
   accountType?: AccountType;
+  accountFinancialScope?: FinancialScope;
   type: TransactionLedgerTypeValue;
   amount: number;
   currency: string;
@@ -70,6 +75,15 @@ export type CaptureJarOption = {
   id: string;
   name: string;
   kind: string;
+};
+
+export type TransactionCategoryFilterOption = CategoryTag & {
+  isActive: boolean;
+};
+
+export type TransactionJarFilterOption = CaptureJarOption & {
+  isArchived: boolean;
+  isPaused: boolean;
 };
 
 export function transactionMatchesTagFilter(
@@ -139,7 +153,11 @@ export function mapTransactionRow(row: {
   corrects_transaction_id?: string | null;
   is_reversal?: boolean | null;
   created_at: string;
-  accounts?: { name: string; type?: string | null } | null;
+  accounts?: {
+    name: string;
+    type?: string | null;
+    financial_scope?: string | null;
+  } | null;
   categories?: { name: string } | null;
   jars?: { name: string } | null;
   transaction_tag_assignments?: Array<{
@@ -155,11 +173,16 @@ export function mapTransactionRow(row: {
   const amount =
     typeof row.amount === "string" ? Number(row.amount) : row.amount;
   const reversesTransactionId = row.reverses_transaction_id ?? null;
+  const accountFinancialScope = row.accounts?.financial_scope;
   return {
     id: row.id,
     accountId: row.account_id,
     accountName: row.accounts?.name,
     accountType: mapAccountType(row.accounts?.type),
+    accountFinancialScope:
+      accountFinancialScope && isFinancialScope(accountFinancialScope)
+        ? accountFinancialScope
+        : undefined,
     type: mapLedgerType(row.type),
     amount: Number.isFinite(amount) ? amount : 0,
     currency: (row.currency ?? DEFAULT_CURRENCY).toUpperCase(),

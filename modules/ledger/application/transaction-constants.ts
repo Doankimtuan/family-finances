@@ -270,7 +270,15 @@ export const TransactionFilterType = {
 export const TRANSACTION_TAG_FILTER_QUERY_PARAM = "tags";
 export const TRANSACTION_TYPE_QUERY_PARAM = "type";
 export const TRANSACTION_CURSOR_QUERY_PARAM = "cursor";
+export const TRANSACTION_SEARCH_QUERY_PARAM = "q";
+export const TRANSACTION_CATEGORY_QUERY_PARAM = "category";
+export const TRANSACTION_JAR_QUERY_PARAM = "jar";
 export const TRANSACTION_LIST_PAGE_SIZE = 25;
+export const TRANSACTION_SEARCH_MAX_LENGTH = 120;
+export const TRANSACTION_CURSOR_MAX_LENGTH = 2048;
+export const TRANSACTION_LIST_OBSERVER_ROOT_MARGIN = "0px 0px 320px 0px";
+// ponytail: bounded scans per request; later pages continue from the scan cursor.
+export const TRANSACTION_EVENT_MAX_SCAN_PAGES = 4;
 
 /** Raw-row lookahead keeps two-row transfer/loan groups intact at page edges. */
 export const TRANSACTION_EVENT_PAGE_LOOKAHEAD_MULTIPLIER = 2;

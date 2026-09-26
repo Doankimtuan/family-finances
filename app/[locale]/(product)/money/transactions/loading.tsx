@@ -9,6 +9,10 @@ import { MoneyCaptureAction } from "../money-capture-action";
 function FilterSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-3)" aria-hidden>
+      <div className="flex items-end gap-(--space-2)">
+        <Skeleton className="h-11 min-w-0 flex-1 rounded-(--radius-control)" />
+        <Skeleton className="h-11 w-16 shrink-0 rounded-(--radius-control)" />
+      </div>
       <div className="flex flex-wrap gap-(--space-2)">
         {Array.from({ length: 4 }, (_, index) => (
           <Skeleton key={index} className="h-11 w-20 shrink-0 rounded-full" />

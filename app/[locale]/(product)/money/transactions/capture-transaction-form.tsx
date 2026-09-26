@@ -22,6 +22,7 @@ import {
   AccountType,
   CAPTURE_ACCOUNT_COMPACT_LIMIT,
 } from "@/modules/ledger/application/account-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {
   CAPTURE_CATEGORY_NONE_OPTION_ID,
   CAPTURE_JAR_UNMAPPED_OPTION_ID,
@@ -108,6 +109,7 @@ type ReceiptState = Pick<
   accountName: string;
   categoryName: string | null;
   jarName: string | null;
+  isPersonalExpense: boolean;
   tagAssignmentFailed: boolean;
 };
 
@@ -228,18 +230,32 @@ export function CaptureTransactionForm({
   const direction = useWatch({ control, name: "type" });
   const amount = useWatch({ control, name: "amount" });
   const accountId = useWatch({ control, name: "accountId" });
+  const categoryId = useWatch({ control, name: "categoryId" });
   const selectedTransactionTagIds = useWatch({
     control,
     name: "transactionTagIds",
   });
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
   const selectedAccount = accounts.find((account) => account.id === accountId);
+  const selectedCategory = tags.find((tag) => tag.id === categoryId);
+  const isPersonalExpense =
+    direction === Direction.EXPENSE &&
+    selectedAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL;
   const selectedAccountName = selectedAccount
     ? captureAccountName(tCatalog, selectedAccount.name)
     : "";
   const accountLabel = t(accountFieldLabelKey(direction));
   const jarHint =
     direction === Direction.EXPENSE ? t("jarHintExpense") : t("jarHintIncome");
+  const personalJarHint = selectedCategory?.jarId
+    ? t("personalJarSuggestion", {
+        jar: localizeCatalogName(
+          tCatalog,
+          CatalogGroup.JARS,
+          jars.find((jar) => jar.id === selectedCategory.jarId)?.name ?? "",
+        ),
+      })
+    : t("personalJarHint");
   const useCompactAccountPicker =
     accounts.length <= CAPTURE_ACCOUNT_COMPACT_LIMIT;
   const numericAmount = typeof amount === "number" ? amount : null;
@@ -253,6 +269,25 @@ export function CaptureTransactionForm({
     direction,
     selectedAccount?.type,
   );
+
+  const handleAccountChange = (
+    nextAccountId: string,
+    onChange: (value: string) => void,
+  ) => {
+    if (nextAccountId === accountId) return;
+    onChange(nextAccountId);
+    const nextAccount = accounts.find(
+      (account) => account.id === nextAccountId,
+    );
+    setValue(
+      "jarId",
+      direction === Direction.EXPENSE &&
+        nextAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL
+        ? null
+        : (selectedCategory?.jarId ?? null),
+      { shouldValidate: true },
+    );
+  };
 
   const showCaptureError = (
     code:
@@ -307,6 +342,9 @@ export function CaptureTransactionForm({
       jarName: submittedJar
         ? localizeCatalogName(tCatalog, CatalogGroup.JARS, submittedJar.name)
         : null,
+      isPersonalExpense:
+        values.type === Direction.EXPENSE &&
+        submittedAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL,
     };
   };
 
@@ -355,7 +393,19 @@ export function CaptureTransactionForm({
                 },
               ]
             : []),
-          ...(pendingContext.jarName
+          ...(pendingContext.isPersonalExpense
+            ? [
+                {
+                  id: "family-plan",
+                  label: t("personalJarLabel"),
+                  value: pendingContext.jarName
+                    ? t("planIncluded", { jar: pendingContext.jarName })
+                    : t("planExcluded"),
+                  kind: "text" as const,
+                },
+              ]
+            : []),
+          ...(!pendingContext.isPersonalExpense && pendingContext.jarName
             ? [
                 {
                   id: "jar",
@@ -411,7 +461,7 @@ export function CaptureTransactionForm({
         return;
       }
 
-      const { accountName, categoryName, jarName } =
+      const { accountName, categoryName, jarName, isPersonalExpense } =
         resolveSubmittedContext(values);
       const receiptTransaction: SubmittedTransaction = transaction;
 
@@ -433,6 +483,7 @@ export function CaptureTransactionForm({
         accountName,
         categoryName,
         jarName,
+        isPersonalExpense,
         tagAssignmentFailed,
       });
     });
@@ -472,6 +523,17 @@ export function CaptureTransactionForm({
             label: t("receipt.date"),
             value: receipt.transactionDate ?? todayIsoDate(),
           },
+          ...(receipt.isPersonalExpense
+            ? [
+                {
+                  id: "family-plan",
+                  label: t("personalJarLabel"),
+                  value: receipt.jarName
+                    ? t("planIncluded", { jar: receipt.jarName })
+                    : t("planExcluded"),
+                },
+              ]
+            : []),
         ]}
         relatedRecords={
           receipt.inboxItemId
@@ -606,7 +668,9 @@ export function CaptureTransactionForm({
                               tTypes(account.type),
                             )}
                             selected={field.value === account.id}
-                            onPress={() => field.onChange(account.id)}
+                            onPress={() =>
+                              handleAccountChange(account.id, field.onChange)
+                            }
                             role="radio"
                             icon={
                               <AppIcon
@@ -634,7 +698,9 @@ export function CaptureTransactionForm({
                     label={accountLabel}
                     description={t("accountHint")}
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(value) =>
+                      handleAccountChange(value, field.onChange)
+                    }
                     onBlur={field.onBlur}
                     error={
                       errors.accountId ? t("errors.no_account") : undefined
@@ -672,9 +738,11 @@ export function CaptureTransactionForm({
                   }
                   const selectedTag = tags.find((tag) => tag.id === value);
                   field.onChange(value);
-                  setValue("jarId", selectedTag?.jarId ?? null, {
-                    shouldValidate: true,
-                  });
+                  setValue(
+                    "jarId",
+                    isPersonalExpense ? null : (selectedTag?.jarId ?? null),
+                    { shouldValidate: true },
+                  );
                 }}
                 onBlur={field.onBlur}
                 data-testid="capture-category"
@@ -695,6 +763,43 @@ export function CaptureTransactionForm({
               />
             )}
           />
+
+          {isPersonalExpense ? (
+            <Controller
+              control={control}
+              name="jarId"
+              render={({ field }) => (
+                <SelectField
+                  id="capture-family-jar"
+                  label={t("personalJarLabel")}
+                  description={personalJarHint}
+                  value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+                  onChange={(value) =>
+                    field.onChange(
+                      value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
+                    )
+                  }
+                  onBlur={field.onBlur}
+                  error={errors.jarId ? t("errors.invalid") : undefined}
+                  data-testid="capture-family-jar"
+                  options={[
+                    {
+                      id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                      label: t("personalJarUnmapped"),
+                    },
+                    ...jars.map((jar) => ({
+                      id: jar.id,
+                      label: localizeCatalogName(
+                        tCatalog,
+                        CatalogGroup.JARS,
+                        jar.name,
+                      ),
+                    })),
+                  ]}
+                />
+              )}
+            />
+          ) : null}
 
           <Controller
             control={control}
@@ -729,42 +834,48 @@ export function CaptureTransactionForm({
               {t("moreDetails")}
             </summary>
             <div className="flex flex-col gap-(--space-4) border-t border-border-subtle pb-(--space-3) pt-(--space-4)">
-              <Text size="sm" tone="secondary">
-                {jarHint}
-              </Text>
-              <Controller
-                control={control}
-                name="jarId"
-                render={({ field }) => (
-                  <SelectField
-                    id="capture-jar"
-                    label={t("jarLabel")}
-                    value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
-                    onChange={(value) =>
-                      field.onChange(
-                        value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
-                      )
-                    }
-                    onBlur={field.onBlur}
-                    error={errors.jarId ? t("errors.invalid") : undefined}
-                    data-testid="capture-jar"
-                    options={[
-                      {
-                        id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
-                        label: t("jarUnmapped"),
-                      },
-                      ...jars.map((jar) => ({
-                        id: jar.id,
-                        label: localizeCatalogName(
-                          tCatalog,
-                          CatalogGroup.JARS,
-                          jar.name,
-                        ),
-                      })),
-                    ]}
-                  />
-                )}
-              />
+              {!isPersonalExpense ? (
+                <Text size="sm" tone="secondary">
+                  {jarHint}
+                </Text>
+              ) : null}
+              {!isPersonalExpense ? (
+                <Controller
+                  control={control}
+                  name="jarId"
+                  render={({ field }) => (
+                    <SelectField
+                      id="capture-jar"
+                      label={t("jarLabel")}
+                      value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+                      onChange={(value) =>
+                        field.onChange(
+                          value === CAPTURE_JAR_UNMAPPED_OPTION_ID
+                            ? null
+                            : value,
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      error={errors.jarId ? t("errors.invalid") : undefined}
+                      data-testid="capture-jar"
+                      options={[
+                        {
+                          id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                          label: t("jarUnmapped"),
+                        },
+                        ...jars.map((jar) => ({
+                          id: jar.id,
+                          label: localizeCatalogName(
+                            tCatalog,
+                            CatalogGroup.JARS,
+                            jar.name,
+                          ),
+                        })),
+                      ]}
+                    />
+                  )}
+                />
+              ) : null}
               <fieldset className="flex min-w-0 flex-col gap-(--space-2)">
                 <legend className={CAPTURE_FIELDSET_LEGEND_CLASS}>
                   {t("transactionTagsLabel")}

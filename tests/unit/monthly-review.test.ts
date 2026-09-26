@@ -7,6 +7,7 @@ import {
   TransactionLedgerType,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {
   calculateGoalProgressPercent,
   deriveGoalFundedAmount,
@@ -93,6 +94,36 @@ describe("Monthly Review cash-flow semantics", () => {
 
     expect(summary.income).toBe(10_000_000);
     expect(summary.expenses).toBe(3_000_000);
+  });
+
+  it("includes personal expenses assigned to family jars and their refunds, but not personal income", () => {
+    const summary = summarizeCashFlow([
+      row(TransactionLedgerType.INCOME, 1_000_000, {
+        financial_scope: FINANCIAL_SCOPE.HOUSEHOLD,
+      }),
+      row(TransactionLedgerType.EXPENSE, 2_000, {
+        id: "personal-expense",
+        financial_scope: FINANCIAL_SCOPE.PERSONAL,
+        jar_id: "family-jar",
+      }),
+      row(TransactionLedgerType.EXPENSE, 12_000, {
+        id: "personal-unassigned-expense",
+        financial_scope: FINANCIAL_SCOPE.PERSONAL,
+      }),
+      row(TransactionLedgerType.INCOME, 500, {
+        financial_scope: FINANCIAL_SCOPE.PERSONAL,
+        jar_id: "family-jar",
+        is_reversal: true,
+        reverses_transaction_id: "personal-expense",
+      }),
+      row(TransactionLedgerType.INCOME, 10_000_000, {
+        financial_scope: FINANCIAL_SCOPE.PERSONAL,
+      }),
+    ]);
+
+    expect(summary.income).toBe(1_000_000);
+    expect(summary.expenses).toBe(1_500);
+    expect(summary.activityCount).toBe(3);
   });
 
   it("excludes reversed originals and reversal legs from income and expenses", () => {
@@ -211,7 +242,7 @@ function supabaseReviewClient() {
       return {
         select: () => ({
           eq: () => ({
-            eq: () => ({
+            in: () => ({
               gte: () => ({
                 lt: () => ({
                   order: () => ({

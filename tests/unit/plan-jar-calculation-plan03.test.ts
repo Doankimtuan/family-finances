@@ -5,6 +5,7 @@ import {
   calculateJarSpentAmount,
   calculateQualifyingPostedIncome,
   classifyJarEnvelopeEffect,
+  isIncludedInJarBudgetInputs,
   resolveJarBudgetState,
   resolveQualifyingMonthlyIncome,
   type JarBudgetTransaction,
@@ -13,7 +14,11 @@ import {
   JarPlanKind,
   type PlanJar,
 } from "@/modules/plan/application/jar-types";
-import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
+import {
+  TransactionLedgerType,
+  TransactionStatus,
+} from "@/modules/ledger/application/ledger-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {
   currentPeriodMonth,
   periodMonthEndDate,
@@ -56,7 +61,9 @@ describe("PLAN 03 Jar calculation engine", () => {
   it("calculates fixed and percent rule budgets with integer arithmetic", () => {
     expect(calculateJarRuleBudget(fixedJar, 30_000_000)).toBe(15_000_000);
     expect(calculateJarRuleBudget(percentJar, 30_000_000)).toBe(15_000_000);
-    expect(calculateJarRuleBudget(percentJar.plan, 30_000_000)).toBe(15_000_000);
+    expect(calculateJarRuleBudget(percentJar.plan, 30_000_000)).toBe(
+      15_000_000,
+    );
     expect(
       calculateJarRuleBudget(
         {
@@ -126,6 +133,50 @@ describe("PLAN 03 Jar calculation engine", () => {
         }),
       ]),
     ).toBe(20_000_000);
+  });
+
+  it("does not allocate Plan budget from personal-account income", () => {
+    expect(
+      calculateQualifyingPostedIncome([
+        transaction({
+          type: TransactionLedgerType.INCOME,
+          amount: 20_000_000,
+          financial_scope: FINANCIAL_SCOPE.HOUSEHOLD,
+        }),
+        transaction({
+          type: TransactionLedgerType.INCOME,
+          amount: 30_000_000,
+          financial_scope: FINANCIAL_SCOPE.PERSONAL,
+        }),
+      ]),
+    ).toBe(20_000_000);
+  });
+
+  it("includes personal transactions in Plan inputs only when jar-linked or correcting another row", () => {
+    expect(
+      isIncludedInJarBudgetInputs(
+        transaction({
+          financial_scope: FINANCIAL_SCOPE.PERSONAL,
+          jar_id: null,
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isIncludedInJarBudgetInputs(
+        transaction({
+          financial_scope: FINANCIAL_SCOPE.PERSONAL,
+          jar_id: "family-jar",
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isIncludedInJarBudgetInputs(
+        transaction({
+          financial_scope: FINANCIAL_SCOPE.PERSONAL,
+          reverses_transaction_id: "original",
+        }),
+      ),
+    ).toBe(true);
   });
 
   it("classifies envelope-consuming and neutral Money events", () => {
@@ -222,6 +273,7 @@ describe("PLAN 03 Jar calculation engine", () => {
       id: "corrected-expense",
       type: TransactionLedgerType.EXPENSE,
       amount: 7_000,
+      corrects_transaction_id: "expense-1",
     });
     const reversal = transaction({
       id: "reversal",
@@ -230,8 +282,16 @@ describe("PLAN 03 Jar calculation engine", () => {
       is_reversal: true,
       reverses_transaction_id: "expense-1",
     });
+    const correctedOriginal = transaction({
+      ...original,
+      status: TransactionStatus.REVERSED,
+    });
     expect(
-      calculateJarSpentAmount("percent", [original, reversal, correction]),
+      calculateJarSpentAmount("percent", [
+        correctedOriginal,
+        reversal,
+        correction,
+      ]),
     ).toBe(7_000);
   });
 

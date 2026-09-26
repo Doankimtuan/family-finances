@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useId, useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "@/i18n/navigation";
 import {
@@ -21,15 +21,19 @@ import {
   TransactionDirection as Direction,
   TRANSACTION_DIRECTION_OPTIONS,
 } from "@/modules/ledger/application/client";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { TextField } from "@/shared/ui/form";
+import { SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -58,6 +62,8 @@ type ReceiptState = {
   amount: number;
   accountName: string;
   transactionDate: string;
+  jarName: string | null;
+  isPersonalExpense: boolean;
 };
 
 type Props = {
@@ -120,17 +126,31 @@ function normalizeCorrectionError(
 
 function createDefaultValues(
   transaction: LedgerTransaction,
+  accounts: LedgerAccount[],
+  tags: CategoryTag[],
 ): CorrectTransactionInput {
+  const direction =
+    transaction.type === Direction.INCOME
+      ? Direction.INCOME
+      : Direction.EXPENSE;
+  const account = accounts.find(
+    (candidate) => candidate.id === transaction.accountId,
+  );
+  const category = tags.find((tag) => tag.id === transaction.categoryId);
+  const isPersonalExpense =
+    direction === Direction.EXPENSE &&
+    account?.financialScope === FINANCIAL_SCOPE.PERSONAL;
   return {
     originalTransactionId: transaction.id,
     amount: transaction.amount,
-    type:
-      transaction.type === Direction.INCOME
-        ? Direction.INCOME
-        : Direction.EXPENSE,
+    type: direction,
     accountId: transaction.accountId,
     categoryId: transaction.categoryId,
-    jarId: transaction.jarId,
+    jarId: isPersonalExpense
+      ? transaction.jarId
+      : category
+        ? category.jarId
+        : transaction.jarId,
     note: transaction.note ?? undefined,
     transactionDate: transaction.transactionDate,
   };
@@ -159,9 +179,11 @@ export function CorrectTransactionForm({
   const [isPending, startTransition] = useTransition();
   const [confirm, setConfirm] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptState | null>(null);
+  const initialTags =
+    transaction.type === Direction.INCOME ? incomeTags : expenseTags;
   const form = useForm<CorrectTransactionInput>({
     resolver: zodResolver(correctTransactionInputSchema),
-    defaultValues: createDefaultValues(transaction),
+    defaultValues: createDefaultValues(transaction, accounts, initialTags),
   });
   const direction = useWatch({ control: form.control, name: "type" });
   const amount = useWatch({ control: form.control, name: "amount" });
@@ -184,14 +206,34 @@ export function CorrectTransactionForm({
   );
   const selectedTag = tags.find((tag) => tag.id === selectedCategoryId);
   const selectedJar = jars.find((jar) => jar.id === selectedJarId);
+  const isPersonalExpense =
+    direction === Direction.EXPENSE &&
+    selectedAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL;
+  const personalJarHint = selectedTag?.jarId
+    ? t("personalJarSuggestion", {
+        jar: localizeCatalogName(
+          tCatalog,
+          CatalogGroup.JARS,
+          jars.find((jar) => jar.id === selectedTag.jarId)?.name ?? "",
+        ),
+      })
+    : t("personalJarHint");
   const originalTitle =
     transaction.note ||
     (transaction.categoryName
-      ? localizeCatalogName(tCatalog, "tags", transaction.categoryName)
+      ? localizeCatalogName(
+          tCatalog,
+          CatalogGroup.TAGS,
+          transaction.categoryName,
+        )
       : null) ||
     t("originalFallback");
   const originalAccountName = transaction.accountName
-    ? localizeCatalogName(tCatalog, "accounts", transaction.accountName)
+    ? localizeCatalogName(
+        tCatalog,
+        CatalogGroup.ACCOUNTS,
+        transaction.accountName,
+      )
     : t("emptyValue");
   const originalDate = formatDate(
     new Date(`${transaction.transactionDate}T00:00:00Z`),
@@ -201,12 +243,6 @@ export function CorrectTransactionForm({
     typeof amount === "number" && amount > 0
       ? formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 })
       : t("emptyValue");
-
-  useEffect(() => {
-    if (selectedTag) {
-      form.setValue("jarId", selectedTag.jarId, { shouldDirty: true });
-    }
-  }, [form, selectedTag]);
 
   const validate = (values: CorrectTransactionInput) => {
     if (!values.accountId) {
@@ -258,14 +294,26 @@ export function CorrectTransactionForm({
             const account = accounts.find(
               (candidate) => candidate.id === values.accountId,
             );
+            const jar = jars.find((candidate) => candidate.id === values.jarId);
             setReceipt({
               correctionTransactionId,
               amount: values.amount,
               accountName: account
-                ? localizeCatalogName(tCatalog, "accounts", account.name)
+                ? localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.ACCOUNTS,
+                    account.name,
+                  )
                 : t("emptyValue"),
               transactionDate:
                 values.transactionDate ?? transaction.transactionDate,
+              jarName: jar
+                ? localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name)
+                : null,
+              isPersonalExpense:
+                values.type === Direction.EXPENSE &&
+                accounts.find((candidate) => candidate.id === values.accountId)
+                  ?.financialScope === FINANCIAL_SCOPE.PERSONAL,
             });
             return;
           }
@@ -312,6 +360,18 @@ export function CorrectTransactionForm({
               maximumFractionDigits: 0,
             }),
           },
+          ...(receipt.isPersonalExpense
+            ? [
+                {
+                  id: "family-plan",
+                  label: t("personalJarLabel"),
+                  value: receipt.jarName
+                    ? t("planIncluded", { jar: receipt.jarName })
+                    : t("planExcluded"),
+                  kind: "text" as const,
+                },
+              ]
+            : []),
         ]}
         nextActions={[
           {
@@ -389,21 +449,43 @@ export function CorrectTransactionForm({
           {t("changeTitle")}
         </Text>
         <div className="flex flex-col gap-(--space-4)">
-          <ControlledField
+          <Controller
             control={form.control}
-            field={{
-              type: "select",
-              name: "type",
-              id: typeId,
-              label: t("directionLabel"),
-              required: true,
-              testId: "correct-type",
-              options: TRANSACTION_DIRECTION_OPTIONS.map((option) => ({
-                id: option,
-                label: t(`direction.${option}`),
-              })),
-            }}
-            getErrorMessage={() => t("errors.invalid")}
+            name="type"
+            render={({ field }) => (
+              <SelectField
+                id={typeId}
+                label={t("directionLabel")}
+                value={field.value}
+                onChange={(value) => {
+                  const nextTags =
+                    value === Direction.INCOME ? incomeTags : expenseTags;
+                  const nextTag = nextTags.find(
+                    (tag) => tag.id === selectedCategoryId,
+                  );
+                  field.onChange(value);
+                  if (!nextTag) {
+                    form.setValue("categoryId", null, { shouldDirty: true });
+                  }
+                  form.setValue(
+                    "jarId",
+                    value === Direction.EXPENSE &&
+                      selectedAccount?.financialScope ===
+                        FINANCIAL_SCOPE.PERSONAL
+                      ? null
+                      : (nextTag?.jarId ?? null),
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                }}
+                onBlur={field.onBlur}
+                required
+                data-testid="correct-type"
+                options={TRANSACTION_DIRECTION_OPTIONS.map((option) => ({
+                  id: option,
+                  label: t(`direction.${option}`),
+                }))}
+              />
+            )}
           />
           <ControlledField
             control={form.control}
@@ -418,22 +500,44 @@ export function CorrectTransactionForm({
             }}
             getErrorMessage={() => t("errors.invalid")}
           />
-          <ControlledField
+          <Controller
             control={form.control}
-            field={{
-              type: "select",
-              name: "accountId",
-              id: accountId,
-              label: t("accountLabel"),
-              description: t("accountHint"),
-              required: true,
-              testId: "correct-account",
-              options: accounts.map((account) => ({
-                id: account.id,
-                label: localizeCatalogName(tCatalog, "accounts", account.name),
-              })),
-            }}
-            getErrorMessage={() => t("errors.no_account")}
+            name="accountId"
+            render={({ field, fieldState }) => (
+              <SelectField
+                id={accountId}
+                label={t("accountLabel")}
+                description={t("accountHint")}
+                value={field.value ?? ""}
+                onChange={(value) => {
+                  if (field.value === value) return;
+                  const nextAccount = accounts.find(
+                    (account) => account.id === value,
+                  );
+                  field.onChange(value);
+                  form.setValue(
+                    "jarId",
+                    direction === Direction.EXPENSE &&
+                      nextAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL
+                      ? null
+                      : (selectedTag?.jarId ?? null),
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                }}
+                onBlur={field.onBlur}
+                error={fieldState.error ? t("errors.no_account") : undefined}
+                required
+                data-testid="correct-account"
+                options={accounts.map((account) => ({
+                  id: account.id,
+                  label: localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.ACCOUNTS,
+                    account.name,
+                  ),
+                }))}
+              />
+            )}
           />
           <ControlledField
             control={form.control}
@@ -447,23 +551,38 @@ export function CorrectTransactionForm({
             }}
             getErrorMessage={() => t("errors.invalid")}
           />
-          <ControlledField
+          <Controller
             control={form.control}
-            field={{
-              type: "select",
-              name: "categoryId",
-              id: categoryId,
-              label: t("tagLabel"),
-              emptyValue: null,
-              testId: "correct-category",
-              options: [
-                { id: "", label: t("tagNone") },
-                ...tags.map((tag) => ({
-                  id: tag.id,
-                  label: localizeCatalogName(tCatalog, "tags", tag.name),
-                })),
-              ],
-            }}
+            name="categoryId"
+            render={({ field }) => (
+              <SelectField
+                id={categoryId}
+                label={t("tagLabel")}
+                value={field.value ?? ""}
+                onChange={(value) => {
+                  const nextTag = tags.find((tag) => tag.id === value);
+                  field.onChange(value || null);
+                  form.setValue(
+                    "jarId",
+                    isPersonalExpense ? null : (nextTag?.jarId ?? null),
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                }}
+                onBlur={field.onBlur}
+                data-testid="correct-category"
+                options={[
+                  { id: "", label: t("tagNone") },
+                  ...tags.map((tag) => ({
+                    id: tag.id,
+                    label: localizeCatalogName(
+                      tCatalog,
+                      CatalogGroup.TAGS,
+                      tag.name,
+                    ),
+                  })),
+                ]}
+              />
+            )}
           />
           <ControlledField
             control={form.control}
@@ -471,14 +590,24 @@ export function CorrectTransactionForm({
               type: "select",
               name: "jarId",
               id: jarId,
-              label: t("jarLabel"),
+              label: isPersonalExpense ? t("personalJarLabel") : t("jarLabel"),
+              description: isPersonalExpense ? personalJarHint : undefined,
               emptyValue: null,
               testId: "correct-jar",
               options: [
-                { id: "", label: t("jarUnmapped") },
+                {
+                  id: "",
+                  label: isPersonalExpense
+                    ? t("personalJarUnmapped")
+                    : t("jarUnmapped"),
+                },
                 ...jars.map((jar) => ({
                   id: jar.id,
-                  label: localizeCatalogName(tCatalog, "jars", jar.name),
+                  label: localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.JARS,
+                    jar.name,
+                  ),
                 })),
               ],
             }}
@@ -554,7 +683,7 @@ export function CorrectTransactionForm({
                     value: selectedAccount
                       ? localizeCatalogName(
                           tCatalog,
-                          "accounts",
+                          CatalogGroup.ACCOUNTS,
                           selectedAccount.name,
                         )
                       : t("emptyValue"),
@@ -575,16 +704,34 @@ export function CorrectTransactionForm({
                     id: "category",
                     label: t("tagLabel"),
                     value: selectedTag
-                      ? localizeCatalogName(tCatalog, "tags", selectedTag.name)
+                      ? localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.TAGS,
+                          selectedTag.name,
+                        )
                       : t("tagNone"),
                     kind: "text",
                   },
                   {
                     id: "jar",
-                    label: t("jarLabel"),
+                    label: t(
+                      isPersonalExpense ? "personalJarLabel" : "jarLabel",
+                    ),
                     value: selectedJar
-                      ? localizeCatalogName(tCatalog, "jars", selectedJar.name)
-                      : t("jarUnmapped"),
+                      ? isPersonalExpense
+                        ? t("planIncluded", {
+                            jar: localizeCatalogName(
+                              tCatalog,
+                              CatalogGroup.JARS,
+                              selectedJar.name,
+                            ),
+                          })
+                        : localizeCatalogName(
+                            tCatalog,
+                            CatalogGroup.JARS,
+                            selectedJar.name,
+                          )
+                      : t(isPersonalExpense ? "planExcluded" : "jarUnmapped"),
                     kind: "text",
                   },
                 ]}

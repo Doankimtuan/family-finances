@@ -4,6 +4,7 @@ import {
   TransactionLedgerType,
   TransactionStatus,
 } from "@/modules/ledger/application/ledger-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import {
   JarBudgetState,
   QualifyingIncomeSource,
@@ -21,6 +22,7 @@ export type JarBudgetTransaction = {
   type: string;
   amount: number | string;
   status?: string | null;
+  financial_scope?: string | null;
   jar_id?: string | null;
   jarId?: string | null;
   savings_event_kind?: string | null;
@@ -91,6 +93,28 @@ function transactionReversalId(
   );
 }
 
+function transactionCorrectionId(
+  transaction: JarBudgetTransaction,
+): string | null {
+  return (
+    transaction.corrects_transaction_id ??
+    transaction.correctsTransactionId ??
+    null
+  );
+}
+
+export function isIncludedInJarBudgetInputs(
+  transaction: JarBudgetTransaction,
+): boolean {
+  if (transaction.financial_scope !== FINANCIAL_SCOPE.PERSONAL) return true;
+  return Boolean(
+    transactionJarId(transaction) ||
+    transactionReversalId(transaction) ||
+    transactionCorrectionId(transaction) ||
+    transactionIsReversal(transaction),
+  );
+}
+
 function isIncludedInLedgerMath(transaction: JarBudgetTransaction): boolean {
   const status = transactionStatus(transaction);
   if (!status) return true;
@@ -142,11 +166,13 @@ function baseEnvelopeEffect(transaction: JarBudgetTransaction): number {
 export function classifyJarEnvelopeEffect(
   transaction: JarBudgetTransaction,
   reversedTransaction?: JarBudgetTransaction,
+  isCorrectionReversal = false,
 ): number {
   if (!isIncludedInLedgerMath(transaction) || isReversedOriginal(transaction)) {
     return 0;
   }
   if (transactionIsReversal(transaction)) {
+    if (isCorrectionReversal) return 0;
     if (reversedTransaction) {
       const originalEffect = baseEnvelopeEffect(reversedTransaction);
       return originalEffect > 0
@@ -175,6 +201,7 @@ export function calculateQualifyingPostedIncome(
         !isIncludedInLedgerMath(transaction) ||
         isReversedOriginal(transaction) ||
         transactionIsReversal(transaction) ||
+        transaction.financial_scope === FINANCIAL_SCOPE.PERSONAL ||
         transaction.type !== TransactionLedgerType.INCOME
       ) {
         return total;
@@ -250,11 +277,27 @@ export function calculateJarSpentAmount(
       transaction.id ? [[transaction.id, transaction] as const] : [],
     ),
   );
+  const correctedOriginalIds = new Set(
+    transactions
+      .map(
+        (transaction) =>
+          transaction.corrects_transaction_id ??
+          transaction.correctsTransactionId,
+      )
+      .filter((id): id is string => Boolean(id)),
+  );
   const total = transactions.reduce((sum, transaction) => {
     if (transactionJarId(transaction) !== jarId) return sum;
     const reversalOf = transactionReversalId(transaction);
     const original = reversalOf ? byId.get(reversalOf) : undefined;
-    return sum + classifyJarEnvelopeEffect(transaction, original);
+    return (
+      sum +
+      classifyJarEnvelopeEffect(
+        transaction,
+        original,
+        reversalOf != null && correctedOriginalIds.has(reversalOf),
+      )
+    );
   }, 0);
   return Math.max(0, total);
 }

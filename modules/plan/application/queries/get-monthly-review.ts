@@ -3,7 +3,10 @@ import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { classifyFinancialEvent } from "@/modules/ledger/application/financial-semantics";
-import { TransactionLedgerType } from "@/modules/ledger/application/ledger-constants";
+import {
+  TransactionLedgerType,
+  TransactionDirection,
+} from "@/modules/ledger/application/ledger-constants";
 import { getJarBudgetsForPeriod } from "./get-current-jar-budgets";
 import { listGoals } from "./list-goals";
 import { listJars } from "./list-jars";
@@ -13,7 +16,12 @@ import {
   getPlanRecommendations,
   type PlanRecommendation,
 } from "../plan-recommendations";
-import type { JarBudgetState } from "../jar-budget";
+import {
+  calculateJarSpentAmount,
+  isIncludedInJarBudgetInputs,
+  type JarBudgetState,
+  type JarBudgetTransaction,
+} from "../jar-budget";
 
 type ReviewTransaction = {
   id: string;
@@ -27,7 +35,9 @@ type ReviewTransaction = {
   is_reversal: boolean | null;
   reverses_transaction_id: string | null;
   jar_id: string | null;
+  corrects_transaction_id?: string | null;
   category_id: string | null;
+  financial_scope?: string | null;
 };
 
 type ReviewSnapshot = {
@@ -154,22 +164,54 @@ async function loadTransactions(householdId: string, periodMonth: string) {
   const { data, error } = await supabase
     .from("transactions")
     .select(
-      "id, type, amount, status, transaction_date, created_at, transfer_group_id, savings_event_kind, is_reversal, reverses_transaction_id, jar_id, category_id, accounts!inner(financial_scope)",
+      "id, type, amount, status, transaction_date, created_at, transfer_group_id, savings_event_kind, is_reversal, reverses_transaction_id, corrects_transaction_id, jar_id, category_id, accounts!inner(financial_scope)",
     )
     .eq("household_id", householdId)
-    .eq("accounts.financial_scope", FINANCIAL_SCOPE.HOUSEHOLD)
+    .in("accounts.financial_scope", [
+      FINANCIAL_SCOPE.HOUSEHOLD,
+      FINANCIAL_SCOPE.PERSONAL,
+    ])
     .gte("transaction_date", periodMonth)
     .lt("transaction_date", periodMonthExclusiveEnd(periodMonth))
     .order("transaction_date", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as ReviewTransaction[];
+  return (data ?? [])
+    .map((row) => {
+      const joinedAccounts = (row as { accounts?: unknown }).accounts;
+      const joinedAccount = Array.isArray(joinedAccounts)
+        ? joinedAccounts[0]
+        : joinedAccounts;
+      const financialScope =
+        typeof joinedAccount === "object" &&
+        joinedAccount !== null &&
+        "financial_scope" in joinedAccount &&
+        typeof joinedAccount.financial_scope === "string"
+          ? joinedAccount.financial_scope
+          : null;
+      return { ...row, financial_scope: financialScope } as ReviewTransaction;
+    })
+    .filter(isIncludedInJarBudgetInputs);
 }
 
 export function summarizeCashFlow(rows: ReviewTransaction[]) {
   const summary = emptyCashFlow();
   const seenTransferGroups = new Set<string>();
-  for (const row of rows) {
+  const planRows = rows.filter(isIncludedInJarBudgetInputs);
+  const householdRows = planRows.filter(
+    (row) => row.financial_scope !== FINANCIAL_SCOPE.PERSONAL,
+  );
+  const personalPlanRows = planRows.filter(
+    (row) =>
+      row.financial_scope === FINANCIAL_SCOPE.PERSONAL &&
+      (row.type === TransactionDirection.EXPENSE ||
+        Boolean(
+          row.reverses_transaction_id ||
+          row.corrects_transaction_id ||
+          row.is_reversal,
+        )),
+  );
+  for (const row of householdRows) {
     const value = amount(row.amount);
     const semantics = classifyFinancialEvent({
       type: row.type,
@@ -202,6 +244,18 @@ export function summarizeCashFlow(rows: ReviewTransaction[]) {
     if (row.type === TransactionLedgerType.DEBT_LENDING)
       summary.debtPrincipalReduced += value;
   }
+  const personalJarTransactions = personalPlanRows as JarBudgetTransaction[];
+  const personalJarIds = new Set(
+    personalJarTransactions
+      .map((row) => row.jar_id)
+      .filter((jarId): jarId is string => jarId != null),
+  );
+  summary.activityCount += personalPlanRows.length;
+  summary.expenses += [...personalJarIds].reduce(
+    (total, jarId) =>
+      total + calculateJarSpentAmount(jarId, personalJarTransactions),
+    0,
+  );
   summary.netSavingsPlacement = summary.savingsAdded - summary.savingsWithdrawn;
   summary.netInvested = summary.investmentBuys - summary.investmentSales;
   summary.netCashFlow =

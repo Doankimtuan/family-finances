@@ -1,6 +1,9 @@
 import {
   FinancialEventCategory,
   TRANSACTION_CURSOR_QUERY_PARAM,
+  TRANSACTION_SEARCH_QUERY_PARAM,
+  TRANSACTION_CATEGORY_QUERY_PARAM,
+  TRANSACTION_JAR_QUERY_PARAM,
   TRANSACTION_STATUS_VALUES,
   TRANSACTION_TAG_FILTER_QUERY_PARAM,
   TRANSACTION_TYPE_QUERY_PARAM,
@@ -9,8 +12,8 @@ import {
   TransactionFilterType,
   TransactionStatus,
   type TransactionActivity,
-} from "@/modules/ledger/application";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+} from "@/modules/ledger/application/client";
+import { APP_API_PATH, APP_PATH } from "@/modules/tenancy/application/app-path";
 import { formatDate } from "@/shared/i18n/formatters";
 import {
   CatalogGroup,
@@ -183,18 +186,42 @@ export function groupActivities(activities: TransactionActivity[]) {
 export function transactionsListHref(
   type: TransactionFilterType,
   tagIds: string[],
-  cursor?: string,
+  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] } = {},
+) {
+  const params = transactionFilterParams(type, tagIds, filters);
+  const query = params.toString();
+  return query
+    ? `${APP_PATH.MONEY_TRANSACTIONS}?${query}`
+    : APP_PATH.MONEY_TRANSACTIONS;
+}
+
+export function transactionsEventsHref(
+  type: TransactionFilterType,
+  tagIds: string[],
+  cursor: string,
+  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] } = {},
+) {
+  const params = transactionFilterParams(type, tagIds, filters);
+  params.set(TRANSACTION_CURSOR_QUERY_PARAM, cursor);
+  return `${APP_API_PATH.TRANSACTION_EVENTS}?${params.toString()}`;
+}
+
+function transactionFilterParams(
+  type: TransactionFilterType,
+  tagIds: string[],
+  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] },
 ) {
   const params = new URLSearchParams();
   if (type !== TransactionFilterType.ALL)
     params.set(TRANSACTION_TYPE_QUERY_PARAM, type);
   if (tagIds.length > 0)
     params.set(TRANSACTION_TAG_FILTER_QUERY_PARAM, tagIds.join(","));
-  if (cursor) params.set(TRANSACTION_CURSOR_QUERY_PARAM, cursor);
-  const query = params.toString();
-  return query
-    ? `${APP_PATH.MONEY_TRANSACTIONS}?${query}`
-    : APP_PATH.MONEY_TRANSACTIONS;
+  if (filters.q) params.set(TRANSACTION_SEARCH_QUERY_PARAM, filters.q);
+  if (filters.categoryIds?.length)
+    params.set(TRANSACTION_CATEGORY_QUERY_PARAM, filters.categoryIds.join(","));
+  if (filters.jarIds?.length)
+    params.set(TRANSACTION_JAR_QUERY_PARAM, filters.jarIds.join(","));
+  return params;
 }
 
 export function amountAriaToneKey(tone: TransactionActivityTone) {

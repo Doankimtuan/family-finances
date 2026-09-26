@@ -1,30 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
-import { z } from "zod";
 import { setLocale } from "@/i18n/set-locale";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import {
-  APP_PATH,
-  moneyTransactionPath,
-} from "@/modules/tenancy/application/app-path";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   listTransactionEvents,
   listTransactionTags,
-  TRANSACTION_COMMON_FILTER_OPTIONS,
+  listTransactionFilterOptions,
   TRANSACTION_LIST_PAGE_SIZE,
-  TransactionActivityKind,
   TransactionFilterType,
+  transactionEventFilterSchema,
 } from "@/modules/ledger/application";
-import { formatCurrency } from "@/shared/i18n/formatters";
-import {
-  AppIcon,
-  AppIconSize,
-  IconContainer,
-  financeIconFor,
-} from "@/shared/ui";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 import { Page } from "@/shared/patterns/page";
@@ -34,25 +23,13 @@ import {
   FinancialPrivacyToggleTone,
 } from "@/shared/patterns/financial-privacy-toggle";
 import { FloatingAction } from "@/shared/patterns/floating-action";
-import { TransactionListItem } from "./transaction-list-item";
+import { AppIcon, AppIconSize } from "@/shared/ui";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { MoneyCaptureAction } from "../money-capture-action";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
-import { TransactionsDateGroup } from "./transactions-date-group";
-import {
-  ACTIVITY_TONE_TO_AMOUNT_TONE,
-  activityIconKey,
-  activityIconTone,
-  activityRelationshipLabel,
-  activityStatusMeta,
-  activitySubtitle,
-  activityTitle,
-  amountAriaToneKey,
-  dateGroupLabel,
-  groupActivities,
-  transactionsListHref,
-} from "./transactions-list-presentations";
+import { TransactionsActivityList } from "./transactions-activity-list";
+import { transactionsListHref } from "./transactions-list-presentations";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -60,18 +37,11 @@ type Props = {
     type?: string;
     tags?: string;
     cursor?: string;
+    q?: string;
+    category?: string;
+    jar?: string;
   }>;
 };
-
-const TRANSACTION_COMMON_FILTER_SET = new Set<string>(
-  TRANSACTION_COMMON_FILTER_OPTIONS,
-);
-
-function isCommonFilter(
-  value: string | undefined,
-): value is TransactionFilterType {
-  return value !== undefined && TRANSACTION_COMMON_FILTER_SET.has(value);
-}
 
 export default async function TransactionsListPage({
   params,
@@ -89,52 +59,72 @@ export default async function TransactionsListPage({
   if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
 
   const sp = await searchParams;
-  const type = isCommonFilter(sp.type) ? sp.type : TransactionFilterType.ALL;
-  const tagIds = (sp.tags ?? "")
-    .split(",")
-    .filter((id) => z.string().uuid().safeParse(id).success);
-  const [t, tMoney, tCatalog, result, availableTags] = await Promise.all([
+  const parsedFilters = transactionEventFilterSchema.safeParse({
+    type: sp.type,
+    tags: sp.tags,
+    q: sp.q,
+    category: sp.category,
+    jar: sp.jar,
+  });
+  const filters = parsedFilters.success
+    ? parsedFilters.data
+    : transactionEventFilterSchema.parse({});
+  const currentHref = transactionsListHref(filters.type, filters.tagIds, {
+    q: filters.q || undefined,
+    categoryIds: filters.categoryIds,
+    jarIds: filters.jarIds,
+  });
+  if (sp.cursor) redirect({ href: currentHref, locale });
+
+  const [t, tMoney, result, filterOptions, availableTags] = await Promise.all([
     getTranslations("money.transactionsPage"),
     getTranslations("money"),
-    getTranslations("catalog"),
     listTransactionEvents({
-      type,
-      tagIds,
-      cursor: sp.cursor,
+      ...filters,
       limit: TRANSACTION_LIST_PAGE_SIZE,
     }),
+    listTransactionFilterOptions(),
     listTransactionTags({ includeArchived: true }),
   ]);
 
-  const activityKindLabels: Record<TransactionActivityKind, string> = {
-    [TransactionActivityKind.INCOME]: t("activityKind.income"),
-    [TransactionActivityKind.EXPENSE]: t("activityKind.expense"),
-    [TransactionActivityKind.TRANSFER]: t("activityKind.transfer"),
-    [TransactionActivityKind.REFUND]: t("activityKind.refund"),
-    [TransactionActivityKind.LIABILITY_PAYMENT]: t(
-      "activityKind.liability_payment",
-    ),
-    [TransactionActivityKind.LOAN_INTEREST]: t("activityKind.loan_interest"),
-    [TransactionActivityKind.DEBT_BORROWING]: t("activityKind.debt_borrowing"),
-    [TransactionActivityKind.DEBT_LENDING]: t("activityKind.debt_lending"),
-    [TransactionActivityKind.DEBT_RECEIPT]: t("activityKind.debt_receipt"),
-    [TransactionActivityKind.SAVINGS]: t("activityKind.savings"),
-    [TransactionActivityKind.INVESTMENT]: t("activityKind.investment"),
-    [TransactionActivityKind.OTHER]: t("activityKind.other"),
-  };
-  const dateLabels = {
-    today: t("dates.today"),
-    yesterday: t("dates.yesterday"),
-  };
-  const relationshipLabels = {
-    partiallyRefunded: t("relationship.partiallyRefunded"),
-    fullyRefunded: t("relationship.fullyRefunded"),
-  };
-
-  const currentHref = transactionsListHref(type, tagIds);
-  const groups = groupActivities(result?.activities ?? []);
   const hasActiveFilter =
-    type !== TransactionFilterType.ALL || tagIds.length > 0;
+    filters.type !== TransactionFilterType.ALL ||
+    Boolean(
+      filters.q ||
+      filters.categoryIds.length ||
+      filters.jarIds.length ||
+      filters.tagIds.length,
+    );
+  const emptyState = (
+    <div data-testid="transactions-empty">
+      <EmptyState
+        icon={<AppIcon icon={FINANCE_ICONS.cash} size={AppIconSize.DISPLAY} />}
+        title={t(hasActiveFilter ? "filteredEmptyTitle" : "emptyTitle")}
+        description={t(
+          hasActiveFilter ? "filteredEmptyDescription" : "emptyDescription",
+        )}
+        className="flex-none py-(--space-2)"
+        action={
+          hasActiveFilter ? (
+            <Link
+              href={APP_PATH.MONEY_TRANSACTIONS}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("clearFilters")}
+            </Link>
+          ) : (
+            <Link
+              href={APP_PATH.MONEY_ADD}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-(--elevation-1) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+              data-testid="transactions-empty-add"
+            >
+              {t("add")}
+            </Link>
+          )
+        }
+      />
+    </div>
+  );
 
   return (
     <Page
@@ -160,9 +150,14 @@ export default async function TransactionsListPage({
     >
       <MoneyOfflineBanner />
       <TransactionsFilterBar
-        type={type}
+        type={filters.type}
+        query={filters.q ?? ""}
+        categoryIds={filters.categoryIds}
+        jarIds={filters.jarIds}
         availableTags={availableTags ?? []}
-        selectedTagIds={tagIds}
+        availableCategories={filterOptions?.categories ?? []}
+        availableJars={filterOptions?.jars ?? []}
+        selectedTagIds={filters.tagIds}
       />
 
       {result === null ? (
@@ -178,114 +173,22 @@ export default async function TransactionsListPage({
             </Link>
           }
         />
-      ) : groups.length === 0 ? (
-        <div data-testid="transactions-empty">
-          <EmptyState
-            icon={
-              <AppIcon icon={FINANCE_ICONS.cash} size={AppIconSize.DISPLAY} />
-            }
-            title={t(hasActiveFilter ? "filteredEmptyTitle" : "emptyTitle")}
-            description={t(
-              hasActiveFilter ? "filteredEmptyDescription" : "emptyDescription",
-            )}
-            className="flex-none py-(--space-2)"
-            action={
-              hasActiveFilter ? (
-                <Link
-                  href={APP_PATH.MONEY_TRANSACTIONS}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                >
-                  {t("clearFilters")}
-                </Link>
-              ) : (
-                <Link
-                  href={APP_PATH.MONEY_ADD}
-                  className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-(--elevation-1) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                  data-testid="transactions-empty-add"
-                >
-                  {t("add")}
-                </Link>
-              )
-            }
-          />
-        </div>
+      ) : result.activities.length === 0 && !result.hasMore ? (
+        emptyState
       ) : (
-        <div className="flex flex-col gap-(--space-5)">
-          {groups.map((group) => (
-            <TransactionsDateGroup
-              key={group.date}
-              date={group.date}
-              label={dateGroupLabel(group.date, locale, dateLabels)}
-            >
-              {group.activities.map((activity) => {
-                const title = activityTitle(
-                  activity,
-                  activityKindLabels,
-                  tCatalog,
-                );
-                return (
-                  <TransactionListItem
-                    key={activity.id}
-                    href={moneyTransactionPath(
-                      activity.relatedTransactionIds[0],
-                    )}
-                    activityId={activity.id}
-                    title={title}
-                    subtitle={activitySubtitle(
-                      activity,
-                      title,
-                      activityKindLabels,
-                      tCatalog,
-                    )}
-                    amountLabel={`${activity.sign}${formatCurrency(
-                      activity.amount,
-                      activity.currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    )}`}
-                    amountMeta={[
-                      activityStatusMeta(activity, (status) =>
-                        tMoney(`status.${status}`),
-                      ),
-                      activityRelationshipLabel(activity, relationshipLabels),
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                    amountAria={t(amountAriaToneKey(activity.tone), {
-                      amount: formatCurrency(
-                        activity.amount,
-                        activity.currency,
-                        locale,
-                        { maximumFractionDigits: 0 },
-                      ),
-                    })}
-                    tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
-                    leading={
-                      <IconContainer
-                        tone={activityIconTone(activity)}
-                        size="sm"
-                      >
-                        <AppIcon
-                          icon={financeIconFor(activityIconKey(activity))}
-                          size="sm"
-                        />
-                      </IconContainer>
-                    }
-                  />
-                );
-              })}
-            </TransactionsDateGroup>
-          ))}
-          {result?.hasMore && result.nextCursor ? (
-            <Link
-              href={transactionsListHref(type, tagIds, result.nextCursor)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-semibold text-text-primary shadow-(--elevation-1) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
-              data-testid="transactions-load-more"
-            >
-              {t("loadMore")}
-            </Link>
-          ) : null}
-        </div>
+        <TransactionsActivityList
+          key={currentHref}
+          listKey={currentHref}
+          initialActivities={result.activities}
+          initialNextCursor={result.nextCursor}
+          initialHasMore={result.hasMore}
+          type={filters.type}
+          query={filters.q ?? ""}
+          categoryIds={filters.categoryIds}
+          jarIds={filters.jarIds}
+          selectedTagIds={filters.tagIds}
+          emptyState={emptyState}
+        />
       )}
       <FloatingAction>
         <MoneyCaptureAction testId="transactions-add" />

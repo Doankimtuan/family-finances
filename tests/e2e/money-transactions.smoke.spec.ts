@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
+const TRANSACTION_LIST_VIEWPORT_WIDTHS = [390, 440, 768, 1280] as const;
+const TRANSACTION_LIST_VIEWPORT_HEIGHT = 900;
+const TRANSACTION_LIST_COLOR_SCHEMES = ["light", "dark"] as const;
+
 test.describe("Money transactions list/detail/edit (ST-E04-003)", () => {
   test.describe.configure({ mode: "serial" });
 
@@ -33,5 +37,48 @@ test.describe("Money transactions list/detail/edit (ST-E04-003)", () => {
     await expect(appViewport.getByTestId("money-transactions")).toBeVisible();
     await expect(appViewport.getByTestId("transactions-filter")).toBeVisible();
     await expect(appViewport.getByTestId("transactions-add")).toBeVisible();
+
+    for (const colorScheme of TRANSACTION_LIST_COLOR_SCHEMES) {
+      await page.emulateMedia({ colorScheme });
+      await expect(page.locator("html")).toHaveClass(new RegExp(colorScheme));
+
+      for (const width of TRANSACTION_LIST_VIEWPORT_WIDTHS) {
+        await page.setViewportSize({
+          width,
+          height: TRANSACTION_LIST_VIEWPORT_HEIGHT,
+        });
+        await expect(
+          appViewport.getByTestId("transactions-filter"),
+        ).toBeVisible();
+        const hasHorizontalOverflow = await page.evaluate(
+          () => document.documentElement.scrollWidth > window.innerWidth,
+        );
+        expect(hasHorizontalOverflow, `${width}px ${colorScheme}`).toBe(false);
+
+        await appViewport.getByTestId("transactions-open-filters").click();
+        const filterSheet = page.getByRole("dialog");
+        await expect(filterSheet.getByLabel("Search tags")).toBeVisible();
+        await expect(
+          filterSheet.getByRole("group", { name: "Tags" }),
+        ).toHaveCount(1);
+
+        const tagGroup = filterSheet.getByRole("group", { name: "Tags" });
+        const tagRows = tagGroup.locator("button[aria-pressed]");
+        if (await tagRows.count()) {
+          const [rowWidth, fieldsetWidth] = await Promise.all([
+            tagRows
+              .first()
+              .evaluate((element) => element.getBoundingClientRect().width),
+            tagGroup.evaluate(
+              (element) => element.getBoundingClientRect().width,
+            ),
+          ]);
+          expect(rowWidth).toBe(fieldsetWidth);
+        }
+
+        await page.keyboard.press("Escape");
+        await expect(filterSheet).toBeHidden();
+      }
+    }
   });
 });

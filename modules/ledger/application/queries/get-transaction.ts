@@ -19,6 +19,7 @@ import {
   TRANSACTION_EVENT_PAGE_LOOKAHEAD_MULTIPLIER,
   TransactionFilterType,
   TRANSACTION_LIST_PAGE_SIZE,
+  TRANSACTION_EVENT_MAX_SCAN_PAGES,
   TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionLedgerType,
   TransactionReadStatus,
@@ -30,8 +31,18 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
   return mapTransactionRow({
     ...(row as Parameters<typeof mapTransactionRow>[0]),
     accounts: Array.isArray(row.accounts)
-      ? (row.accounts[0] as { name: string; type?: string } | undefined)
-      : (row.accounts as { name: string; type?: string } | null),
+      ? (row.accounts[0] as
+          | {
+              name: string;
+              type?: string;
+              financial_scope?: string;
+            }
+          | undefined)
+      : (row.accounts as {
+          name: string;
+          type?: string;
+          financial_scope?: string;
+        } | null),
     categories: Array.isArray(row.categories)
       ? (row.categories[0] as { name: string } | undefined)
       : (row.categories as { name: string } | null),
@@ -42,9 +53,9 @@ function normalizeJoinedRow(row: Record<string, unknown>) {
 }
 
 const TX_SELECT =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name), jars(name), transaction_tag_assignments(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 const TX_SELECT_WITH_TAG_FILTER =
-  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type), categories(name), jars(name), transaction_tag_assignments!inner(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
+  "id, account_id, type, amount, currency, transaction_date, note, category_id, jar_id, status, transfer_group_id, loan_payment_id, savings_event_kind, reverses_transaction_id, corrects_transaction_id, is_reversal, created_at, accounts(name, type, financial_scope), categories(name), jars(name), transaction_tag_assignments!inner(tag_id, transaction_tags(id, name, icon_key, color_key, archived_at))";
 
 const TRANSFER_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
   TransactionLedgerType.TRANSFER_OUT,
@@ -237,6 +248,9 @@ export type ListTransactionsFilter = {
 export type ListTransactionEventsFilter = {
   type: TransactionFilterType;
   tagIds?: readonly string[];
+  q?: string;
+  categoryIds?: readonly string[];
+  jarIds?: readonly string[];
   cursor?: string;
   limit?: number;
 };
@@ -261,6 +275,17 @@ function encodeCursor(activity: TransactionActivity): string {
       representativeCreatedAt: activity.representativeCreatedAt,
       id: activity.id,
       anchorId: activity.paginationAnchorId,
+    }),
+  ).toString("base64url");
+}
+
+function encodeRowCursor(row: LedgerTransaction): string {
+  return Buffer.from(
+    JSON.stringify({
+      effectiveDate: row.transactionDate,
+      representativeCreatedAt: row.createdAt,
+      id: row.id,
+      anchorId: row.id,
     }),
   ).toString("base64url");
 }
@@ -372,6 +397,12 @@ async function listTransactionEventRows(
     if (filter.tagIds && filter.tagIds.length > 0) {
       query = query.in("transaction_tag_assignments.tag_id", filter.tagIds);
     }
+    if (filter.q) {
+      query = query.ilike("note", `%${filter.q.replace(/[\\%_]/g, "\\$&")}%`);
+    }
+    if (filter.categoryIds?.length)
+      query = query.in("category_id", [...filter.categoryIds]);
+    if (filter.jarIds?.length) query = query.in("jar_id", [...filter.jarIds]);
     if (cursor) query = query.or(cursorPredicate(cursor));
 
     const { data, error } = await query;
@@ -387,6 +418,78 @@ async function listTransactionEventRows(
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
       householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+async function completeMatchedGroups(
+  rows: readonly LedgerTransaction[],
+): Promise<LedgerTransaction[] | null> {
+  const transferGroupIds = [
+    ...new Set(
+      rows
+        .map((row) => row.transferGroupId)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+  const loanPaymentIds = [
+    ...new Set(
+      rows
+        .map((row) => row.loanPaymentId)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+
+  if (transferGroupIds.length === 0 && loanPaymentIds.length === 0)
+    return [...rows];
+
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  const householdId = gate.householdId;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    type GroupRowsResult = { data: unknown[]; error: unknown | null };
+    const transferRows: Promise<GroupRowsResult> = (async () => {
+      if (transferGroupIds.length === 0) return { data: [], error: null };
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(TX_SELECT)
+        .eq("household_id", householdId)
+        .in("transfer_group_id", transferGroupIds);
+      return { data: data ?? [], error };
+    })();
+    const loanRows: Promise<GroupRowsResult> = (async () => {
+      if (loanPaymentIds.length === 0) return { data: [], error: null };
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(TX_SELECT)
+        .eq("household_id", householdId)
+        .in("loan_payment_id", loanPaymentIds);
+      return { data: data ?? [], error };
+    })();
+    const [transferResult, loanResult] = await Promise.all([
+      transferRows,
+      loanRows,
+    ]);
+    const error = transferResult.error ?? loanResult.error;
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+        householdId,
+      });
+      return null;
+    }
+
+    const rowsById = new Map(rows.map((row) => [row.id, row]));
+    for (const rawRow of [...transferResult.data, ...loanResult.data]) {
+      const row = normalizeJoinedRow(rawRow as Record<string, unknown>);
+      rowsById.set(row.id, row);
+    }
+    return [...rowsById.values()];
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_TRANSACTIONS, {
+      householdId,
     });
     return null;
   }
@@ -485,24 +588,78 @@ export async function listTransactionEvents(
 ): Promise<ListTransactionEventsResult | null> {
   const pageSize = filter.limit ?? TRANSACTION_LIST_PAGE_SIZE;
   const rawLimit = Math.max(
-    pageSize * TRANSACTION_EVENT_PAGE_LOOKAHEAD_MULTIPLIER,
-    pageSize + TRANSACTION_EVENT_GROUP_LOOKAHEAD_ROWS,
+    (pageSize + 1) * TRANSACTION_EVENT_PAGE_LOOKAHEAD_MULTIPLIER,
+    pageSize + 1 + TRANSACTION_EVENT_GROUP_LOOKAHEAD_ROWS,
   );
   const cursor = decodeCursor(filter.cursor);
-  const rows = await listTransactionEventRows(filter, rawLimit, cursor);
-  if (!rows) return null;
+  let scanCursor = cursor;
+  let lastScannedRow: LedgerTransaction | null = null;
+  let scanExhausted = false;
+  const activities: TransactionActivity[] = [];
+  const seenActivityIds = new Set<string>();
 
-  const activities = createTransactionActivities(rows)
-    .filter((activity) =>
-      transactionActivityMatchesFilter(activity, filter.type),
-    )
-    .filter((activity) => isAfterCursor(activity, cursor));
+  for (
+    let scannedPages = 0;
+    scannedPages < TRANSACTION_EVENT_MAX_SCAN_PAGES;
+    scannedPages += 1
+  ) {
+    const rows = await listTransactionEventRows(filter, rawLimit, scanCursor);
+    if (!rows) return null;
+    if (rows.length === 0) {
+      scanExhausted = true;
+      break;
+    }
+
+    const completeRows = await completeMatchedGroups(rows);
+    if (!completeRows) return null;
+    const matchedRowIds = new Set(rows.map((row) => row.id));
+    for (const activity of createTransactionActivities(completeRows)) {
+      if (
+        !activity.relatedTransactionIds.some((id) => matchedRowIds.has(id)) ||
+        !transactionActivityMatchesFilter(activity, filter.type) ||
+        !isAfterCursor(activity, cursor) ||
+        seenActivityIds.has(activity.id)
+      ) {
+        continue;
+      }
+      seenActivityIds.add(activity.id);
+      activities.push(activity);
+    }
+
+    lastScannedRow = rows.at(-1) ?? null;
+    if (activities.length > pageSize) break;
+    if (rows.length < rawLimit) {
+      scanExhausted = true;
+      break;
+    }
+    if (!lastScannedRow) {
+      scanExhausted = true;
+      break;
+    }
+    scanCursor = decodeCursor(encodeRowCursor(lastScannedRow));
+  }
+
+  activities.sort((left, right) => {
+    const byDate = right.effectiveDate.localeCompare(left.effectiveDate);
+    if (byDate !== 0) return byDate;
+    const byCreatedAt = right.representativeCreatedAt.localeCompare(
+      left.representativeCreatedAt,
+    );
+    return byCreatedAt !== 0
+      ? byCreatedAt
+      : right.paginationAnchorId.localeCompare(left.paginationAnchorId);
+  });
   const page = activities.slice(0, pageSize);
   const last = page.at(-1);
+  const hasMore = activities.length > page.length || !scanExhausted;
 
   return {
     activities: page,
-    hasMore: activities.length > page.length,
-    nextCursor: last ? encodeCursor(last) : null,
+    hasMore,
+    nextCursor: last
+      ? encodeCursor(last)
+      : !scanExhausted && lastScannedRow
+        ? encodeRowCursor(lastScannedRow)
+        : null,
   };
 }

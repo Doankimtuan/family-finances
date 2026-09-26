@@ -71,6 +71,7 @@ export {
   listTransactionsForDateRange,
   listCategoryTags,
   listCaptureJars,
+  listTransactionFilterOptions,
 } from "./queries/list-transactions";
 export {
   getTransaction,
@@ -83,6 +84,11 @@ export {
   type ListTransactionEventsResult,
   type TransactionReadResult,
 } from "./queries/get-transaction";
+export {
+  transactionEventFilterSchema,
+  type TransactionEventFilterInput,
+  type TransactionEventFilters,
+} from "./transaction-events-schema";
 export {
   archiveTransactionTag,
   createTransactionTag,
@@ -265,6 +271,8 @@ export type {
   TransactionTag,
   CategoryTag,
   CaptureJarOption,
+  TransactionCategoryFilterOption,
+  TransactionJarFilterOption,
 } from "./transaction-types";
 export {
   applyTransactionDeltas,
@@ -395,7 +403,14 @@ export {
   TRANSACTION_TAG_FILTER_QUERY_PARAM,
   TRANSACTION_TYPE_QUERY_PARAM,
   TRANSACTION_CURSOR_QUERY_PARAM,
+  TRANSACTION_SEARCH_QUERY_PARAM,
+  TRANSACTION_CATEGORY_QUERY_PARAM,
+  TRANSACTION_JAR_QUERY_PARAM,
   TRANSACTION_LIST_PAGE_SIZE,
+  TRANSACTION_SEARCH_MAX_LENGTH,
+  TRANSACTION_CURSOR_MAX_LENGTH,
+  TRANSACTION_LIST_OBSERVER_ROOT_MARGIN,
+  TRANSACTION_EVENT_MAX_SCAN_PAGES,
   AccountType,
   ACCOUNT_TYPE_VALUES,
   ACCOUNT_TYPE_LIQUID_VALUES,

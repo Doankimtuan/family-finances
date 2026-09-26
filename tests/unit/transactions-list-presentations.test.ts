@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   createTransactionActivities,
   TRANSACTION_CURSOR_QUERY_PARAM,
+  TRANSACTION_CATEGORY_QUERY_PARAM,
+  TRANSACTION_JAR_QUERY_PARAM,
+  TRANSACTION_SEARCH_QUERY_PARAM,
   TRANSACTION_TAG_FILTER_QUERY_PARAM,
   TRANSACTION_TYPE_QUERY_PARAM,
   TransactionActivityKind,
@@ -11,7 +14,7 @@ import {
   TransactionStatus,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { APP_API_PATH, APP_PATH } from "@/modules/tenancy/application/app-path";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 import {
   activityStatusMeta,
@@ -21,6 +24,7 @@ import {
   dateGroupLabel,
   groupActivities,
   transactionsListHref,
+  transactionsEventsHref,
 } from "@/app/[locale]/(product)/money/transactions/transactions-list-presentations";
 
 const KIND_LABELS: Record<TransactionActivityKind, string> = {
@@ -130,15 +134,39 @@ describe("transactions list presentation", () => {
     );
   });
 
-  it("preserves existing filter query params", () => {
-    expect(
-      transactionsListHref(
-        TransactionFilterType.EXPENSE,
-        ["tag-1"],
-        "cursor-1",
-      ),
-    ).toBe(
-      `${APP_PATH.MONEY_TRANSACTIONS}?${TRANSACTION_TYPE_QUERY_PARAM}=${TransactionFilterType.EXPENSE}&${TRANSACTION_TAG_FILTER_QUERY_PARAM}=tag-1&${TRANSACTION_CURSOR_QUERY_PARAM}=cursor-1`,
+  it("keeps pagination cursors out of transaction-list URLs", () => {
+    const href = transactionsListHref(TransactionFilterType.EXPENSE, ["tag-1"]);
+
+    expect(href).toBe(
+      `${APP_PATH.MONEY_TRANSACTIONS}?${TRANSACTION_TYPE_QUERY_PARAM}=${TransactionFilterType.EXPENSE}&${TRANSACTION_TAG_FILTER_QUERY_PARAM}=tag-1`,
     );
+    expect(href).not.toContain(`${TRANSACTION_CURSOR_QUERY_PARAM}=`);
+  });
+
+  it("keeps search filters in the list URL and sends cursors only to the page API", () => {
+    const filters = {
+      q: "Lunch",
+      categoryIds: ["category-id", "category-id-2"],
+      jarIds: ["jar-id", "jar-id-2"],
+    };
+    const listHref = transactionsListHref(
+      TransactionFilterType.ALL,
+      [],
+      filters,
+    );
+    const eventsHref = transactionsEventsHref(
+      TransactionFilterType.ALL,
+      [],
+      "cursor-1",
+      filters,
+    );
+
+    expect(listHref).toBe(
+      `${APP_PATH.MONEY_TRANSACTIONS}?${TRANSACTION_SEARCH_QUERY_PARAM}=Lunch&${TRANSACTION_CATEGORY_QUERY_PARAM}=category-id%2Ccategory-id-2&${TRANSACTION_JAR_QUERY_PARAM}=jar-id%2Cjar-id-2`,
+    );
+    expect(eventsHref).toBe(
+      `${APP_API_PATH.TRANSACTION_EVENTS}?${TRANSACTION_SEARCH_QUERY_PARAM}=Lunch&${TRANSACTION_CATEGORY_QUERY_PARAM}=category-id%2Ccategory-id-2&${TRANSACTION_JAR_QUERY_PARAM}=jar-id%2Cjar-id-2&${TRANSACTION_CURSOR_QUERY_PARAM}=cursor-1`,
+    );
+    expect(listHref).not.toContain(`${TRANSACTION_CURSOR_QUERY_PARAM}=`);
   });
 });
