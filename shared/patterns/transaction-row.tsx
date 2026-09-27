@@ -1,12 +1,21 @@
 "use client";
 
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
-import { cn } from "@/shared/utils/cn";
 import { AppIcon } from "@/shared/ui/app-icon";
+import {
+  FinancialAmount,
+  FinancialAmountSize,
+  FinancialAmountTone,
+} from "@/shared/ui/financial-amount";
+import {
+  IconContainer,
+  type IconContainerTone,
+} from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
-import { Text } from "@/shared/ui/text";
+import { cn } from "@/shared/utils/cn";
 import { useFinancialPrivacy } from "@/providers/financial-privacy-provider";
-import { FinancialValue } from "./financial-value";
+import { BaseRow, type BaseRowDivider } from "./base-row";
 
 export const TransactionAmountTone = {
   CREDIT: "credit",
@@ -18,108 +27,174 @@ export const TransactionAmountTone = {
 export type TransactionAmountTone =
   (typeof TransactionAmountTone)[keyof typeof TransactionAmountTone];
 
+export const TransactionType = {
+  EXPENSE: "expense",
+  INCOME: "income",
+  TRANSFER: "transfer",
+  REFUND: "refund",
+  NEUTRAL: "neutral",
+} as const;
+
+export type TransactionType =
+  (typeof TransactionType)[keyof typeof TransactionType];
+
 export type TransactionRowProps = {
+  /** Explicit transaction type (mandatory for P0 transfer semantics). */
+  type?: TransactionType;
   title: ReactNode;
   subtitle?: ReactNode;
-  amountLabel: string;
+  /** Amount value (number in major units or pre-formatted string). */
+  amount?: number | string;
+  /** Legacy alias for amount string. */
+  amountLabel?: string;
+  currency?: string;
   amountMeta?: ReactNode;
   amountAriaLabel?: string;
+  /** Legacy tone parameter (mapped to canonical type if provided). */
   tone?: TransactionAmountTone;
+  icon?: IconSvgElement;
+  iconNode?: ReactNode;
+  iconTone?: IconContainerTone;
   leading?: ReactNode;
   showRail?: boolean;
   showChevron?: boolean;
+  href?: string;
+  onClick?: () => void;
+  onPress?: () => void;
+  disabled?: boolean;
+  divider?: BaseRowDivider;
   className?: string;
+  "aria-label"?: string;
+  "data-testid"?: string;
 };
 
+function resolveTransactionTone(
+  type?: TransactionType,
+  tone?: TransactionAmountTone,
+): { tone: FinancialAmountTone; showSign: boolean } {
+  if (type === "income" || tone === TransactionAmountTone.CREDIT) {
+    return { tone: FinancialAmountTone.INCOME, showSign: true };
+  }
+  if (type === "expense" || tone === TransactionAmountTone.DEBIT) {
+    return { tone: FinancialAmountTone.EXPENSE, showSign: true };
+  }
+  if (type === "transfer") {
+    return { tone: FinancialAmountTone.TRANSFER, showSign: true };
+  }
+  if (type === "refund" || tone === TransactionAmountTone.REFUND) {
+    return { tone: FinancialAmountTone.MUTED, showSign: false };
+  }
+  return { tone: FinancialAmountTone.NEUTRAL, showSign: false };
+}
+
 /**
- * Activity list row for real ledger movement. A leading semantic visual is
- * optional so existing compact list uses remain unchanged.
+ * Canonical ViNha TransactionRow primitive (Task 11 / Warm Precision).
+ * Renders individual debits, credits, and transfers with 32x32px category icon,
+ * merchant/account details, and explicit financial semantics (Transfer != Expense).
  */
 export function TransactionRow({
+  type,
   title,
   subtitle,
+  amount,
   amountLabel,
+  currency = "₫",
   amountMeta,
   amountAriaLabel,
-  tone = TransactionAmountTone.NEUTRAL,
+  tone,
+  icon,
+  iconNode,
+  iconTone = "neutral",
   leading,
-  showRail = true,
+  showRail = false,
   showChevron = false,
+  href,
+  onClick,
+  onPress,
+  disabled = false,
+  divider = "inset",
   className,
+  "aria-label": ariaLabelProp,
+  "data-testid": testId,
 }: TransactionRowProps) {
   const { isHidden } = useFinancialPrivacy();
-  const amountClass =
-    tone === TransactionAmountTone.CREDIT
-      ? "text-credit"
-      : tone === TransactionAmountTone.DEBIT
-        ? "text-debit"
-        : tone === TransactionAmountTone.REFUND
-          ? "text-refund"
-          : "text-text-primary";
-  const railClass =
-    tone === TransactionAmountTone.CREDIT
-      ? "bg-credit"
-      : tone === TransactionAmountTone.DEBIT
-        ? "bg-debit"
-        : tone === TransactionAmountTone.REFUND
-          ? "bg-refund"
-          : "bg-border-strong";
+  const resolvedAmount = amount ?? amountLabel ?? "";
+  const numValue =
+    typeof resolvedAmount === "number" ? resolvedAmount : undefined;
+  const labelValue =
+    typeof resolvedAmount === "string" ? resolvedAmount : undefined;
 
-  return (
-    <div
+  const { tone: financialTone, showSign } = resolveTransactionTone(type, tone);
+
+  const leadingSlot = leading ? (
+    leading
+  ) : iconNode ? (
+    iconNode
+  ) : icon ? (
+    <IconContainer tone={iconTone} size="sm">
+      <AppIcon icon={icon} size="sm" />
+    </IconContainer>
+  ) : showRail ? (
+    <span
       className={cn(
-        "group relative flex items-center gap-(--space-3) border-b border-border-subtle/70 bg-transparent px-0 py-(--space-3)",
-        "transition-[background-color,border-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
-        "hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
-        className,
+        "size-2 rounded-full",
+        financialTone === "income" && "bg-income",
+        financialTone === "expense" && "bg-expense",
+        financialTone === "transfer" && "bg-transfer",
+        financialTone === "neutral" && "bg-border-strong",
       )}
-    >
-      {leading ? (
-        leading
-      ) : showRail ? (
-        <span
-          className={cn(
-            "absolute inset-y-(--space-3) left-0 w-1 rounded-r-full",
-            railClass,
-          )}
-          aria-hidden
-        />
-      ) : null}
-      <div className="min-w-0 flex-1">
-        <Text size="sm" className="break-words font-medium text-text-primary">
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text size="sm" tone="secondary" className="break-words">
-            {subtitle}
-          </Text>
-        ) : null}
-      </div>
-      <div className="flex max-w-[45%] shrink-0 flex-col items-end gap-(--space-1)">
-        <span
-          className={cn(
-            "break-words text-right text-sm font-semibold tabular-nums leading-tight",
-            amountClass,
-          )}
-        >
-          <FinancialValue>{amountLabel}</FinancialValue>
+      aria-hidden
+    />
+  ) : null;
+
+  const trailingSlot = (
+    <div className="flex flex-col items-end gap-0.5 max-w-[50%]">
+      <FinancialAmount
+        value={numValue}
+        amountLabel={labelValue}
+        currency={currency}
+        size={FinancialAmountSize.ROW_AMOUNT}
+        tone={financialTone}
+        showSign={showSign}
+        privacyAware
+      />
+      {amountMeta ? (
+        <span className="text-xs text-text-muted leading-tight text-right truncate max-w-full">
+          {amountMeta}
         </span>
-        {amountMeta ? (
-          <Text size="xs" tone="secondary" className="text-right leading-tight">
-            {amountMeta}
-          </Text>
-        ) : null}
-        {amountAriaLabel && !isHidden ? (
-          <span className="sr-only">{amountAriaLabel}</span>
-        ) : null}
-      </div>
-      {showChevron ? (
-        <AppIcon
-          icon={ACTION_ICONS.forward}
-          size="sm"
-          className="shrink-0 text-text-tertiary"
-        />
+      ) : null}
+      {amountAriaLabel && !isHidden ? (
+        <span className="sr-only">{amountAriaLabel}</span>
       ) : null}
     </div>
+  );
+
+  const actionSlot = showChevron ? (
+    <AppIcon
+      icon={ACTION_ICONS.forward}
+      size="sm"
+      className="text-text-muted/60"
+    />
+  ) : null;
+
+  return (
+    <BaseRow
+      leading={leadingSlot}
+      title={title}
+      subtitle={subtitle}
+      trailing={trailingSlot}
+      action={actionSlot}
+      divider={divider === "inset" ? "none" : divider}
+      href={href}
+      onClick={onClick}
+      onPress={onPress}
+      disabled={disabled}
+      className={cn(
+        "group border-b border-border-subtle/70 bg-transparent",
+        className,
+      )}
+      aria-label={ariaLabelProp ?? (!isHidden ? amountAriaLabel : undefined)}
+      data-testid={testId}
+    />
   );
 }

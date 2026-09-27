@@ -10,6 +10,7 @@ import {
   StitchMoonIcon,
 } from "@/shared/ui/stitch-icon-extensions";
 import { CoreComponentsSection } from "./core-components-section";
+import { SharedFinancialRowsSection } from "./shared-financial-rows-section";
 
 /**
  * Development QA Harness for ViNha Design Foundations & Tokens (Implementation 01).
@@ -288,6 +289,9 @@ export default function DesignFoundationsPage() {
 
       {/* 8. Implementation 02 — Core Reusable Components */}
       <CoreComponentsSection />
+
+      {/* 9. Implementation 05 — Shared Financial & Row Components */}
+      <SharedFinancialRowsSection />
     </div>
   );
 }

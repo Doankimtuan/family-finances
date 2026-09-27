@@ -118,6 +118,7 @@ export { GoalCard, type GoalCardProps } from "./goal-card";
 export { QuickAction, type QuickActionProps } from "./quick-action";
 export {
   TransactionRow,
+  TransactionType,
   TransactionAmountTone,
   type TransactionRowProps,
 } from "./transaction-row";
@@ -144,3 +145,45 @@ export {
   MutationOfflineBanner,
   type MutationOfflineBannerProps,
 } from "./mutation-offline-banner";
+export {
+  BaseRow,
+  BaseRowMinHeight,
+  type BaseRowProps,
+  type BaseRowDivider,
+} from "./base-row";
+export { NavigationRow, type NavigationRowProps } from "./navigation-row";
+
+export { FinancialRow, type FinancialRowProps } from "./financial-row";
+export { FinancialMetric, type FinancialMetricProps } from "./financial-metric";
+export {
+  AccountRow,
+  type AccountRowProps,
+  type AccountKind,
+} from "./account-row";
+export { SavingsRow, type SavingsRowProps } from "./savings-row";
+export {
+  InvestmentRow,
+  type InvestmentRowProps,
+  type InvestmentGainLossTone,
+} from "./investment-row";
+export { LoanRow, type LoanRowProps } from "./loan-row";
+export {
+  PersonalDebtRow,
+  type PersonalDebtRowProps,
+  type PersonalDebtDirection,
+} from "./personal-debt-row";
+export { InboxRow, type InboxRowProps, type InboxAccent } from "./inbox-row";
+export { MemberRow, type MemberRowProps } from "./member-row";
+export {
+  ProviderRow,
+  ProviderLogo,
+  type ProviderRowProps,
+  type ProviderLogoProps,
+} from "./provider-row";
+export { StatusRow, type StatusRowProps } from "./status-row";
+export {
+  PersonIdentity,
+  getPersonInitials,
+  type PersonIdentityProps,
+  type PersonIdentitySize,
+} from "./person-identity";
