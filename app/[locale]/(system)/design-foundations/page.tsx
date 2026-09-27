@@ -7,6 +7,7 @@ import {
   StitchMoonIcon,
 } from "@/shared/ui/stitch-icon-extensions";
 import { RADIUS_TOKENS } from "@/shared/theme";
+import { CoreComponentsSection } from "./core-components-section";
 
 /**
  * Development QA Harness for ViNha Design Foundations & Tokens (Implementation 01).
@@ -275,6 +276,9 @@ export default function DesignFoundationsPage() {
           </button>
         </div>
       </section>
+
+      {/* 8. Implementation 02 — Core Reusable Components */}
+      <CoreComponentsSection />
     </div>
   );
 }

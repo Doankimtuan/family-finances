@@ -1,5 +1,11 @@
 export { FormField, formFieldA11y, type FormFieldProps } from "./form-field";
 export { TextField, type TextFieldProps } from "./text-field";
+export { PasswordInput, type PasswordInputProps } from "./password-input";
+export { CurrencyInput, type CurrencyInputProps } from "./currency-input";
+export { QuantityInput, type QuantityInputProps } from "./quantity-input";
+export { PercentageInput, type PercentageInputProps } from "./percentage-input";
+export { NumberInput, type NumberInputProps } from "./number-input";
+export { DateInput, type DateInputProps } from "./date-input";
 export { FieldSelect, type FieldSelectProps } from "./field-select";
 export {
   IconPickerField,
@@ -22,3 +28,8 @@ export {
   type SelectFieldProps,
   type SelectFieldOption,
 } from "./select-field";
+export {
+  SearchableSelect,
+  type SearchableSelectProps,
+  type SearchableSelectOption,
+} from "./searchable-select";

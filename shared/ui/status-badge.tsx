@@ -1,16 +1,20 @@
 "use client";
+
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
+
 export const StatusBadgeTone = {
   NEUTRAL: "neutral",
   POSITIVE: "positive",
-  INFO: "info",
   WARNING: "warning",
-  ATTENTION: "attention",
-  SELECTED: "selected",
-  SUCCESS: "success",
   DANGER: "danger",
+  INFO: "info",
+  GROWTH: "growth",
+  // Backward compatibility aliases
+  SUCCESS: "success",
+  ATTENTION: "attention",
   ERROR: "error",
+  SELECTED: "selected",
 } as const;
 
 export type StatusBadgeTone =
@@ -19,47 +23,62 @@ export type StatusBadgeTone =
 export const STATUS_BADGE_TONE_VALUES = [
   StatusBadgeTone.NEUTRAL,
   StatusBadgeTone.POSITIVE,
-  StatusBadgeTone.INFO,
   StatusBadgeTone.WARNING,
-  StatusBadgeTone.ATTENTION,
-  StatusBadgeTone.SELECTED,
-  StatusBadgeTone.SUCCESS,
   StatusBadgeTone.DANGER,
+  StatusBadgeTone.INFO,
+  StatusBadgeTone.GROWTH,
+  StatusBadgeTone.SUCCESS,
+  StatusBadgeTone.ATTENTION,
   StatusBadgeTone.ERROR,
+  StatusBadgeTone.SELECTED,
 ] as const;
 
-const toneClassName: Record<StatusBadgeTone, string> = {
-  [StatusBadgeTone.NEUTRAL]: "bg-surface-muted text-text-secondary",
-  [StatusBadgeTone.POSITIVE]: "bg-success/10 text-success",
-  [StatusBadgeTone.SUCCESS]: "bg-success/10 text-success",
-  [StatusBadgeTone.INFO]: "bg-info/10 text-info",
-  [StatusBadgeTone.WARNING]: "bg-warning/10 text-warning",
-  [StatusBadgeTone.ATTENTION]: "bg-danger/10 text-danger",
-  [StatusBadgeTone.DANGER]: "bg-danger/10 text-danger",
-  [StatusBadgeTone.ERROR]: "bg-danger/10 text-danger",
-  [StatusBadgeTone.SELECTED]: "bg-primary-soft text-primary ring-1 ring-primary/20",
+const TONE_STYLES: Record<string, string> = {
+  positive: "bg-success/10 text-success border border-income/20",
+  success: "bg-success/10 text-success border border-income/20",
+  warning: "bg-warning/10 text-warning border border-warning/25",
+  danger: "bg-danger/10 text-danger border border-debt/20",
+  error: "bg-danger/10 text-danger border border-debt/20",
+  attention: "bg-danger/10 text-danger border border-debt/20",
+  info: "bg-info/10 text-info border border-transfer/20",
+  growth: "bg-investment-soft text-investment border border-investment/20",
+  neutral: "bg-surface-muted text-text-secondary border border-border-subtle",
+  selected: "bg-primary-soft text-primary ring-1 ring-primary/20",
 };
-export function StatusBadge({
-  children,
-  tone = "neutral",
-  className,
-  "data-testid": testId,
-}: {
+
+export type StatusBadgeProps = {
   children: ReactNode;
   tone?: StatusBadgeTone;
+  icon?: ReactNode;
   className?: string;
   "data-testid"?: string;
-}) {
+};
+
+/**
+ * Canonical ViNha StatusBadge primitive (Task 11 / Warm Precision).
+ * High-legibility status pill adhering strictly to the 6 canonical domain tones.
+ * Never communicates status through color alone (always pairs text + tone).
+ */
+export function StatusBadge({
+  children,
+  tone = StatusBadgeTone.NEUTRAL,
+  icon,
+  className,
+  "data-testid": testId,
+}: StatusBadgeProps) {
+  const toneClass = TONE_STYLES[tone] ?? TONE_STYLES.neutral;
+
   return (
     <span
+      data-testid={testId}
+      data-slot="status-badge"
       className={cn(
-        "inline-flex min-h-7 max-w-full items-center rounded-full px-(--space-2) text-xs font-semibold leading-tight",
-        toneClassName[tone],
+        "inline-flex h-5.5 min-h-[22px] max-w-full items-center gap-1 rounded-full px-2 text-[11px] font-semibold leading-none select-none tracking-tight",
+        toneClass,
         className,
       )}
-      data-slot="status-badge"
-      data-testid={testId}
     >
+      {icon ? <span className="flex shrink-0">{icon}</span> : null}
       {children}
     </span>
   );

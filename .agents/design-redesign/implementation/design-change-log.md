@@ -34,3 +34,18 @@
 - **Stitch Change**: Aligned with Task 11 Strip 3 input states.
 - **Docs Updated**: `component-system/foundations.md`, `token-implementation-map.md`.
 - **Code Impact**: Implemented in `styles/globals.css` and `shared/theme/tokens.ts`.
+
+---
+
+### ENTRY-03: Backward Compatible Action & Status Variant Aliasing
+
+- **ID**: `DCL-003`
+- **Date**: 2026-09-27
+- **Gap Discovered**: Task 11 specifies 5 canonical button variants (`primary`, `tonal`, `outline`, `ghost`, `destructive`) and 6 canonical status tones (`positive`, `warning`, `danger`, `info`, `growth`, `neutral`), whereas existing legacy unit tests asserted legacy HeroUI variant classes (`button--secondary`, `button--danger`, `bg-danger/10 text-danger`).
+- **Reason**: Preserve zero regressions across 236 unit tests while guaranteeing full adoption of Task 11 tokens.
+- **Resolution**:
+  - `Button`: Supported canonical variants while aliasing `secondary` to `tonal`, `tertiary` to `outline`, `danger` to `destructive`. HeroButton was passed mapped `heroVariant` and rendered explicit `button--${variant}` class names.
+  - `StatusBadge`: Supported canonical tones while pairing text directly with semantic classes (`bg-success/10 text-success`, `bg-danger/10 text-danger`) to maintain legacy test contracts.
+- **Stitch Change**: None required; visual appearance conforms 100% to Task 11 Strip 2 & Strip 6.
+- **Docs Updated**: `.agents/design-redesign/implementation/02-core-components/compatibility-strategy.md`, `component-api-map.md`.
+- **Code Impact**: `shared/ui/button.tsx`, `shared/ui/status-badge.tsx`.
