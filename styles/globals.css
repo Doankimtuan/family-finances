@@ -577,13 +577,16 @@
 
   /* Z-Index / Layering Scale */
   --z-base: 0;
+  --z-surface: 1;
   --z-sticky: 10;
   --z-nav: 20;
   --z-floating-action: 25;
   --z-dropdown: 30;
   --z-overlay: 40;
-  --z-modal: 50;
-  --z-toast: 60;
+  --z-scrim: 50;
+  --z-modal: 60;
+  --z-modal-sheet: 60;
+  --z-toast: 70;
 
   --opacity-disabled: 0.45;
   --opacity-muted: 0.7;
