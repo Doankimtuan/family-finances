@@ -2,6 +2,7 @@
 
 import { Modal } from "@heroui/react";
 import type { ComponentProps, ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { Button, ButtonVariant } from "@/shared/ui/button";
 
@@ -28,6 +29,9 @@ export function Dialog({ children, ...props }: DialogProps) {
 export type DialogContentProps = {
   children: ReactNode;
   className?: string;
+  backdropClassName?: string;
+  containerClassName?: string;
+  surfaceClassName?: string;
   variant?: DialogVariant;
   isDismissable?: boolean;
   /** Test identifier for automated testing */
@@ -43,6 +47,9 @@ export type DialogContentProps = {
 export function DialogContent({
   children,
   className,
+  backdropClassName,
+  containerClassName,
+  surfaceClassName,
   variant = DialogVariant.CONFIRMATION,
   isDismissable = true,
   testId,
@@ -56,11 +63,15 @@ export function DialogContent({
       className={cn(
         "fixed inset-0 z-(--z-scrim) flex items-center justify-center p-4",
         "bg-scrim backdrop-blur-xs transition-opacity duration-(--duration-normal)",
+        backdropClassName,
       )}
     >
       <Modal.Container
         placement="center"
-        className="w-full max-w-[min(calc(100vw-32px),360px)]"
+        className={cn(
+          "w-full max-w-[min(calc(100vw-32px),360px)]",
+          containerClassName,
+        )}
       >
         <Modal.Dialog
           role={isDestructive ? "alertdialog" : "dialog"}
@@ -71,6 +82,7 @@ export function DialogContent({
             "flex flex-col gap-(--space-3)",
             "max-h-[min(85dvh,540px)] overflow-hidden",
             "outline-none focus:outline-none",
+            surfaceClassName,
             className,
           )}
         >
@@ -107,14 +119,15 @@ export function ConfirmDialog({
   description,
   children,
   variant = DialogVariant.CONFIRMATION,
-  confirmLabel = "Xác nhận",
-  cancelLabel = "Huỷ bỏ",
+  confirmLabel,
+  cancelLabel,
   isConfirmLoading = false,
   isConfirmDisabled = false,
   onConfirm,
   onCancel,
   testId,
 }: ConfirmDialogProps) {
+  const tButtons = useTranslations("buttons");
   const isDestructive = variant === DialogVariant.DESTRUCTIVE;
 
   const handleCancel = () => {
@@ -156,7 +169,7 @@ export function ConfirmDialog({
             isDisabled={isConfirmLoading}
             onPress={handleCancel}
           >
-            {cancelLabel}
+            {cancelLabel ?? tButtons("cancel")}
           </Button>
           <Button
             variant={
@@ -166,7 +179,7 @@ export function ConfirmDialog({
             isDisabled={isConfirmDisabled}
             onPress={handleConfirm}
           >
-            {confirmLabel}
+            {confirmLabel ?? tButtons("confirm")}
           </Button>
         </Modal.Footer>
       </DialogContent>

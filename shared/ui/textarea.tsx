@@ -22,7 +22,7 @@ const TEXTAREA_CHROME = cn(
   "shadow-xs transition-[border-color,box-shadow,background-color] duration-(--duration-fast) ease-(--ease-standard)",
   "placeholder:text-text-muted",
   "hover:border-border-strong",
-  "focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+  "focus-visible:border-transparent focus-visible:shadow-none",
   "disabled:cursor-not-allowed disabled:opacity-45 disabled:bg-surface-subtle disabled:hover:border-border-subtle",
   "read-only:bg-surface-subtle read-only:cursor-default read-only:hover:border-border-subtle",
   "motion-reduce:transition-none",
@@ -58,8 +58,7 @@ export function Textarea({
         value={value}
         className={cn(
           TEXTAREA_CHROME,
-          hasError &&
-            "border-debt focus-visible:border-debt focus-visible:outline-debt",
+          hasError && "border-debt focus-visible:border-transparent",
           className,
         )}
         {...props}

@@ -1,4 +1,26 @@
 {
   "optional": "Optional",
-  "requiredMark": "Required"
+  "requiredMark": "Required",
+  "searchInput": {
+    "placeholder": "Search"
+  },
+  "searchableSelect": {
+    "placeholder": "Choose an item",
+    "searchPlaceholder": "Search options",
+    "noResults": "No matching results"
+  },
+  "dateShortcuts": {
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "percentageInput": {
+    "suffix": "%"
+  },
+  "quantityInput": {
+    "max": "Max",
+    "maxValue": "{label}: {value}"
+  },
+  "calculated": {
+    "invalid": "The calculated value is invalid"
+  }
 }

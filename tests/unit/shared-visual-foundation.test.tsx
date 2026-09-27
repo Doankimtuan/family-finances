@@ -12,6 +12,10 @@ import { AlertVariant } from "@/shared/ui/alert";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
 
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
+
 describe("Shared Visual Foundation", () => {
   describe("Section & SectionHeader", () => {
     it("renders Section with title, description, and action", () => {

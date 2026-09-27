@@ -258,7 +258,7 @@ describe("Phase 2 app-shell foundation", () => {
   });
 
   it("keeps sheet physics on overlay radius, 90dvh, and sticky footer clearance", () => {
-    const sheet = readProjectFile("shared/patterns/sheet.tsx");
+    const sheet = readProjectFile("shared/ui/bottom-sheet.tsx");
     const footer = readProjectFile("shared/patterns/action-sheet-layout.tsx");
     expect(sheet).toContain("max-h-[min(90dvh,720px)]");
     expect(sheet).toContain("rounded-t-(--radius-overlay)");

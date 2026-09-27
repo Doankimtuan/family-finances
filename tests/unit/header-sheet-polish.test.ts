@@ -50,7 +50,7 @@ describe("header and sheet polish contracts", () => {
   });
 
   it("uses the documented overlay radius on the shared Sheet dialog", () => {
-    const sheet = readProjectFile("shared/patterns/sheet.tsx");
+    const sheet = readProjectFile("shared/ui/bottom-sheet.tsx");
     const tokens = readProjectFile("styles/globals.css");
 
     expect(sheet).toContain("rounded-t-(--radius-overlay)");

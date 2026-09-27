@@ -713,6 +713,7 @@ export function InvestmentOperationForm({
                   id: "holding",
                   label: tUx(ux.instrumentLabelKey),
                   value: holding.symbol || holding.name,
+                  kind: "text",
                 },
                 ...(showQuantity
                   ? [
@@ -720,6 +721,7 @@ export function InvestmentOperationForm({
                         id: "quantity",
                         label: tUx(ux.quantityLabelKey),
                         value: quantity || t("unknown"),
+                        kind: "text" as const,
                       },
                     ]
                   : []),
@@ -734,6 +736,7 @@ export function InvestmentOperationForm({
                   value: usesQuotedCurrency
                     ? inputDisplay(usesUnitPrice ? unitPrice : value)
                     : display(usesUnitPrice ? unitPrice : value),
+                  kind: "financial",
                 },
                 ...(hasCryptoLeg &&
                 mode !== InvestmentFormMode.CONVERSION &&
@@ -745,6 +748,7 @@ export function InvestmentOperationForm({
                           currency: inputCurrency,
                         }),
                         value: inputDisplay(inputTransactionTotal),
+                        kind: "financial" as const,
                       },
                     ]
                   : []),
@@ -755,6 +759,7 @@ export function InvestmentOperationForm({
                         label: t("inputRate", { currency: inputCurrency }),
                         value:
                           inputRateDescription ?? t("inputRateUnavailable"),
+                        kind: "text" as const,
                       },
                     ]
                   : []),
@@ -764,16 +769,19 @@ export function InvestmentOperationForm({
                         id: "invested-principal",
                         label: t("investedPrincipal"),
                         value: money(purchasePreview.investedPrincipal),
+                        kind: "financial" as const,
                       },
                       {
                         id: "buy-fee",
                         label: t("feeValue"),
                         value: money(purchasePreview.feeValue),
+                        kind: "financial" as const,
                       },
                       {
                         id: "cash-leaving",
                         label: t("cashLeavingAccount"),
                         value: money(purchasePreview.cashLeavingAccount),
+                        kind: "financial" as const,
                       },
                     ]
                   : []),
@@ -783,6 +791,7 @@ export function InvestmentOperationForm({
                         id: "derived-value",
                         label: t("derivedCurrentValue"),
                         value: money(valuationPreview.totalValue),
+                        kind: "financial" as const,
                       },
                     ]
                   : []),
@@ -792,16 +801,19 @@ export function InvestmentOperationForm({
                         id: "gross",
                         label: t("grossProceeds"),
                         value: money(disposalPreview.grossProceeds),
+                        kind: "financial" as const,
                       },
                       {
                         id: "net",
                         label: t("netProceeds"),
                         value: money(disposalPreview.netProceeds),
+                        kind: "financial" as const,
                       },
                       {
                         id: "realized-pnl",
                         label: t("realizedPnl"),
                         value: money(disposalPreview.realizedPnl),
+                        kind: "financial" as const,
                       },
                       ...(remainingUnitsText != null
                         ? [
@@ -809,6 +821,7 @@ export function InvestmentOperationForm({
                               id: "remaining-units",
                               label: t("remainingUnitsLabel"),
                               value: remainingUnitsText,
+                              kind: "text" as const,
                             },
                           ]
                         : []),
@@ -822,6 +835,7 @@ export function InvestmentOperationForm({
                     mode === InvestmentFormMode.VALUATION
                       ? t("none")
                       : t("oneLedgerMovement"),
+                  kind: "text",
                 },
               ]}
             />

@@ -1,4 +1,26 @@
 {
   "optional": "Tùy chọn",
-  "requiredMark": "Bắt buộc"
+  "requiredMark": "Bắt buộc",
+  "searchInput": {
+    "placeholder": "Tìm kiếm"
+  },
+  "searchableSelect": {
+    "placeholder": "Chọn một mục",
+    "searchPlaceholder": "Tìm trong các lựa chọn",
+    "noResults": "Không tìm thấy kết quả phù hợp"
+  },
+  "dateShortcuts": {
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua"
+  },
+  "percentageInput": {
+    "suffix": "%"
+  },
+  "quantityInput": {
+    "max": "Tối đa",
+    "maxValue": "{label}: {value}"
+  },
+  "calculated": {
+    "invalid": "Giá trị tính toán không hợp lệ"
+  }
 }

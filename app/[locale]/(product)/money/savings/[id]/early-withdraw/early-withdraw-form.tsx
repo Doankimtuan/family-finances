@@ -95,36 +95,43 @@ export function EarlyWithdrawForm({ savingId, cycleId, preview }: Props) {
                     preview.earlyRate == null
                       ? t("unknown")
                       : `${preview.earlyRate}% / ${t("year")}`,
+                  kind: "text",
                 },
                 {
                   id: "principal",
                   label: t("principal"),
                   value: money(preview.principal),
+                  kind: "financial",
                 },
                 {
                   id: "accrued",
                   label: t("accrued"),
                   value: money(preview.accruedInterest),
+                  kind: "financial",
                 },
                 {
                   id: "eligible",
                   label: t("eligible"),
                   value: amountOrUnknown(preview.eligibleInterest),
+                  kind: "financial",
                 },
                 {
                   id: "tax",
                   label: t("tax"),
                   value: amountOrUnknown(preview.taxAmount),
+                  kind: "financial",
                 },
                 {
                   id: "penalty",
                   label: t("penalty"),
                   value: amountOrUnknown(preview.penaltyAmount),
+                  kind: "financial",
                 },
                 {
                   id: "net",
                   label: t("net"),
                   value: amountOrUnknown(preview.netReturned),
+                  kind: "financial",
                 },
               ]}
             />

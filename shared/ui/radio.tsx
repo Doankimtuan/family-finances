@@ -1,12 +1,18 @@
 "use client";
 
-import { createContext, useContext, useId, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useId,
+  useState,
+  type ReactNode,
+} from "react";
 import { cn } from "@/shared/utils/cn";
 
 type RadioGroupContextValue = {
   name: string;
   value?: string;
-  onChange?: (value: string) => void;
+  select: (value: string) => void;
   disabled?: boolean;
 };
 
@@ -18,6 +24,7 @@ export type RadioGroupProps = {
   defaultValue?: string;
   onChange?: (value: string) => void;
   disabled?: boolean;
+  orientation?: "vertical" | "horizontal";
   label?: ReactNode;
   description?: ReactNode;
   error?: ReactNode;
@@ -29,8 +36,10 @@ export type RadioGroupProps = {
 export function RadioGroup({
   name: nameProp,
   value,
+  defaultValue,
   onChange,
   disabled,
+  orientation = "vertical",
   label,
   description,
   error,
@@ -40,9 +49,18 @@ export function RadioGroup({
 }: RadioGroupProps) {
   const generatedName = useId();
   const name = nameProp ?? generatedName;
+  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
+  const resolvedValue = value !== undefined ? value : uncontrolledValue;
+
+  const select = (nextValue: string) => {
+    if (value === undefined) setUncontrolledValue(nextValue);
+    onChange?.(nextValue);
+  };
 
   return (
-    <RadioGroupContext.Provider value={{ name, value, onChange, disabled }}>
+    <RadioGroupContext.Provider
+      value={{ name, value: resolvedValue, select, disabled }}
+    >
       <fieldset
         role="radiogroup"
         data-testid={testId}
@@ -56,7 +74,15 @@ export function RadioGroup({
         {description ? (
           <p className="text-xs text-text-muted mb-2">{description}</p>
         ) : null}
-        <div className="flex flex-col gap-1">{children}</div>
+        <div
+          className={cn(
+            orientation === "horizontal"
+              ? "flex flex-row flex-wrap items-center gap-4"
+              : "flex flex-col gap-0",
+          )}
+        >
+          {children}
+        </div>
         {error ? (
           <p className="text-xs text-debt font-medium mt-1" role="alert">
             {error}
@@ -94,21 +120,19 @@ export function Radio({
   const isDisabled = itemDisabled || ctx?.disabled || false;
 
   const handleChange = () => {
-    if (!isDisabled && ctx?.onChange) {
-      ctx.onChange(value);
-    }
+    if (!isDisabled) ctx?.select(value);
   };
 
   return (
     <label
       htmlFor={id}
       className={cn(
-        "group relative flex min-h-11 cursor-pointer items-start gap-3 py-1 select-none",
+        "group relative flex min-h-11 cursor-pointer items-center gap-3 select-none",
         isDisabled && "cursor-not-allowed opacity-45",
         className,
       )}
     >
-      <div className="relative flex size-5 shrink-0 items-center justify-center mt-0.5">
+      <div className="relative flex size-5 shrink-0 items-center justify-center">
         <input
           id={id}
           type="radio"

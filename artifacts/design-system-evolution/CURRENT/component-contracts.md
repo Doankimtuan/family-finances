@@ -44,7 +44,7 @@ Each component must define purpose, allowed usage, forbidden usage, variants, st
 | SegmentedField | Small option set. | Type toggles, modes. | More than 4 options. | Equal, adaptive. | Selected, disabled. | `shared/patterns`. | Radio-group semantics. |
 | SwitchField | Binary setting. | Preference on/off. | Risky financial action. | Default. | On, off, disabled. | `shared/ui`. | State announced. |
 | CheckboxField | Consent or independent option. | Agreements, optional flags. | Mutually exclusive choices. | Default. | Checked, indeterminate, invalid. | `shared/ui`. | Label is clickable. |
-| SearchField | Filter or lookup. | Lists, categories. | Primary data capture. | Default, with clear. | Focus, results, empty. | `shared/ui`. | Search role and clear label. |
+| SearchField | Filter or lookup. | Lists, categories. | Primary data capture. | Default, with clear. | Focus, results, empty. | `shared/ui`. | Search role, clear label, and one container-owned focus ring. |
 | SubmitAction | Form submission. | Save, Continue, Confirm. | Hidden below keyboard. | Inline, bottom bar. | Loading, disabled, success. | `shared/patterns`. | Announces pending and result. |
 
 ## Feedback

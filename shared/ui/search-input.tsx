@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
+import { useTranslations } from "next-intl";
 import { Search01Icon } from "@/shared/ui/stitch-icon-compat";
 import { StitchCloseIcon } from "@/shared/ui/stitch-icon-artwork";
 import { AppIcon } from "@/shared/ui/app-icon";
@@ -10,6 +11,7 @@ export type SearchInputProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  ariaLabel?: string;
   variant?: "rounded" | "pill";
   disabled?: boolean;
   autoFocus?: boolean;
@@ -25,7 +27,8 @@ export type SearchInputProps = {
 export function SearchInput({
   value,
   onChange,
-  placeholder = "Tìm kiếm...",
+  placeholder,
+  ariaLabel,
   variant = "rounded",
   disabled = false,
   autoFocus,
@@ -33,6 +36,8 @@ export function SearchInput({
   "data-testid": testId,
 }: SearchInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const tA11y = useTranslations("a11y");
+  const tForms = useTranslations("forms");
 
   const handleClear = () => {
     onChange("");
@@ -50,7 +55,7 @@ export function SearchInput({
         variant === "pill"
           ? "rounded-full px-4"
           : "rounded-[var(--radius-control)] px-3.5",
-        "border-border-subtle hover:border-border-strong focus-within:border-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus-ring",
+        "border-border-subtle hover:border-border-strong focus-within:border-transparent focus-within:outline-2 focus-within:outline-offset-0 focus-within:outline-focus-ring",
         disabled && "opacity-45 bg-surface-subtle cursor-not-allowed",
         className,
       )}
@@ -65,19 +70,20 @@ export function SearchInput({
         role="searchbox"
         value={value}
         onChange={handleChange}
-        placeholder={placeholder}
+        aria-label={ariaLabel ?? tA11y("search")}
+        placeholder={placeholder ?? tForms("searchInput.placeholder")}
         disabled={disabled}
         autoFocus={autoFocus}
         data-testid={testId}
-        className="w-full bg-transparent text-sm font-normal text-text-primary outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:hidden"
+        className="search-input__input w-full bg-transparent text-sm font-normal text-text-primary outline-none placeholder:text-text-muted [&::-webkit-search-cancel-button]:hidden"
       />
 
       {value && !disabled ? (
         <button
           type="button"
           onClick={handleClear}
-          aria-label="Xoá tìm kiếm"
-          className="flex size-7 items-center justify-center rounded-full text-text-muted hover:bg-surface-subtle hover:text-text-primary active:scale-95 transition-colors shrink-0 ml-1.5"
+          aria-label={tA11y("clearSearch")}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-subtle hover:text-text-primary active:scale-95"
         >
           <AppIcon icon={StitchCloseIcon} size="sm" />
         </button>

@@ -42,7 +42,7 @@ describe("financial privacy output", () => {
     );
   });
 
-  it("fails closed for unclassified confirmation values", () => {
+  it("masks financial confirmation values classified by the caller", () => {
     window.localStorage.setItem(
       FINANCIAL_PRIVACY_STORAGE_KEY,
       FINANCIAL_PRIVACY_STORAGE_TRUE,
@@ -51,7 +51,14 @@ describe("financial privacy output", () => {
     render(
       <FinancialPrivacyProvider>
         <ConfirmSummary
-          rows={[{ id: "amount", label: "Amount", value: "99,000 ₫" }]}
+          rows={[
+            {
+              id: "amount",
+              label: "Amount",
+              value: "99,000 ₫",
+              kind: "financial",
+            },
+          ]}
         />
       </FinancialPrivacyProvider>,
     );

@@ -21,7 +21,6 @@ import {
   SkeletonCard,
   SkeletonAmount,
   EmptyState,
-  EmptyStateVariant,
   ErrorState,
   FormSection,
   FieldGroup,
@@ -29,12 +28,15 @@ import {
   StickyFormActionLayout,
   CalculatedPreview,
   CalculatedPreviewStatus,
-  ConfirmationSummary,
 } from "@/shared/ui";
+import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 
 vi.mock("next-intl", () => ({
   useLocale: () => "vi",
-  useTranslations: () => (key: string) => key,
+  useTranslations: (namespace: string) => (key: string) =>
+    ({
+      "a11y.dismissAlert": "Đóng thông báo",
+    })[`${namespace}.${key}`] ?? key,
 }));
 
 describe("Overlays, Feedback & Form Infrastructure — Implementation 03", () => {
@@ -250,7 +252,7 @@ describe("Overlays, Feedback & Form Infrastructure — Implementation 03", () =>
       const handleAction = vi.fn();
       render(
         <EmptyState
-          variant={EmptyStateVariant.PENDING_CLEAR}
+          tone="positive"
           title="Hiện không có việc nào cần chú ý"
           description="Tất cả giao dịch đã được gắn hũ."
           action={
@@ -277,7 +279,7 @@ describe("Overlays, Feedback & Form Infrastructure — Implementation 03", () =>
     it("renders Zero Debt variant without forced CTA", () => {
       render(
         <EmptyState
-          variant={EmptyStateVariant.ZERO_DEBT}
+          tone="positive"
           title="Hộ gia đình không có khoản nợ nào"
           description="Bạn đã hoàn tất tất cả các nghĩa vụ tài chính."
         />,
@@ -413,7 +415,7 @@ describe("Overlays, Feedback & Form Infrastructure — Implementation 03", () =>
     it("renders key-value summary rows, highlight row, note, and edit button", () => {
       const handleEdit = vi.fn();
       render(
-        <ConfirmationSummary
+        <ConfirmSummary
           title="Tóm tắt giao dịch chuyển tiền"
           onEdit={handleEdit}
           editLabel="Sửa giao dịch"
@@ -429,7 +431,7 @@ describe("Overlays, Feedback & Form Infrastructure — Implementation 03", () =>
               id: "amount",
               label: "Số tiền",
               value: "₫ 5.000.000",
-              kind: "text",
+              kind: "financial",
               isHighlighted: true,
             },
           ]}

@@ -436,6 +436,7 @@ export function RefundTransactionForm({
                 id: "amount",
                 label: t("receipt.amount"),
                 value: amountLabel ?? maxRefundableLabel,
+                kind: "financial",
               },
               {
                 id: "account",

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import {
@@ -43,28 +44,24 @@ const VARIANT_STYLES: Record<
   { container: string; title: string; body: string }
 > = {
   [InlineAlertVariant.INFO]: {
-    container:
-      "bg-transfer-soft/80 border-transfer/20 text-transfer dark:bg-[#082F49] dark:border-[#0284C7]/30 dark:text-[#38BDF8]",
-    title: "text-transfer dark:text-[#38BDF8]",
-    body: "text-text-secondary dark:text-zinc-300",
+    container: "bg-transfer-soft/80 border-transfer/20 text-transfer",
+    title: "text-transfer",
+    body: "text-text-secondary",
   },
   [InlineAlertVariant.WARNING]: {
-    container:
-      "bg-warning-soft/80 border-warning/20 text-warning dark:bg-[#451A03] dark:border-[#D97706]/30 dark:text-[#FBBF24]",
-    title: "text-warning dark:text-[#FBBF24]",
-    body: "text-text-secondary dark:text-zinc-300",
+    container: "bg-warning-soft/80 border-warning/20 text-warning",
+    title: "text-warning",
+    body: "text-text-secondary",
   },
   [InlineAlertVariant.ERROR]: {
-    container:
-      "bg-danger-soft/80 border-danger/20 text-danger dark:bg-[#4C0519] dark:border-[#E11D48]/30 dark:text-[#FB7185]",
-    title: "text-danger dark:text-[#FB7185]",
-    body: "text-text-secondary dark:text-zinc-300",
+    container: "bg-danger-soft/80 border-danger/20 text-danger",
+    title: "text-danger",
+    body: "text-text-secondary",
   },
   [InlineAlertVariant.SUCCESS]: {
-    container:
-      "bg-income-soft/80 border-income/20 text-income dark:bg-[#064E3B] dark:border-[#059669]/30 dark:text-[#34D399]",
-    title: "text-income dark:text-[#34D399]",
-    body: "text-text-secondary dark:text-zinc-300",
+    container: "bg-income-soft/80 border-income/20 text-income",
+    title: "text-income",
+    body: "text-text-secondary",
   },
 };
 
@@ -85,6 +82,7 @@ export function InlineAlert({
   className,
   testId,
 }: InlineAlertProps) {
+  const tA11y = useTranslations("a11y");
   const isHighUrgency =
     variant === InlineAlertVariant.ERROR ||
     variant === InlineAlertVariant.WARNING;
@@ -136,8 +134,8 @@ export function InlineAlert({
         <button
           type="button"
           onClick={onDismiss}
-          aria-label="Đóng thông báo"
-          className="size-5 shrink-0 text-current opacity-70 hover:opacity-100 transition-opacity"
+          aria-label={tA11y("dismissAlert")}
+          className="flex size-11 shrink-0 items-center justify-center text-current opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-focus-ring"
         >
           ×
         </button>

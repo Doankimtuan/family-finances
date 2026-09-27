@@ -55,9 +55,9 @@ export type ButtonProps = Omit<HeroButtonProps, "size" | "variant"> & {
   disabled?: boolean;
 };
 
-const VARIANT_STYLES: Record<string, string> = {
+export const BUTTON_VARIANT_STYLES: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-active shadow-sm",
+    "bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-hover shadow-sm",
   tonal:
     "bg-primary-soft text-primary hover:bg-primary-soft/80 active:bg-primary-soft/90",
   secondary:
@@ -76,10 +76,26 @@ const VARIANT_STYLES: Record<string, string> = {
   flat: "bg-surface-subtle text-text-primary hover:bg-surface-hover active:bg-surface-soft",
 };
 
-const SIZE_STYLES: Record<ButtonSize, string> = {
+export const BUTTON_SIZE_STYLES: Record<ButtonSize, string> = {
   sm: "h-9 min-h-9 px-3 text-xs gap-1.5 touch-target-expand-sm",
   md: "h-11 min-h-11 px-4 text-sm gap-2",
   lg: "h-13 min-h-13 px-5 text-base font-semibold gap-2.5",
+};
+
+const HERO_VARIANT: Record<
+  ButtonVariant,
+  "primary" | "secondary" | "tertiary" | "outline" | "ghost" | "danger"
+> = {
+  [ButtonVariant.PRIMARY]: "primary",
+  [ButtonVariant.TONAL]: "secondary",
+  [ButtonVariant.SECONDARY]: "secondary",
+  [ButtonVariant.OUTLINED]: "outline",
+  [ButtonVariant.OUTLINE]: "outline",
+  [ButtonVariant.TERTIARY]: "tertiary",
+  [ButtonVariant.GHOST]: "ghost",
+  [ButtonVariant.DESTRUCTIVE]: "danger",
+  [ButtonVariant.DANGER]: "danger",
+  [ButtonVariant.FLAT]: "secondary",
 };
 
 /**
@@ -101,21 +117,10 @@ export function Button({
   isDisabled: isDisabledProp,
   ...props
 }: ButtonProps) {
-  const variantClass = VARIANT_STYLES[variant] ?? VARIANT_STYLES.primary;
-  const sizeClass = SIZE_STYLES[size] ?? SIZE_STYLES.md;
+  const variantClass = BUTTON_VARIANT_STYLES[variant];
+  const sizeClass = BUTTON_SIZE_STYLES[size];
   const effectiveDisabled = disabled || isDisabledProp || isLoading;
-  const heroVariant =
-    variant === "destructive" || variant === "danger"
-      ? "danger"
-      : variant === "secondary" || variant === "tonal"
-        ? "secondary"
-        : variant === "tertiary"
-          ? "tertiary"
-          : variant === "outline" || variant === "outlined"
-            ? "outline"
-            : variant === "ghost"
-              ? "ghost"
-              : "primary";
+  const heroVariant = HERO_VARIANT[variant];
 
   return (
     <HeroButton

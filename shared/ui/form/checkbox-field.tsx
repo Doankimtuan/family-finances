@@ -23,7 +23,7 @@ export function CheckboxField({
     <div className={cn("flex flex-col gap-(--space-1)", className)}>
       <label
         htmlFor={id}
-        className="flex min-h-11 cursor-pointer items-center gap-(--space-3) py-(--space-1) text-sm leading-snug text-text-secondary"
+        className="flex min-h-11 cursor-pointer items-center gap-(--space-3) text-sm leading-snug text-text-secondary"
       >
         <input
           id={id}

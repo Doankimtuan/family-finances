@@ -8,6 +8,8 @@ describe("selectClientMessages", () => {
   it("keeps only the namespaces selected for a route family", () => {
     const messages = {
       a11y: { back: "Back" },
+      buttons: { confirm: "Confirm" },
+      forms: { required: "Required" },
       auth: { login: "Log in" },
       money: { title: "Money" },
     };
@@ -16,6 +18,8 @@ describe("selectClientMessages", () => {
       selectClientMessages(messages, CLIENT_MESSAGE_NAMESPACES.AUTH),
     ).toEqual({
       a11y: messages.a11y,
+      buttons: messages.buttons,
+      forms: messages.forms,
       auth: messages.auth,
     });
   });

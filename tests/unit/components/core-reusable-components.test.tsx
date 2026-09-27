@@ -9,6 +9,7 @@ import {
   Input,
   Textarea,
   Checkbox,
+  CheckboxGroup,
   Radio,
   RadioGroup,
   Switch,
@@ -26,11 +27,36 @@ import {
   PercentageInput,
   NumberInput,
   DateInput,
+  SearchableSelect,
 } from "@/shared/ui/form";
 import { formatVietnameseCurrencyWords } from "@/shared/utils/vietnamese-words";
 
 vi.mock("next-intl", () => ({
   useLocale: () => "vi",
+  useTranslations:
+    (namespace: string) =>
+    (key: string, values?: Record<string, string | number>) => {
+      const messages: Record<string, string> = {
+        "a11y.search": "Tìm kiếm",
+        "a11y.clearSearch": "Xóa nội dung tìm kiếm",
+        "a11y.viewTabs": "Tùy chọn chế độ xem",
+        "a11y.showPassword": "Hiện mật khẩu",
+        "a11y.hidePassword": "Ẩn mật khẩu",
+        "forms.searchInput.placeholder": "Tìm kiếm",
+        "forms.searchableSelect.placeholder": "Chọn một mục",
+        "forms.searchableSelect.searchPlaceholder": "Tìm trong các lựa chọn",
+        "forms.searchableSelect.noResults": "Không tìm thấy kết quả phù hợp",
+        "forms.dateShortcuts.today": "Hôm nay",
+        "forms.dateShortcuts.yesterday": "Hôm qua",
+        "forms.quantityInput.max": "Tối đa",
+        "forms.quantityInput.maxValue": "{label}: {value}",
+        "forms.percentageInput.suffix": "%",
+      };
+      return Object.entries(values ?? {}).reduce(
+        (message, [name, value]) => message.replace(`{${name}}`, String(value)),
+        messages[`${namespace}.${key}`] ?? key,
+      );
+    },
 }));
 
 describe("Core Reusable Components — Implementation 02", () => {
@@ -181,10 +207,11 @@ describe("Core Reusable Components — Implementation 02", () => {
       );
 
       expect(screen.getByText("tháng")).toBeInTheDocument();
-      const input = screen.getByRole("spinbutton");
-      expect(input).toHaveValue(12);
+      const input = screen.getByRole("textbox", { name: "Kỳ hạn" });
+      expect(input).toHaveValue("12");
 
       fireEvent.change(input, { target: { value: "24" } });
+      fireEvent.blur(input);
       expect(handleChange).toHaveBeenCalledWith(24);
     });
   });
@@ -227,14 +254,33 @@ describe("Core Reusable Components — Implementation 02", () => {
           label="Số tiền"
           value={100_000}
           onValueChange={handleChange}
-          showQuickChips
           quickChips={[50_000, 100_000]}
         />,
       );
 
-      const add50k = screen.getByRole("button", { name: "+50k" });
+      const add50k = screen
+        .getAllByRole("button")
+        .find((button) => button.textContent?.startsWith("+50"));
+      expect(add50k).toBeDefined();
+      if (!add50k) throw new Error("The 50,000 amount chip was not rendered");
       fireEvent.click(add50k);
       expect(handleChange).toHaveBeenCalledWith(150_000);
+    });
+
+    it("uses compact locale labels and omits Vietnamese words in English", () => {
+      render(
+        <CurrencyInput
+          label="Amount"
+          locale="en"
+          value={25_000_000}
+          onValueChange={vi.fn()}
+          quickChips={[1_000_000]}
+          showWordsPreview
+        />,
+      );
+
+      expect(screen.getByRole("button", { name: "+1M" })).toBeInTheDocument();
+      expect(screen.queryByText("Hai mươi lăm triệu đồng")).toBeNull();
     });
   });
 
@@ -259,19 +305,17 @@ describe("Core Reusable Components — Implementation 02", () => {
   });
 
   describe("PercentageInput", () => {
-    it("renders percentage suffix and displays rate warning if >30%", () => {
+    it("renders a localized percentage suffix without domain-specific warnings", () => {
       render(
         <PercentageInput label="Lãi suất" value={35} onValueChange={vi.fn()} />,
       );
 
-      expect(screen.getByText("% / năm")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Lưu ý: Lãi suất trên 30%\/năm là mức rất cao/),
-      ).toBeInTheDocument();
+      expect(screen.getByText("%")).toBeInTheDocument();
+      expect(screen.queryByText(/Lưu ý: Lãi suất/)).not.toBeInTheDocument();
     });
   });
 
-  describe("Checkbox", () => {
+  describe("Checkbox & CheckboxGroup", () => {
     it("handles checked and indeterminate states", () => {
       const handleChange = vi.fn();
       const { rerender } = render(
@@ -289,7 +333,31 @@ describe("Core Reusable Components — Implementation 02", () => {
       expect(handleChange).toHaveBeenCalledWith(true);
 
       rerender(<Checkbox label="Ghi nhớ" indeterminate />);
+      expect(screen.getByRole("checkbox")).toHaveAttribute(
+        "aria-checked",
+        "mixed",
+      );
+      expect(screen.getByRole("checkbox")).toBePartiallyChecked();
       expect(screen.getByText("Ghi nhớ")).toBeInTheDocument();
+    });
+
+    it("uses defaultChecked for the native and visual states", () => {
+      render(<Checkbox label="Ghi nhớ" defaultChecked />);
+      expect(screen.getByRole("checkbox", { name: "Ghi nhớ" })).toBeChecked();
+    });
+
+    it("renders CheckboxGroup with label, description, and grouped items", () => {
+      render(
+        <CheckboxGroup label="Tùy chọn" description="Chọn các mục liên quan">
+          <Checkbox label="Mục 1" />
+          <Checkbox label="Mục 2" />
+        </CheckboxGroup>,
+      );
+
+      expect(screen.getByText("Tùy chọn")).toBeInTheDocument();
+      expect(screen.getByText("Chọn các mục liên quan")).toBeInTheDocument();
+      expect(screen.getByText("Mục 1")).toBeInTheDocument();
+      expect(screen.getByText("Mục 2")).toBeInTheDocument();
     });
   });
 
@@ -311,6 +379,24 @@ describe("Core Reusable Components — Implementation 02", () => {
 
       fireEvent.click(quarterRadio);
       expect(handleChange).toHaveBeenCalledWith("quarter");
+    });
+
+    it("initializes and updates an uncontrolled group from defaultValue", () => {
+      const handleChange = vi.fn();
+      render(
+        <RadioGroup defaultValue="quarter" onChange={handleChange}>
+          <Radio value="month" label="Hàng tháng" />
+          <Radio value="quarter" label="Hàng quý" />
+        </RadioGroup>,
+      );
+
+      const monthRadio = screen.getByRole("radio", { name: "Hàng tháng" });
+      const quarterRadio = screen.getByRole("radio", { name: "Hàng quý" });
+      expect(quarterRadio).toBeChecked();
+
+      fireEvent.click(monthRadio);
+      expect(monthRadio).toBeChecked();
+      expect(handleChange).toHaveBeenCalledWith("month");
     });
   });
 
@@ -360,6 +446,28 @@ describe("Core Reusable Components — Implementation 02", () => {
       fireEvent.click(archivedTab);
       expect(handleChange).toHaveBeenCalledWith("archived");
     });
+
+    it("moves focus and selection with tab arrow keys", () => {
+      const handleChange = vi.fn();
+      render(
+        <Tabs
+          tabs={[
+            { id: "active", label: "Active" },
+            { id: "archived", label: "Archived" },
+          ]}
+          activeTab="active"
+          onChange={handleChange}
+        />,
+      );
+
+      const activeTab = screen.getByRole("tab", { name: "Active" });
+      const archivedTab = screen.getByRole("tab", { name: "Archived" });
+      activeTab.focus();
+      fireEvent.keyDown(activeTab, { key: "ArrowRight" });
+
+      expect(archivedTab).toHaveFocus();
+      expect(handleChange).toHaveBeenCalledWith("archived");
+    });
   });
 
   describe("SegmentedControl", () => {
@@ -386,6 +494,28 @@ describe("Core Reusable Components — Implementation 02", () => {
       const quarterTab = screen.getByRole("tab", { name: "Quý" });
       fireEvent.click(quarterTab);
       expect(handleChange).toHaveBeenCalledWith("quarter");
+    });
+
+    it("skips disabled options during keyboard navigation", () => {
+      const handleChange = vi.fn();
+      render(
+        <SegmentedControl
+          options={[
+            { id: "month", label: "Month" },
+            { id: "quarter", label: "Quarter", disabled: true },
+            { id: "year", label: "Year" },
+          ]}
+          value="month"
+          onChange={handleChange}
+        />,
+      );
+
+      const monthTab = screen.getByRole("tab", { name: "Month" });
+      const yearTab = screen.getByRole("tab", { name: "Year" });
+      fireEvent.keyDown(monthTab, { key: "ArrowRight" });
+
+      expect(yearTab).toHaveFocus();
+      expect(handleChange).toHaveBeenCalledWith("year");
     });
   });
 
@@ -439,7 +569,10 @@ describe("Core Reusable Components — Implementation 02", () => {
       const input = screen.getByRole("searchbox");
       expect(input).toHaveValue("Vietcombank");
 
-      const clearBtn = screen.getByRole("button", { name: "Xoá tìm kiếm" });
+      expect(input).toHaveAccessibleName("Tìm kiếm");
+      const clearBtn = screen.getByRole("button", {
+        name: "Xóa nội dung tìm kiếm",
+      });
       fireEvent.click(clearBtn);
       expect(handleChange).toHaveBeenCalledWith("");
     });
@@ -460,6 +593,28 @@ describe("Core Reusable Components — Implementation 02", () => {
       const todayBtn = screen.getByRole("button", { name: "Hôm nay" });
       fireEvent.click(todayBtn);
       expect(handleChange).toHaveBeenCalled();
+    });
+  });
+
+  describe("SearchableSelect", () => {
+    it("marks unavailable options disabled", () => {
+      render(
+        <SearchableSelect
+          id="account"
+          label="Account"
+          value=""
+          onChange={vi.fn()}
+          options={[
+            { id: "open", label: "Open account" },
+            { id: "closed", label: "Closed account", disabled: true },
+          ]}
+        />,
+      );
+
+      fireEvent.click(screen.getByRole("button"));
+      expect(
+        screen.getByRole("option", { name: "Closed account" }),
+      ).toHaveAttribute("aria-disabled", "true");
     });
   });
 });

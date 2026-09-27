@@ -1,12 +1,14 @@
 "use client";
 
 import { useTheme } from "@/providers/theme-provider";
+import { useLocale } from "next-intl";
+import { DEFAULT_CURRENCY } from "@/modules/shared-kernel/currency";
+import { formatCurrency } from "@/shared/i18n/formatters";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
   StitchSunIcon,
   StitchMoonIcon,
 } from "@/shared/ui/stitch-icon-extensions";
-import { RADIUS_TOKENS } from "@/shared/theme";
 import { CoreComponentsSection } from "./core-components-section";
 
 /**
@@ -22,19 +24,28 @@ import { CoreComponentsSection } from "./core-components-section";
  * - Minimum 44x44px touch targets
  */
 export default function DesignFoundationsPage() {
+  const locale = useLocale();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const formatVnd = (value: number, options?: Intl.NumberFormatOptions) =>
+    formatCurrency(value, DEFAULT_CURRENCY, locale, {
+      maximumFractionDigits: 0,
+      ...options,
+    });
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   const financialNumbers = [
-    { label: "Zero", value: "₫0" },
-    { label: "Small Outflow", value: "−₫50.000" },
-    { label: "Monthly Income", value: "+₫5.000.000" },
-    { label: "Large Jar", value: "₫999.999.999" },
-    { label: "Net Wealth Hero", value: "₫2.036.547.748" },
-    { label: "Long-term Asset", value: "₫12.000.000.000" },
+    { label: "Zero", value: formatVnd(0) },
+    { label: "Small Outflow", value: formatVnd(-50_000) },
+    {
+      label: "Monthly Income",
+      value: formatVnd(5_000_000, { signDisplay: "always" }),
+    },
+    { label: "Large Jar", value: formatVnd(999_999_999) },
+    { label: "Net Wealth Hero", value: formatVnd(2_036_547_748) },
+    { label: "Long-term Asset", value: formatVnd(12_000_000_000) },
   ];
 
   return (
@@ -118,11 +129,11 @@ export default function DesignFoundationsPage() {
             <span className="font-mono text-[10px]">#0F766E</span>
           </div>
           <div className="flex items-center justify-between rounded-[var(--radius-control)] bg-income-soft p-2.5 text-income border border-income/20">
-            <span className="font-semibold">Income (+₫)</span>
+            <span className="font-semibold">Income (+)</span>
             <span className="font-mono text-[10px]">Emerald</span>
           </div>
           <div className="flex items-center justify-between rounded-[var(--radius-control)] bg-expense-soft p-2.5 text-expense border border-border-subtle">
-            <span className="font-semibold">Expense (−₫)</span>
+            <span className="font-semibold">Expense (−)</span>
             <span className="font-mono text-[10px]">Slate</span>
           </div>
           <div className="flex items-center justify-between rounded-[var(--radius-control)] bg-debt-soft p-2.5 text-debt border border-debt/20">
@@ -150,7 +161,9 @@ export default function DesignFoundationsPage() {
           3. Typography Scale & Diacritic Safeguards
         </h2>
         <div className="flex flex-col gap-2 rounded-[var(--radius-card)] border border-border-subtle bg-surface p-4">
-          <p className="text-numeric-hero text-text-primary">₫ 2.036.547.748</p>
+          <p className="text-numeric-hero text-text-primary">
+            {formatVnd(2_036_547_748)}
+          </p>
           <p className="text-headline-md text-text-primary">
             Tổng tài sản ròng khả dụng
           </p>
@@ -221,7 +234,7 @@ export default function DesignFoundationsPage() {
             <p className="text-xs text-text-secondary">
               Số dư gốc hợp đồng:{" "}
               <strong className="tabular-nums text-text-primary">
-                ₫ 500.000.000
+                {formatVnd(500_000_000)}
               </strong>{" "}
               (Thông tin quan trọng, không sửa được).
             </p>
@@ -237,21 +250,17 @@ export default function DesignFoundationsPage() {
         <div className="grid grid-cols-3 gap-2 text-center text-xs">
           <div className="flex flex-col items-center justify-center p-3 border border-border-subtle bg-surface rounded-[var(--radius-sm)] shadow-(--elevation-1)">
             <span className="font-medium">Radius SM</span>
-            <span className="text-[10px] text-text-muted">
-              {RADIUS_TOKENS.sm}
-            </span>
+            <span className="text-[10px] text-text-muted">--radius-sm</span>
           </div>
           <div className="flex flex-col items-center justify-center p-3 border border-border-subtle bg-surface rounded-[var(--radius-control)] shadow-(--elevation-1)">
             <span className="font-medium">Control</span>
             <span className="text-[10px] text-text-muted">
-              {RADIUS_TOKENS.control}
+              --radius-control
             </span>
           </div>
           <div className="flex flex-col items-center justify-center p-3 border border-border-subtle bg-surface rounded-[var(--radius-card)] shadow-(--elevation-2)">
             <span className="font-medium">Card</span>
-            <span className="text-[10px] text-text-muted">
-              {RADIUS_TOKENS.card}
-            </span>
+            <span className="text-[10px] text-text-muted">--radius-card</span>
           </div>
         </div>
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { ViewIcon, ViewOffIcon } from "@/shared/ui/stitch-icon-compat";
 import { StitchLockIcon } from "@/shared/ui/stitch-icon-artwork";
@@ -38,8 +39,8 @@ export function PasswordInput({
   required,
   registration,
   showLeadingLock = true,
-  revealShowLabel = "Hiện mật khẩu",
-  revealHideLabel = "Ẩn mật khẩu",
+  revealShowLabel,
+  revealHideLabel,
   className,
   isReadOnly = false,
   readOnly,
@@ -47,6 +48,7 @@ export function PasswordInput({
   "data-testid": testId,
   ...props
 }: PasswordInputProps) {
+  const tA11y = useTranslations("a11y");
   const [revealed, setRevealed] = useState(false);
   const hasError = Boolean(error);
   const resolvedReadOnly = isReadOnly || readOnly;
@@ -81,8 +83,12 @@ export function PasswordInput({
             type="button"
             onClick={toggleReveal}
             disabled={disabled}
-            aria-label={revealed ? revealHideLabel : revealShowLabel}
-            className="flex size-8 items-center justify-center rounded-[var(--radius-control)] text-text-muted hover:text-text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
+            aria-label={
+              revealed
+                ? (revealHideLabel ?? tA11y("hidePassword"))
+                : (revealShowLabel ?? tA11y("showPassword"))
+            }
+            className="flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-text-muted hover:text-text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
           >
             <AppIcon icon={revealed ? ViewOffIcon : ViewIcon} size="md" />
           </button>

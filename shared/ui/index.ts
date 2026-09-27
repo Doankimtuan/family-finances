@@ -16,7 +16,12 @@ export { Heading, type HeadingProps } from "./heading";
 export { Input, type InputProps } from "./input";
 export { Textarea, type TextareaProps } from "./textarea";
 export { Select, type SelectProps, type SelectItemProps } from "./select";
-export { Checkbox, type CheckboxProps } from "./checkbox";
+export {
+  Checkbox,
+  CheckboxGroup,
+  type CheckboxProps,
+  type CheckboxGroupProps,
+} from "./checkbox";
 export {
   Radio,
   RadioGroup,
@@ -102,7 +107,7 @@ export {
 export { Toast, toast, type ToastProps } from "./toast";
 export {
   EmptyState,
-  EmptyStateVariant,
+  type EmptyStateTone,
   type EmptyStateProps,
 } from "./empty-state";
 export {
@@ -114,6 +119,7 @@ export {
   FormField,
   formFieldA11y,
   TextField,
+  AmountField,
   PasswordInput,
   CurrencyInput,
   QuantityInput,
@@ -134,10 +140,9 @@ export {
   StickyFormActionLayout,
   CalculatedPreview,
   CalculatedPreviewStatus,
-  ConfirmationSummary,
-  ConfirmSummary,
   type FormFieldProps,
   type TextFieldProps,
+  type AmountFieldProps,
   type PasswordInputProps,
   type CurrencyInputProps,
   type QuantityInputProps,
@@ -156,8 +161,6 @@ export {
   type FieldGroupProps,
   type StickyFormActionProps,
   type CalculatedPreviewProps,
-  type ConfirmationSummaryProps,
-  type ConfirmationSummaryRow,
 } from "./form";
 export {
   ACTION_ICONS,

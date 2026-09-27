@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   JarKind,
@@ -204,6 +204,7 @@ export function JarConfigurationForm({
   onCancel,
   onSaved,
 }: Props) {
+  const locale = useLocale();
   const t = useTranslations("plan.jars");
   const router = useRouter();
   const nameId = useId();
@@ -447,7 +448,7 @@ export function JarConfigurationForm({
                 ? t("previewNoIncome")
                 : typeof t.rich === "function"
                   ? t.rich("previewAmount", {
-                      amount: formatCurrency(previewAmount, currency, "vi-VN", {
+                      amount: formatCurrency(previewAmount, currency, locale, {
                         maximumFractionDigits: 0,
                       }),
                       money: (chunks: ReactNode) => (

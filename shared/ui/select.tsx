@@ -13,7 +13,7 @@ export const FIELD_CONTROL_CLASS_NAME = cn(
   "border border-border-subtle bg-surface text-text-primary text-base md:text-sm",
   "shadow-xs transition-[border-color,box-shadow,background-color] duration-(--duration-fast) ease-(--ease-standard)",
   "hover:border-border-strong",
-  "focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+  "focus-visible:border-transparent focus-visible:shadow-none",
   "disabled:cursor-not-allowed disabled:opacity-45 disabled:bg-surface-subtle",
   "motion-reduce:transition-none",
 );
@@ -40,8 +40,7 @@ const SelectTrigger = ({
     className={cn(
       FIELD_CONTROL_CLASS_NAME,
       "group flex h-11 items-center justify-between px-3.5 py-0 text-left font-normal cursor-pointer select-none",
-      hasError &&
-        "border-debt focus-visible:border-debt focus-visible:outline-debt",
+      hasError && "border-debt focus-visible:border-transparent",
       className,
     )}
     {...props}
@@ -104,7 +103,6 @@ Select.Popover = SelectPopover;
 export type SelectItemProps = ComponentProps<typeof ListBox.Item> & {
   leadingIcon?: ReactNode;
   secondaryText?: ReactNode;
-  isSelected?: boolean;
 };
 
 const SelectItem = ({
@@ -112,7 +110,6 @@ const SelectItem = ({
   children,
   leadingIcon,
   secondaryText,
-  isSelected,
   ...props
 }: SelectItemProps) => (
   <ListBox.Item
@@ -143,11 +140,11 @@ const SelectItem = ({
             ) : null}
           </div>
         </div>
-        {isSelected ? (
-          <span className="flex shrink-0 text-primary pl-2">
-            <AppIcon icon={Tick01Icon} size="sm" />
-          </span>
-        ) : null}
+        <ListBox.Item.Indicator className="text-primary">
+          {({ isSelected }) =>
+            isSelected ? <AppIcon icon={Tick01Icon} size="sm" /> : null
+          }
+        </ListBox.Item.Indicator>
       </>
     )}
   </ListBox.Item>

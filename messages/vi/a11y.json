@@ -3,6 +3,12 @@
   "back": "Quay lại",
   "localeSwitcher": "Chọn ngôn ngữ",
   "themeSwitcher": "Chọn giao diện",
+  "viewTabs": "Tùy chọn chế độ xem",
+  "search": "Tìm kiếm",
+  "clearSearch": "Xóa nội dung tìm kiếm",
+  "showPassword": "Hiện mật khẩu",
+  "hidePassword": "Ẩn mật khẩu",
+  "dismissAlert": "Đóng thông báo",
   "dismissToast": "Bỏ qua thông báo",
   "inboxBadge": "{count, plural, one {# việc cần quyết định} other {# việc cần quyết định}}"
 }

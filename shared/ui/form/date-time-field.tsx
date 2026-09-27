@@ -15,7 +15,7 @@ import { FormField } from "./form-field";
 
 const fieldClassName = cn(
   "min-h-11 w-full rounded-[var(--radius-control)] border border-border-subtle bg-surface px-(--space-3) text-sm text-text-primary",
-  "focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--color-focus-ring-soft)]",
+  "focus-within:border-transparent focus-within:shadow-none",
 );
 
 export type DatePickerFieldProps = {
@@ -85,7 +85,7 @@ export function DatePickerField({
             {(segment) => <HeroDateField.Segment segment={segment} />}
           </HeroDateField.Input>
           <HeroDateField.Suffix>
-            <DatePicker.Trigger className="ml-(--space-1) inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-text-secondary hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-focus-ring">
+            <DatePicker.Trigger className="ml-(--space-1) inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-text-secondary hover:bg-surface-hover focus-visible:outline-none">
               <AppIcon icon={Calendar03Icon} size="sm" />
             </DatePicker.Trigger>
           </HeroDateField.Suffix>

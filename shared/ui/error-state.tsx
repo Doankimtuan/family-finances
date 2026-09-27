@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Alert02Icon } from "@/shared/ui/stitch-icon-compat";
 import { cn } from "@/shared/utils/cn";
 import { Heading } from "@/shared/ui/heading";
@@ -9,6 +10,7 @@ import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Button, ButtonVariant } from "@/shared/ui/button";
 
 export const ErrorStateVariant = {
+  PLAIN: "plain",
   SECTION: "section",
   PAGE: "page",
 } as const;
@@ -37,12 +39,14 @@ export function ErrorState({
   description,
   action,
   onRetry,
-  retryLabel = "Thử lại",
-  variant = ErrorStateVariant.SECTION,
+  retryLabel,
+  variant = ErrorStateVariant.PLAIN,
   className,
   testId,
 }: ErrorStateProps) {
+  const tButtons = useTranslations("buttons");
   const isPage = variant === ErrorStateVariant.PAGE;
+  const isSection = variant === ErrorStateVariant.SECTION;
 
   const retryButton = onRetry ? (
     <Button
@@ -50,7 +54,7 @@ export function ErrorState({
       onPress={onRetry}
       className="w-full max-w-[12rem]"
     >
-      {retryLabel}
+      {retryLabel ?? tButtons("retry")}
     </Button>
   ) : null;
 
@@ -63,7 +67,9 @@ export function ErrorState({
         "flex flex-col items-center justify-center gap-(--space-3) text-center",
         isPage
           ? "min-h-[50vh] px-(--space-5) py-(--space-8)"
-          : "rounded-(--radius-card) border border-border-subtle bg-surface-muted/40 px-(--space-4) py-(--space-6)",
+          : isSection
+            ? "rounded-(--radius-card) border border-border-subtle bg-surface-muted/40 px-(--space-4) py-(--space-6)"
+            : "px-(--space-5) py-(--space-6)",
         className,
       )}
     >

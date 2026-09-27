@@ -568,11 +568,13 @@ function PaymentReview({
             id: "amount",
             label: amountLabel,
             value: formatCurrency(review.paymentAmount, currency, locale),
+            kind: "financial",
           },
           {
             id: "account",
             label: accountLabel,
             value: accountName,
+            kind: "text",
           },
           {
             id: "date",
@@ -582,6 +584,7 @@ function PaymentReview({
               month: "2-digit",
               year: "numeric",
             }),
+            kind: "text",
           },
           {
             id: "after",
@@ -600,6 +603,7 @@ function PaymentReview({
                 </span>
               </span>
             ),
+            kind: "financial",
           },
         ]}
       />

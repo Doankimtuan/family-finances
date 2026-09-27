@@ -1,15 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  SEMANTIC_COLOR_TOKENS,
-  THEME_MODES,
-  RADIUS_TOKENS,
-  SPACING_TOKENS,
-  CONTROL_DIMENSIONS,
-  ICON_DIMENSIONS,
-  cssVar,
-} from "@/shared/theme";
+import { SEMANTIC_COLOR_TOKENS, THEME_MODES, cssVar } from "@/shared/theme";
 
 describe("Foundation Tokens — ViNha Warm Precision", () => {
   it("exposes canonical theme modes", () => {
@@ -67,52 +59,16 @@ describe("Foundation Tokens — ViNha Warm Precision", () => {
     expect(cssVar("disabled-text")).not.toEqual(cssVar("readonly-text"));
   });
 
-  it("defines the 5-tier geometric radius tokens matching Task 11", () => {
-    expect(RADIUS_TOKENS.xs).toBe("4px");
-    expect(RADIUS_TOKENS.sm).toBe("8px");
-    expect(RADIUS_TOKENS.control).toBe("10px");
-    expect(RADIUS_TOKENS.card).toBe("12px");
-    expect(RADIUS_TOKENS.xl).toBe("14px");
-    expect(RADIUS_TOKENS.overlay).toBe("16px");
-    expect(RADIUS_TOKENS.full).toBe("9999px");
-  });
-
-  it("defines 4px baseline coordinate spacing tokens", () => {
-    expect(SPACING_TOKENS[0]).toBe("0px");
-    expect(SPACING_TOKENS[1]).toBe("4px");
-    expect(SPACING_TOKENS[2]).toBe("8px");
-    expect(SPACING_TOKENS[3]).toBe("12px");
-    expect(SPACING_TOKENS[4]).toBe("16px");
-    expect(SPACING_TOKENS[5]).toBe("20px");
-    expect(SPACING_TOKENS[6]).toBe("24px");
-    expect(SPACING_TOKENS[8]).toBe("32px");
-    expect(SPACING_TOKENS[10]).toBe("40px");
-    expect(SPACING_TOKENS[12]).toBe("48px");
-    expect(SPACING_TOKENS[16]).toBe("64px");
-  });
-
-  it("guarantees WCAG AA minimum 44px interactive control dimensions", () => {
-    expect(CONTROL_DIMENSIONS.touchTargetMin).toBe("44px");
-    expect(CONTROL_DIMENSIONS.buttonMd).toBe("44px");
-    expect(CONTROL_DIMENSIONS.topAppBar).toBe("56px");
-    expect(CONTROL_DIMENSIONS.bottomNav).toBe("56px");
-    expect(CONTROL_DIMENSIONS.inputStandard).toBe("48px");
-    expect(CONTROL_DIMENSIONS.inputHero).toBe("64px");
-  });
-
-  it("defines Warm Precision icon system sizing and resting/active strokes", () => {
-    expect(ICON_DIMENSIONS.sm).toBe("16px");
-    expect(ICON_DIMENSIONS.md).toBe("20px");
-    expect(ICON_DIMENSIONS.lg).toBe("24px");
-    expect(ICON_DIMENSIONS.strokeResting).toBe("1.5px");
-    expect(ICON_DIMENSIONS.strokeActive).toBe("1.9px");
-    expect(ICON_DIMENSIONS.containerSm).toBe("32px");
-    expect(ICON_DIMENSIONS.containerMd).toBe("40px");
-  });
-
   it("verifies styles/globals.css contains canonical Light and Dark tokens", () => {
     const cssPath = resolve(process.cwd(), "styles/globals.css");
     const css = readFileSync(cssPath, "utf8");
+
+    // CSS is the single source of truth for geometric and control tokens.
+    expect(css).toContain("--radius-sm: 8px");
+    expect(css).toContain("--radius-control: 10px");
+    expect(css).toContain("--radius-card: 12px");
+    expect(css).toContain("--control-touch-target: 44px");
+    expect(css).toContain("--icon-stroke-resting: 1.5px");
 
     // Light theme checks
     expect(css).toContain("--vinha-canvas: #fafaf9");

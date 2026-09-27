@@ -209,7 +209,7 @@ export function AddAccountForm({
                 {
                   id: "creditLimit",
                   label: t("receipt.creditLimit"),
-                  financial: true,
+                  kind: "financial" as const,
                   value: formatCurrency(
                     receipt.creditLimit ?? 0,
                     currency,
@@ -222,7 +222,7 @@ export function AddAccountForm({
                 {
                   id: "openingBalance",
                   label: t("receipt.openingBalance"),
-                  financial: true,
+                  kind: "financial" as const,
                   value: formatCurrency(
                     receipt.openingBalance,
                     currency,

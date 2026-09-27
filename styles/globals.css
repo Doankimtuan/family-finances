@@ -905,6 +905,38 @@ body {
   outline-offset: 2px;
 }
 
+/* HeroUI already supplies a focus ring for these controls. */
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+}
+
+.searchable-select__input:focus-visible {
+  border-color: transparent;
+}
+
+[aria-invalid="true"]:focus-visible {
+  outline-color: var(--color-danger);
+}
+
+/* Composite fields own the focus ring; inner controls must not draw a second one. */
+.number-field__group .number-field__input:focus-visible,
+.date-input-group__segment:focus-visible,
+.search-input__input:focus-visible {
+  outline: none;
+}
+
+.date-input-group:focus-within {
+  border-color: transparent;
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.date-input-group:focus-within .date-picker__trigger:focus-visible {
+  outline: none;
+}
+
 /* The modal scope receives focus on open; keep the panel edge calm and let
    the first actual control own the visible focus ring. */
 [data-slot="drawer-dialog"]:focus-visible {

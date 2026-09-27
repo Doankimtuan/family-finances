@@ -1,7 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
+import { handleTabKeyDown } from "./tab-keyboard";
 
 export type SegmentedControlOption<T extends string = string> = {
   id: T;
@@ -32,9 +34,11 @@ export function SegmentedControl<T extends string = string>({
   className,
   "data-testid": testId,
 }: SegmentedControlProps<T>) {
+  const tA11y = useTranslations("a11y");
   return (
     <div
       role="tablist"
+      aria-label={tA11y("viewTabs")}
       data-testid={testId}
       className={cn(
         "relative flex h-9 min-h-9 w-full items-center rounded-[var(--radius-control)] bg-surface-soft p-[3px] select-none border border-border-subtle/50",
@@ -51,9 +55,14 @@ export function SegmentedControl<T extends string = string>({
             key={opt.id}
             type="button"
             role="tab"
+            data-tab-id={opt.id}
+            tabIndex={isSelected ? 0 : -1}
             aria-selected={isSelected}
             disabled={isItemDisabled}
             onClick={() => onChange(opt.id)}
+            onKeyDown={(event) =>
+              handleTabKeyDown(event, options, disabled, onChange)
+            }
             className={cn(
               "relative flex h-full flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-sm)] px-2.5 text-xs font-medium transition-[background-color,color,box-shadow,transform] duration-(--duration-fast) ease-(--ease-standard)",
               "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring",

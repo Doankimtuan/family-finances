@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 
@@ -12,16 +10,21 @@ export const CalculatedPreviewStatus = {
 export type CalculatedPreviewStatus =
   (typeof CalculatedPreviewStatus)[keyof typeof CalculatedPreviewStatus];
 
-export type CalculatedPreviewProps = {
+type CalculatedPreviewBaseProps = {
   label: ReactNode;
   value?: ReactNode;
   formula?: ReactNode;
-  status?: CalculatedPreviewStatus;
-  errorMessage?: ReactNode;
   incompletePlaceholder?: string;
   className?: string;
   testId?: string;
 };
+
+export type CalculatedPreviewProps = CalculatedPreviewBaseProps &
+  (
+    | { status?: "valid"; errorMessage?: never }
+    | { status: "incomplete"; errorMessage?: never }
+    | { status: "error"; errorMessage: ReactNode }
+  );
 
 /**
  * ViNha Canonical CalculatedPreview.
@@ -77,7 +80,7 @@ export function CalculatedPreview({
 
         {isError ? (
           <span className="text-xs font-medium text-danger">
-            {errorMessage ?? "Giá trị tính toán không hợp lệ"}
+            {errorMessage}
           </span>
         ) : null}
       </div>

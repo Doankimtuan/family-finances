@@ -362,6 +362,7 @@ export function CaptureTransactionForm({
             value: formatCurrency(pendingSubmission.amount, currency, locale, {
               maximumFractionDigits: 0,
             }),
+            kind: "financial",
           },
           {
             id: "direction",

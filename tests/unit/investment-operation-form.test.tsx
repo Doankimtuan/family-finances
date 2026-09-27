@@ -194,8 +194,10 @@ describe("InvestmentOperationForm", () => {
     const editButton = screen.getByText("edit");
     await waitFor(() => expect(editButton).not.toBeDisabled());
     fireEvent.click(editButton);
-    expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
-    expect(screen.getByLabelText("purchasePrice")).toHaveValue("");
+    await waitFor(() => {
+      expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("");
+      expect(screen.getByLabelText("purchasePrice")).toHaveValue("");
+    });
   });
 
   it("switches fee input by source without submitting stale hidden values", async () => {

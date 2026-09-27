@@ -37,6 +37,7 @@ function isThemeMode(value: string | null): value is ThemeMode {
 
 function readStoredTheme(): ThemeMode {
   if (typeof window === "undefined") return DEFAULT_THEME;
+  if (fallbackTheme !== null) return fallbackTheme;
 
   try {
     const storedTheme = window.localStorage.getItem(STORAGE_KEY);
@@ -49,7 +50,12 @@ function readStoredTheme(): ThemeMode {
 
 function subscribeToStoredTheme(onChange: () => void) {
   const handleStorageChange = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY || event.key === null) onChange();
+    if (event.key === STORAGE_KEY || event.key === null) {
+      fallbackTheme = isThemeMode(event.newValue)
+        ? event.newValue
+        : DEFAULT_THEME;
+      onChange();
+    }
   };
 
   themeSubscribers.add(onChange);

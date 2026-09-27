@@ -670,6 +670,7 @@ export function CorrectTransactionForm({
                         maximumFractionDigits: 0,
                       },
                     ),
+                    kind: "financial",
                   },
                   {
                     id: "account",
@@ -697,6 +698,7 @@ export function CorrectTransactionForm({
                     id: "amount",
                     label: t("amountLabel"),
                     value: correctedAmount,
+                    kind: "financial",
                   },
                   {
                     id: "account",

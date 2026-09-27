@@ -360,14 +360,35 @@ export function TransferCaptureFlow({
             className="shadow-(--elevation-1)"
             data-testid="transfer-confirm-summary"
             rows={[
-              { id: "amount", label: t("receipt.amount"), value: amountLabel },
-              { id: "from", label: t("fromLabel"), value: sourceName },
-              { id: "to", label: t("toLabel"), value: destinationName },
-              { id: "date", label: t("receipt.date"), value: transactionDate },
+              {
+                id: "amount",
+                label: t("receipt.amount"),
+                value: amountLabel,
+                kind: "financial",
+              },
+              {
+                id: "from",
+                label: t("fromLabel"),
+                value: sourceName,
+                kind: "text",
+              },
+              {
+                id: "to",
+                label: t("toLabel"),
+                value: destinationName,
+                kind: "text",
+              },
+              {
+                id: "date",
+                label: t("receipt.date"),
+                value: transactionDate,
+                kind: "text",
+              },
               {
                 id: "effect",
                 label: t("confirmEffect"),
                 value: t("confirmEffectBody"),
+                kind: "text",
               },
             ]}
           />

@@ -1,7 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
+import { handleTabKeyDown } from "./tab-keyboard";
 
 export type TabItem<T extends string = string> = {
   id: T;
@@ -37,9 +39,11 @@ export function Tabs<T extends string = string>({
   className,
   "data-testid": testId,
 }: TabsProps<T>) {
+  const tA11y = useTranslations("a11y");
   return (
     <div
       role="tablist"
+      aria-label={tA11y("viewTabs")}
       data-testid={testId}
       className={cn(
         "flex h-11 min-h-11 w-full items-center select-none",
@@ -60,9 +64,14 @@ export function Tabs<T extends string = string>({
               key={tab.id}
               type="button"
               role="tab"
+              data-tab-id={tab.id}
+              tabIndex={isActive ? 0 : -1}
               aria-selected={isActive}
               disabled={isTabDisabled}
               onClick={() => onChange(tab.id)}
+              onKeyDown={(event) =>
+                handleTabKeyDown(event, tabs, disabled, onChange)
+              }
               className={cn(
                 "relative flex h-full items-center gap-2 pb-2 pt-1 text-sm font-medium transition-colors",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
@@ -101,9 +110,14 @@ export function Tabs<T extends string = string>({
             key={tab.id}
             type="button"
             role="tab"
+            data-tab-id={tab.id}
+            tabIndex={isActive ? 0 : -1}
             aria-selected={isActive}
             disabled={isTabDisabled}
             onClick={() => onChange(tab.id)}
+            onKeyDown={(event) =>
+              handleTabKeyDown(event, tabs, disabled, onChange)
+            }
             className={cn(
               "relative flex h-9 flex-1 items-center justify-center gap-2 rounded-[var(--radius-control)] px-3 text-xs font-medium transition-[background-color,color,box-shadow]",
               "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus-ring",

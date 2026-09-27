@@ -11,6 +11,7 @@ import {
   Textarea,
   Select,
   Checkbox,
+  CheckboxGroup,
   Radio,
   RadioGroup,
   Switch,
@@ -199,7 +200,7 @@ export function CoreComponentsSection() {
             label="Trường có lỗi (Error Validation)"
             error="Định dạng email không hợp lệ"
           >
-            <Input id="error-field" value="invalid-email" hasError />
+            <Input id="error-field" value="invalid-email" hasError isReadOnly />
           </FormField>
 
           <FormField
@@ -233,11 +234,11 @@ export function CoreComponentsSection() {
             value={currencyVal}
             onValueChange={setCurrencyVal}
             showWordsPreview
-            showQuickChips
+            quickChips={[50_000, 100_000, 500_000]}
             description="Nhập nhanh bằng các nút gợi ý bên dưới"
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             <QuantityInput
               label="Khối lượng CCQ"
               value={quantityVal}
@@ -284,12 +285,7 @@ export function CoreComponentsSection() {
               <Select.Popover>
                 <Select.ListBox>
                   {bankOptions.map((opt) => (
-                    <Select.Item
-                      key={opt.id}
-                      id={opt.id}
-                      textValue={opt.label}
-                      isSelected={selectVal === opt.id}
-                    >
+                    <Select.Item key={opt.id} id={opt.id} textValue={opt.label}>
                       {opt.label}
                     </Select.Item>
                   ))}
@@ -313,7 +309,7 @@ export function CoreComponentsSection() {
       <div className="flex flex-col gap-4 rounded-[var(--radius-card)] border border-border-subtle bg-surface p-4 shadow-xs">
         <h3 className="text-title-sm text-text-primary">Selection Controls</h3>
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-6">
+          <CheckboxGroup>
             <Checkbox
               checked={chkChecked}
               onChange={(checked) => setChkChecked(checked)}
@@ -326,14 +322,13 @@ export function CoreComponentsSection() {
               label="Chọn tất cả hũ (Indeterminate)"
             />
             <Checkbox checked={true} disabled label="Đã khóa (Disabled)" />
-          </div>
+          </CheckboxGroup>
 
           <div className="pt-2 border-t border-border-subtle">
             <RadioGroup
               label="Chu kỳ lặp lại"
               value={radioVal}
               onChange={setRadioVal}
-              className="flex gap-4"
             >
               <Radio value="weekly" label="Hàng tuần" />
               <Radio value="monthly" label="Hàng tháng" />

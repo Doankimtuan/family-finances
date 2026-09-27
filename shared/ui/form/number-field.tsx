@@ -21,6 +21,10 @@ export type NumberFieldProps = {
   error?: ReactNode;
   required?: boolean;
   isDisabled?: boolean;
+  isReadOnly?: boolean;
+  placeholder?: string;
+  suffix?: ReactNode;
+  trailingAction?: ReactNode;
   className?: string;
   "data-testid"?: string;
 };
@@ -42,6 +46,10 @@ export function NumberField({
   error,
   required,
   isDisabled,
+  isReadOnly,
+  placeholder,
+  suffix,
+  trailingAction,
   className,
   "data-testid": testId,
 }: NumberFieldProps) {
@@ -65,6 +73,7 @@ export function NumberField({
         step={step}
         formatOptions={formatOptions}
         isDisabled={isDisabled}
+        isReadOnly={isReadOnly}
         aria-required={required || undefined}
         aria-label={typeof label === "string" ? label : id}
         data-testid={testId}
@@ -73,13 +82,22 @@ export function NumberField({
       >
         <HeroNumberField.Group
           className={cn(
-            "min-h-11 w-full grid-cols-[minmax(0,1fr)] rounded-[var(--radius-control)] border border-border-subtle bg-surface text-text-primary",
-            "focus-within:border-accent focus-within:shadow-[0_0_0_3px_var(--color-focus-ring-soft)]",
+            "min-h-11 flex w-full min-w-0 items-center border border-border-subtle rounded-[var(--radius-control)] bg-surface text-text-primary",
+            "focus-within:border-transparent focus-within:shadow-none",
             "transition-[border-color,box-shadow,background-color] duration-(--duration-fast)",
             className,
           )}
         >
-          <HeroNumberField.Input className="col-span-full min-h-11 w-full px-(--space-3) text-sm tabular-nums outline-none" />
+          <HeroNumberField.Input
+            placeholder={placeholder}
+            className="min-h-11 min-w-0 flex-1 px-(--space-3) text-sm tabular-nums outline-none"
+          />
+          {suffix ? (
+            <span className="shrink-0 px-(--space-1) text-sm text-text-secondary">
+              {suffix}
+            </span>
+          ) : null}
+          {trailingAction}
         </HeroNumberField.Group>
       </HeroNumberField>
     </FormField>

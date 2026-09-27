@@ -3,18 +3,38 @@ import type { MessageNamespace } from "./load-messages";
 
 type ClientMessageNamespaces = readonly MessageNamespace[];
 
+const SHARED_CLIENT_NAMESPACES = ["a11y", "buttons", "forms"] as const;
+
 export const CLIENT_MESSAGE_NAMESPACES = {
-  AUTH: ["a11y", "auth", "common", "settings", "validation"],
-  ONBOARD: ["a11y", "common", "onboard", "settings", "validation"],
-  INVITE: ["a11y", "common", "settings", "together"],
-  SYSTEM: ["a11y", "settings", "system"],
-  PRODUCT: ["a11y", "navigation"],
-  HOME: ["a11y", "home", "system"],
-  HEALTH: ["a11y"],
-  MONEY: ["a11y", "catalog", "common", "money", "system"],
-  PLAN: ["a11y", "catalog", "common", "plan", "system"],
-  INBOX: ["a11y", "catalog", "inbox", "system"],
-  TOGETHER: ["a11y", "auth", "settings", "system", "together"],
+  AUTH: [
+    ...SHARED_CLIENT_NAMESPACES,
+    "auth",
+    "common",
+    "settings",
+    "validation",
+  ],
+  ONBOARD: [
+    ...SHARED_CLIENT_NAMESPACES,
+    "common",
+    "onboard",
+    "settings",
+    "validation",
+  ],
+  INVITE: [...SHARED_CLIENT_NAMESPACES, "common", "settings", "together"],
+  SYSTEM: [...SHARED_CLIENT_NAMESPACES, "settings", "system"],
+  PRODUCT: [...SHARED_CLIENT_NAMESPACES, "navigation"],
+  HOME: [...SHARED_CLIENT_NAMESPACES, "home", "system"],
+  HEALTH: [...SHARED_CLIENT_NAMESPACES],
+  MONEY: [...SHARED_CLIENT_NAMESPACES, "catalog", "common", "money", "system"],
+  PLAN: [...SHARED_CLIENT_NAMESPACES, "catalog", "common", "plan", "system"],
+  INBOX: [...SHARED_CLIENT_NAMESPACES, "catalog", "inbox", "system"],
+  TOGETHER: [
+    ...SHARED_CLIENT_NAMESPACES,
+    "auth",
+    "settings",
+    "system",
+    "together",
+  ],
 } as const satisfies Record<string, ClientMessageNamespaces>;
 
 export function selectClientMessages(

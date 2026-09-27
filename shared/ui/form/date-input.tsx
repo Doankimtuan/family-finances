@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useTranslations } from "next-intl";
 import { DatePickerField, type DatePickerFieldProps } from "./date-time-field";
 import { cn } from "@/shared/utils/cn";
 
@@ -21,12 +22,13 @@ export function DateInput({
   value,
   onChange,
   showShortcuts = false,
-  todayLabel = "Hôm nay",
-  yesterdayLabel = "Hôm qua",
+  todayLabel,
+  yesterdayLabel,
   isDisabled,
   className,
   ...props
 }: DateInputProps) {
+  const t = useTranslations("forms.dateShortcuts");
   const generatedId = useId();
   const id = idProp ?? generatedId;
 
@@ -63,16 +65,16 @@ export function DateInput({
           <button
             type="button"
             onClick={setToday}
-            className="inline-flex h-6 items-center rounded-full bg-surface-subtle px-2 text-[11px] font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-border-subtle"
+            className="inline-flex min-h-11 items-center rounded-full bg-surface-subtle px-3 text-xs font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-border-subtle"
           >
-            {todayLabel}
+            {todayLabel ?? t("today")}
           </button>
           <button
             type="button"
             onClick={setYesterday}
-            className="inline-flex h-6 items-center rounded-full bg-surface-subtle px-2 text-[11px] font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-border-subtle"
+            className="inline-flex min-h-11 items-center rounded-full bg-surface-subtle px-3 text-xs font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-border-subtle"
           >
-            {yesterdayLabel}
+            {yesterdayLabel ?? t("yesterday")}
           </button>
         </div>
       ) : null}

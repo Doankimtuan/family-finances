@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Select } from "@/shared/ui/select";
 import { Search01Icon } from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
@@ -42,9 +43,9 @@ export function SearchableSelect({
   value,
   onChange,
   options,
-  placeholder = "Chọn một mục...",
-  searchPlaceholder = "Tìm kiếm...",
-  emptyText = "Không tìm thấy kết quả phù hợp",
+  placeholder,
+  searchPlaceholder,
+  emptyText,
   description,
   error,
   required,
@@ -53,6 +54,7 @@ export function SearchableSelect({
   className,
   "data-testid": testId,
 }: SearchableSelectProps) {
+  const t = useTranslations("forms.searchableSelect");
   const [query, setQuery] = useState("");
   const hasError = Boolean(error);
   const a11y = formFieldA11y(id, hasError, Boolean(description), required);
@@ -81,7 +83,7 @@ export function SearchableSelect({
       }}
       isDisabled={isDisabled || isReadOnly}
       isInvalid={hasError}
-      placeholder={placeholder}
+      placeholder={placeholder ?? t("placeholder")}
       data-testid={testId}
     >
       <Select.Trigger
@@ -105,8 +107,9 @@ export function SearchableSelect({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="h-9 w-full rounded-md border border-border-subtle bg-surface pl-8 pr-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              aria-label={t("searchPlaceholder")}
+              placeholder={searchPlaceholder ?? t("searchPlaceholder")}
+              className="searchable-select__input h-9 w-full rounded-md border border-border-subtle bg-surface pl-8 pr-3 text-sm text-text-primary outline-none focus:border-primary"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             />
@@ -116,7 +119,7 @@ export function SearchableSelect({
         <Select.ListBox className="p-1">
           {filteredOptions.length === 0 ? (
             <div className="p-4 text-center text-sm text-text-muted">
-              {emptyText}
+              {emptyText ?? t("noResults")}
             </div>
           ) : (
             filteredOptions.map((opt) => (
@@ -126,7 +129,7 @@ export function SearchableSelect({
                 textValue={opt.label}
                 leadingIcon={opt.icon}
                 secondaryText={opt.secondaryText}
-                isSelected={opt.id === value}
+                isDisabled={opt.disabled}
               >
                 {opt.label}
               </Select.Item>

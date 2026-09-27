@@ -18,7 +18,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
     <HeroSkeleton
       aria-hidden="true"
       className={cn(
-        "bg-surface-muted/80 dark:bg-[#242428] animate-pulse motion-reduce:animate-none",
+        "bg-surface-muted/80 animate-pulse motion-reduce:animate-none",
         className,
       )}
       {...props}
@@ -27,7 +27,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 }
 
 export type SkeletonTextProps = ComponentProps<"div"> & {
-  width?: "full" | "60%" | "80%" | "90%" | string;
+  width?: "full" | "60%" | "80%" | "90%";
 };
 
 /**
@@ -47,8 +47,7 @@ export function SkeletonText({
         width === "full" && "w-full",
         width === "60%" && "w-3/5",
         width === "80%" && "w-4/5",
-        (width === "90%" || !["full", "60%", "80%"].includes(width)) &&
-          "w-[90%]",
+        width === "90%" && "w-[90%]",
         className,
       )}
       {...props}

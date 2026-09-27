@@ -1,4 +1,5 @@
 export { FormField, formFieldA11y, type FormFieldProps } from "./form-field";
+export { AmountField, type AmountFieldProps } from "./amount-field";
 export { TextField, type TextFieldProps } from "./text-field";
 export { PasswordInput, type PasswordInputProps } from "./password-input";
 export { CurrencyInput, type CurrencyInputProps } from "./currency-input";
@@ -53,11 +54,3 @@ export {
   CalculatedPreviewStatus,
   type CalculatedPreviewProps,
 } from "./calculated-preview";
-export {
-  ConfirmationSummary,
-  ConfirmSummary,
-  type ConfirmationSummaryProps,
-  type ConfirmationSummaryRow,
-  type ConfirmSummaryProps,
-  type ConfirmSummaryRow,
-} from "./confirmation-summary";

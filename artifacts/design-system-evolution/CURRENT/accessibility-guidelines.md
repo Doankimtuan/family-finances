@@ -34,6 +34,7 @@ Screen reader labels must include financial meaning:
 - Errors appear below fields.
 - Validation summary links or moves focus to the first invalid field when needed.
 - Required and optional states are explicit.
+- Focused fields use one visible indicator; do not stack the control border with a separate outline or shadow.
 
 ## Feedback
 
@@ -49,4 +50,3 @@ Respect `prefers-reduced-motion`. Do not animate sensitive error states or money
 ## Localization
 
 English and Vietnamese must fit without clipping. Avoid fixed-width text containers for labels and buttons. Amount and date formatting uses shared localization utilities.
-

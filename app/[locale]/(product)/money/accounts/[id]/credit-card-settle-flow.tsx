@@ -164,7 +164,7 @@ export function CreditCardSettleFlow({
             {
               id: "amount",
               label: t("receipt.amount"),
-              financial: true,
+              kind: "financial",
               value: formatMoney(receipt.amount),
             },
             {
@@ -185,13 +185,13 @@ export function CreditCardSettleFlow({
             {
               id: "sourceDelta",
               label: t("receipt.sourceDelta"),
-              financial: true,
+              kind: "financial",
               value: formatMoney(Math.abs(receipt.sourceDelta)),
             },
             {
               id: "remaining",
               label: t("receipt.remainingDue"),
-              financial: true,
+              kind: "financial",
               value: formatMoney(receipt.remainingDue),
             },
             {
@@ -256,34 +256,38 @@ export function CreditCardSettleFlow({
                 {
                   id: "amount",
                   label: t("confirm.amount"),
-                  financial: true,
+                  kind: "financial",
                   value: formatMoney(amount),
                 },
                 {
                   id: "source",
                   label: t("confirm.source"),
                   value: sourceName,
+                  kind: "text",
                 },
                 {
                   id: "card",
                   label: t("confirm.card"),
                   value: cardName,
+                  kind: "text",
                 },
                 {
                   id: "date",
                   label: t("confirm.date"),
                   value: effectiveDate,
+                  kind: "text",
                 },
                 {
                   id: "remaining",
                   label: t("confirm.remainingAfter"),
-                  financial: true,
+                  kind: "financial",
                   value: formatMoney(remainingAfter),
                 },
                 {
                   id: "application",
                   label: t("confirm.application"),
                   value: t("confirm.fifoOrder"),
+                  kind: "text",
                 },
               ]}
             />

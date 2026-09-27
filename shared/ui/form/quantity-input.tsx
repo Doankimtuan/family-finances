@@ -1,147 +1,71 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
-import { cn } from "@/shared/utils/cn";
-import { FormField, formFieldA11y } from "./form-field";
+import { useLocale, useTranslations } from "next-intl";
+import type { ReactNode } from "react";
+import { formatNumber } from "@/shared/i18n/formatters";
+import { NumberInput } from "./number-input";
+import type { NumberInputProps } from "./number-input";
 
-export type QuantityInputProps = {
-  id?: string;
-  label?: ReactNode;
-  value: number | null;
-  onValueChange: (value: number | null) => void;
+export type QuantityInputProps = Omit<
+  NumberInputProps,
+  "max" | "min" | "formatOptions" | "suffix"
+> & {
   maxValue?: number;
-  unitSuffix?: string;
+  unitSuffix?: ReactNode;
   maxLabel?: string;
-  step?: number;
   decimals?: number;
-  description?: ReactNode;
-  error?: ReactNode;
-  required?: boolean;
-  isDisabled?: boolean;
-  isReadOnly?: boolean;
-  disabled?: boolean;
-  readOnly?: boolean;
-  placeholder?: string;
-  className?: string;
-  "data-testid"?: string;
 };
 
-/**
- * Canonical ViNha QuantityInput primitive (Task 11 / Warm Precision).
- * Engineered for investment holdings with embedded MAX button and unit suffixes.
- */
+/** Quantity entry over the shared number field, with an optional MAX action. */
 export function QuantityInput({
-  id: idProp,
-  label,
-  value,
-  onValueChange,
   maxValue,
   unitSuffix,
-  maxLabel = "Tối đa",
-  step = 1,
+  maxLabel,
   decimals = 4,
-  description,
-  error,
-  required,
+  value,
+  onValueChange,
   isDisabled,
   isReadOnly,
   disabled,
   readOnly,
-  placeholder = "0",
-  className,
-  "data-testid": testId,
+  ...props
 }: QuantityInputProps) {
-  const generatedId = useId();
-  const id = idProp ?? generatedId;
-
-  const effectiveDisabled = isDisabled || disabled;
-  const effectiveReadOnly = isReadOnly || readOnly;
-  const hasError = Boolean(error);
-  const a11y = formFieldA11y(id, hasError, Boolean(description), required);
-
-  const displayValue = value != null ? String(value) : "";
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = event.target.value.replace(",", ".");
-    if (raw === "") {
-      onValueChange(null);
-      return;
-    }
-    const num = Number(raw);
-    if (!Number.isNaN(num)) {
-      const factor = 10 ** decimals;
-      onValueChange(Math.round(num * factor) / factor);
-    }
-  };
-
-  const handleMaxClick = () => {
-    if (effectiveDisabled || effectiveReadOnly || maxValue == null) return;
-    onValueChange(maxValue);
-  };
-
-  const control = (
-    <div
-      className={cn(
-        "relative flex h-12 min-h-12 w-full items-center rounded-[var(--radius-control)] border px-3.5 bg-surface text-text-primary",
-        "transition-[border-color,box-shadow,background-color] duration-(--duration-fast)",
-        hasError
-          ? "border-debt focus-within:border-debt focus-within:outline-debt"
-          : "border-border-subtle hover:border-border-strong focus-within:border-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus-ring",
-        effectiveDisabled && "opacity-45 bg-surface-subtle cursor-not-allowed",
-        effectiveReadOnly && "bg-surface-subtle cursor-default",
-        className,
-      )}
-    >
-      <input
-        type="number"
-        step={step}
-        max={maxValue}
-        min={0}
-        placeholder={placeholder}
-        value={displayValue}
-        disabled={effectiveDisabled}
-        readOnly={effectiveReadOnly}
-        aria-readonly={effectiveReadOnly || undefined}
-        onChange={handleInputChange}
-        data-testid={testId}
-        className="w-full bg-transparent text-base md:text-sm font-medium tracking-tight text-text-primary outline-none tabular-nums placeholder:text-text-muted"
-        {...a11y}
-      />
-
-      <div className="flex items-center gap-2 shrink-0 ml-2">
-        {unitSuffix ? (
-          <span className="text-sm font-medium text-text-secondary select-none">
-            {unitSuffix}
-          </span>
-        ) : null}
-
-        {maxValue != null && !effectiveDisabled && !effectiveReadOnly ? (
-          <button
-            type="button"
-            onClick={handleMaxClick}
-            className="inline-flex h-7 items-center rounded-md bg-primary-soft px-2 text-xs font-semibold text-primary hover:bg-primary-soft/80 active:scale-95"
-            aria-label={`${maxLabel}: ${maxValue}`}
-          >
-            {maxLabel}
-          </button>
-        ) : null}
-      </div>
-    </div>
+  const locale = useLocale();
+  const t = useTranslations("forms.quantityInput");
+  const isActionDisabled = Boolean(
+    isDisabled || isReadOnly || disabled || readOnly,
   );
+  const resolvedMaxLabel = maxLabel ?? t("max");
 
-  if (label) {
-    return (
-      <FormField
-        id={id}
-        label={label}
-        description={description}
-        error={error}
-        required={required}
+  const maxAction =
+    maxValue !== undefined && !isActionDisabled ? (
+      <button
+        type="button"
+        onClick={() => onValueChange(maxValue)}
+        aria-label={t("maxValue", {
+          label: resolvedMaxLabel,
+          value: formatNumber(maxValue, locale),
+        })}
+        className="min-h-11 min-w-11 shrink-0 rounded-[var(--radius-sm)] bg-primary-soft px-(--space-2) text-xs font-semibold text-primary hover:bg-primary-soft/80 focus-visible:outline-2 focus-visible:outline-focus-ring"
       >
-        {control}
-      </FormField>
-    );
-  }
+        {resolvedMaxLabel}
+      </button>
+    ) : null;
 
-  return control;
+  return (
+    <NumberInput
+      {...props}
+      value={value}
+      onValueChange={onValueChange}
+      min={0}
+      max={maxValue}
+      isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
+      disabled={disabled}
+      readOnly={readOnly}
+      formatOptions={{ maximumFractionDigits: decimals }}
+      suffix={unitSuffix}
+      trailingAction={maxAction}
+    />
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Tick01Icon } from "@/shared/ui/stitch-icon-compat";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { cn } from "@/shared/utils/cn";
@@ -12,12 +12,63 @@ export type CheckboxProps = {
   indeterminate?: boolean;
   onChange?: (checked: boolean) => void;
   label?: ReactNode;
+  "aria-label"?: string;
   description?: ReactNode;
   error?: ReactNode;
   disabled?: boolean;
   className?: string;
   "data-testid"?: string;
 };
+
+export type CheckboxGroupProps = {
+  label?: ReactNode;
+  description?: ReactNode;
+  error?: ReactNode;
+  orientation?: "vertical" | "horizontal";
+  children: ReactNode;
+  className?: string;
+  "data-testid"?: string;
+};
+
+export function CheckboxGroup({
+  label,
+  description,
+  error,
+  orientation = "vertical",
+  children,
+  className,
+  "data-testid": testId,
+}: CheckboxGroupProps) {
+  return (
+    <fieldset
+      data-testid={testId}
+      className={cn("flex flex-col gap-2 border-none p-0 m-0", className)}
+    >
+      {label ? (
+        <legend className="text-sm font-semibold text-text-primary mb-1">
+          {label}
+        </legend>
+      ) : null}
+      {description ? (
+        <p className="text-xs text-text-muted mb-2">{description}</p>
+      ) : null}
+      <div
+        className={cn(
+          orientation === "horizontal"
+            ? "flex flex-row flex-wrap items-center gap-4"
+            : "flex flex-col gap-0",
+        )}
+      >
+        {children}
+      </div>
+      {error ? (
+        <p className="text-xs text-debt font-medium mt-1" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </fieldset>
+  );
+}
 
 /**
  * Canonical ViNha Checkbox primitive (Task 11 / Warm Precision).
@@ -31,6 +82,7 @@ export function Checkbox({
   indeterminate = false,
   onChange,
   label,
+  "aria-label": ariaLabel,
   description,
   error,
   disabled = false,
@@ -54,22 +106,30 @@ export function Checkbox({
   };
 
   const resolvedChecked = isControlled ? checked : uncontrolledChecked;
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.indeterminate = indeterminate;
+  }, [indeterminate]);
 
   return (
-    <div className={cn("flex flex-col gap-1", className)}>
+    <div className={cn("flex flex-col", className)}>
       <label
         htmlFor={id}
         className={cn(
-          "group relative flex min-h-11 cursor-pointer items-start gap-3 py-1 select-none",
+          "group relative flex min-h-11 cursor-pointer items-center gap-3 select-none",
           disabled && "cursor-not-allowed opacity-45",
         )}
       >
-        <div className="relative flex size-5 shrink-0 items-center justify-center mt-0.5">
+        <div className="relative flex size-5 shrink-0 items-center justify-center">
           <input
             id={id}
+            ref={inputRef}
             type="checkbox"
             checked={resolvedChecked}
             disabled={disabled}
+            aria-label={!label ? ariaLabel : undefined}
+            aria-checked={indeterminate ? "mixed" : resolvedChecked}
             onChange={handleChange}
             data-testid={testId}
             className="peer sr-only"
@@ -81,7 +141,7 @@ export function Checkbox({
               "border-border-strong bg-surface text-primary-fg",
               "group-hover:border-primary",
               "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus-ring",
-              (checked || indeterminate) &&
+              (resolvedChecked || indeterminate) &&
                 "border-primary bg-primary text-primary-fg",
               disabled &&
                 "peer-checked:bg-primary/50 peer-checked:border-transparent",
@@ -89,7 +149,7 @@ export function Checkbox({
           >
             {indeterminate ? (
               <span className="block h-0.5 w-2.5 bg-current rounded-full" />
-            ) : checked ? (
+            ) : resolvedChecked ? (
               <AppIcon icon={Tick01Icon} size="xs" className="stroke-[2.5]" />
             ) : null}
           </div>

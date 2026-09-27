@@ -326,16 +326,19 @@ export function LoanPayAction({
                     id: "total",
                     label: t("confirm.total"),
                     value: money(totalDue),
+                    kind: "financial",
                   },
                   {
                     id: "principal",
                     label: t("confirm.principal"),
                     value: money(principalDue),
+                    kind: "financial",
                   },
                   {
                     id: "interest",
                     label: t("confirm.interest"),
                     value: money(interestDue),
+                    kind: "financial",
                   },
                   {
                     id: "source",
@@ -353,6 +356,7 @@ export function LoanPayAction({
                     id: "remaining",
                     label: t("confirm.remainingAfter"),
                     value: money(remainingAfter),
+                    kind: "financial",
                   },
                 ]}
               />

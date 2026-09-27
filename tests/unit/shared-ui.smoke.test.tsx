@@ -79,15 +79,23 @@ describe("shared/ui Pattern v1", () => {
     );
   });
 
-  it("gives a NumberField one full-width editable grid column", () => {
+  it("keeps number field addons inside one flexible input group", () => {
     const { container } = render(
-      <NumberField id="conversion-fee" label="Conversion fee (%)" value={0} />,
+      <NumberField
+        id="conversion-fee"
+        label="Conversion fee (%)"
+        value={0}
+        suffix="% / year"
+        trailingAction={<button type="button">Max</button>}
+      />,
     );
     const group = container.querySelector("[data-slot='number-field-group']");
     const input = container.querySelector("[data-slot='number-field-input']");
 
-    expect(group).toHaveClass("grid-cols-[minmax(0,1fr)]");
-    expect(input).toHaveClass("col-span-full", "w-full");
+    expect(group).toHaveClass("flex", "items-center");
+    expect(input).toHaveClass("flex-1", "min-w-0");
+    expect(group).toContainElement(screen.getByText("% / year"));
+    expect(group).toContainElement(screen.getByRole("button", { name: "Max" }));
   });
 
   it("places the date picker trigger inside its continuous field group", () => {

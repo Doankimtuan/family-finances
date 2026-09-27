@@ -3,7 +3,12 @@
 import { Dropdown, Separator } from "@heroui/react";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
-import { ButtonVariant, ButtonSize } from "@/shared/ui/button";
+import {
+  BUTTON_SIZE_STYLES,
+  BUTTON_VARIANT_STYLES,
+  ButtonSize,
+  ButtonVariant,
+} from "@/shared/ui/button";
 
 export const ActionMenuItemVariant = {
   DEFAULT: "default",
@@ -37,21 +42,6 @@ export type ActionMenuTriggerProps = DropdownTriggerProps & {
   isIconOnly?: boolean;
 };
 
-const TRIGGER_VARIANT_STYLES: Record<string, string> = {
-  primary:
-    "bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-active shadow-xs",
-  tonal:
-    "bg-primary-soft text-primary hover:bg-primary-soft/80 active:bg-primary-soft/90",
-  secondary:
-    "bg-surface-muted text-text-primary hover:bg-surface-muted/80 active:bg-surface-muted/90",
-  outlined:
-    "border border-border-default bg-surface-base text-text-primary hover:bg-surface-muted active:bg-surface-muted/80",
-  ghost:
-    "bg-transparent text-text-primary hover:bg-surface-muted active:bg-surface-muted/80",
-  destructive:
-    "bg-danger text-danger-fg hover:bg-danger-hover active:bg-danger-active shadow-xs",
-};
-
 /**
  * Trigger button for ActionMenu.
  * Automatically styles as a canonical ViNha button/icon-button while wrapping React Aria Menu trigger.
@@ -64,10 +54,9 @@ export function ActionMenuTrigger({
   isIconOnly = false,
   ...props
 }: ActionMenuTriggerProps) {
-  const variantClass =
-    TRIGGER_VARIANT_STYLES[variant] ?? TRIGGER_VARIANT_STYLES.outlined;
-  const isSm = size === ButtonSize.SM;
-  const isLg = size === ButtonSize.LG;
+  const sizeClass = isIconOnly
+    ? "min-h-11 min-w-11 p-0"
+    : BUTTON_SIZE_STYLES[size];
 
   return (
     <Dropdown.Trigger
@@ -75,18 +64,8 @@ export function ActionMenuTrigger({
         "inline-flex items-center justify-center font-medium tracking-tight rounded-(--radius-control)",
         "transition-colors duration-(--duration-fast) cursor-pointer select-none",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-        isIconOnly
-          ? isSm
-            ? "size-9 p-0"
-            : isLg
-              ? "size-12 p-0"
-              : "size-11 p-0"
-          : isSm
-            ? "h-9 px-3 text-xs gap-1.5"
-            : isLg
-              ? "h-12 px-5 text-base gap-2.5"
-              : "h-11 px-4 text-sm gap-2",
-        variantClass,
+        sizeClass,
+        BUTTON_VARIANT_STYLES[variant],
         className,
       )}
       {...props}
