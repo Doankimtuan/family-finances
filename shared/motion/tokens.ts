@@ -30,8 +30,8 @@ export const motionTokens = {
 } as const;
 
 export const springs = {
-  snappy: { type: "spring", stiffness: 300, damping: 30 },
-  gentle: { type: "spring", stiffness: 120, damping: 14 },
+  snappy: { type: "spring", stiffness: 400, damping: 30 },
+  gentle: { type: "spring", stiffness: 200, damping: 25 },
   instant: { type: "spring", stiffness: 600, damping: 35 },
   release: {
     type: "spring",

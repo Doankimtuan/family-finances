@@ -150,6 +150,7 @@
   --color-canvas: var(--vinha-canvas);
   --color-background: var(--vinha-canvas);
   --color-surface: var(--vinha-surface);
+  --color-surface-subtle: var(--vinha-surface-subtle);
   --color-surface-elevated: var(--vinha-surface-elevated);
   --color-surface-hover: var(--vinha-surface-hover);
   --color-surface-muted: var(--vinha-surface-soft);
@@ -172,6 +173,12 @@
   --color-text-inverse: var(--vinha-inverse-fg);
   --color-placeholder: var(--vinha-placeholder);
   --color-disabled: var(--vinha-disabled);
+  --color-disabled-bg: var(--vinha-disabled-bg);
+  --color-disabled-border: var(--vinha-disabled-border);
+  --color-disabled-text: var(--vinha-disabled-text);
+  --color-readonly-bg: var(--vinha-readonly-bg);
+  --color-readonly-border: var(--vinha-readonly-border);
+  --color-readonly-text: var(--vinha-readonly-text);
 
   /* Brand / actions */
   --color-primary: var(--vinha-primary);
@@ -244,13 +251,15 @@
   --color-inverse-fg: var(--vinha-inverse-fg);
 
   /* Canonical radii. Tailwind rounded-sm/md/lg/xl/full map to the aliases below. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
   --radius-control: 10px;
   --radius-card: 12px;
   --radius-overlay: 16px;
-  --radius-sm: 6px;
   --radius-md: var(--radius-control);
   --radius-lg: var(--radius-card);
   --radius-xl: var(--radius-overlay);
+  --radius-2xl: var(--radius-overlay);
   --radius-full: 9999px;
 }
 
@@ -261,6 +270,7 @@
   --vinha-canvas-outer: #f3f4f3;
   --vinha-canvas: #fafaf9;
   --vinha-surface: #ffffff;
+  --vinha-surface-subtle: #f6f4f2;
   --vinha-surface-elevated: #ffffff;
   --vinha-surface-hover: #f1f5f3;
   --vinha-surface-soft: #f1f4f3;
@@ -271,6 +281,7 @@
   --vinha-border-subtle: #dde4e1;
   --vinha-border-strong: #c8d1cd;
   --vinha-divider: #dde4e1;
+  --vinha-divider-subtle: #ebefef;
 
   /* --- Text --- */
   --vinha-text-primary: #18181b;
@@ -279,6 +290,14 @@
   --vinha-text-muted: #71717a;
   --vinha-placeholder: #a1a1aa;
   --vinha-disabled: #a1a1aa;
+
+  /* --- Disabled & Read-Only System --- */
+  --vinha-disabled-bg: var(--vinha-surface-subtle);
+  --vinha-disabled-border: var(--vinha-border-subtle);
+  --vinha-disabled-text: var(--vinha-disabled);
+  --vinha-readonly-bg: var(--vinha-surface);
+  --vinha-readonly-border: var(--vinha-border-subtle);
+  --vinha-readonly-text: var(--vinha-text-primary);
 
   /* --- Brand (deep teal) --- */
   --vinha-accent: #0f766e;
@@ -316,16 +335,17 @@
   --vinha-expense: #27272a;
   --vinha-saving: #0f766e;
   --vinha-installment: #b45309;
-  --vinha-income-soft: #d1fae5;
-  --vinha-expense-soft: #ffe4e6;
+  --vinha-income-soft: #ecfdf5;
+  --vinha-expense-soft: #f4f4f5;
   --vinha-transfer: #0369a1;
-  --vinha-transfer-soft: #e0f2fe;
+  --vinha-transfer-soft: #f0f9ff;
   --vinha-investment: #7c3aed;
-  --vinha-investment-soft: #ede9fe;
+  --vinha-investment-soft: #f5f3ff;
   --vinha-savings: #0f766e;
-  --vinha-savings-soft: #ccfbf1;
+  --vinha-savings-soft: #e7f5f1;
   --vinha-debt: #be123c;
-  --vinha-debt-soft: #ffe4e6;
+  --vinha-debt-soft: #fff1f2;
+  --vinha-warning-soft: #fffbeb;
   --vinha-refund: #0891b2;
   --vinha-refund-soft: #cffafe;
 
@@ -348,6 +368,7 @@
   --vinha-skeleton: #e7e5e4;
   --vinha-overlay: rgb(24 24 27 / 0.4);
   --vinha-backdrop: rgb(24 24 27 / 0.45);
+  --vinha-scrim: rgb(24 24 27 / 0.4);
   --vinha-focus-ring: #0f766e;
   --vinha-focus-ring-soft: rgb(15 118 110 / 0.22);
   --vinha-scrollbar-thumb: rgb(120 113 108 / 0.48);
@@ -478,13 +499,15 @@
     var(--floating-action-size) + var(--floating-action-gap) + var(--space-12)
   );
 
+  --radius-xs: 4px;
+  --radius-sm: 8px;
   --radius-control: 10px;
   --radius-card: 12px;
   --radius-overlay: 16px;
-  --radius-sm: 6px;
   --radius-md: var(--radius-control);
   --radius-lg: var(--radius-card);
-  --radius-xl: var(--radius-overlay);
+  --radius-xl: 14px;
+  --radius-2xl: var(--radius-overlay);
   --radius-full: 9999px;
 
   --app-viewport-max: 440px;
@@ -492,8 +515,57 @@
   --app-viewport-min: 320px;
   --app-viewport-band-max: 480px;
   --app-viewport-tablet-optional: 640px;
-  --bottom-navigation-height: 72px;
+  --bottom-navigation-height: 56px;
   --toast-dismiss-size: 44px;
+
+  /* Control Dimensions & Touch Target */
+  --control-height-sm: 36px;
+  --control-height-md: 44px;
+  --control-height-lg: 52px;
+  --control-touch-target: 44px;
+  --input-height: 48px;
+  --input-height-hero: 64px;
+  --top-bar-height: 56px;
+  --bottom-nav-height: 56px;
+  --touch-target-min: 44px;
+
+  /* Form & Button foundation variables */
+  --field-height: 48px;
+  --field-radius: var(--radius-control);
+  --field-padding-x: var(--space-3);
+  --field-border: var(--vinha-border-subtle);
+  --field-focus: var(--vinha-focus-ring);
+  --field-error: var(--vinha-danger);
+  --field-disabled-bg: var(--vinha-disabled-bg);
+  --field-readonly-bg: var(--vinha-readonly-bg);
+  --button-height-sm: 36px;
+  --button-height-md: 44px;
+  --button-height-lg: 52px;
+  --button-radius: var(--radius-control);
+  --button-gap: var(--space-2);
+  --button-icon-size: var(--icon-md);
+
+  /* Icon tokens */
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+  --icon-stroke-resting: 1.5px;
+  --icon-stroke-active: 1.9px;
+  --icon-container-sm: 32px;
+  --icon-container-md: 40px;
+  --icon-container-lg: 56px;
+
+  /* Motion Primitives (Task 11 / Warm Precision) */
+  --vn-motion-instant: 100ms;
+  --vn-motion-press: 120ms;
+  --vn-motion-fast: 150ms;
+  --vn-motion-standard: 250ms;
+  --vn-motion-slow: 350ms;
+  --vn-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --vn-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --vn-ease-in: cubic-bezier(0.4, 0, 1, 1);
 
   --duration-instant: 80ms;
   --duration-fast: 150ms;
@@ -503,6 +575,7 @@
   --duration-celebrate: var(--duration-deliberate);
   --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Z-Index / Layering Scale */
   --z-base: 0;
   --z-sticky: 10;
   --z-nav: 20;
@@ -512,7 +585,7 @@
   --z-modal: 50;
   --z-toast: 60;
 
-  --opacity-disabled: 0.5;
+  --opacity-disabled: 0.45;
   --opacity-muted: 0.7;
   --opacity-overlay: 0.4;
   --opacity-chrome: 0.8;
@@ -536,6 +609,47 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
 
+  /* Canonical ViNha (--vn-*) Design Tokens (Task 11 / Warm Precision Light) */
+  --vn-canvas: var(--vinha-canvas);
+  --vn-surface: var(--vinha-surface);
+  --vn-surface-subtle: var(--vinha-surface-subtle);
+  --vn-surface-elevated: var(--vinha-surface-elevated);
+  --vn-border: var(--vinha-border-subtle);
+  --vn-border-subtle: var(--vinha-divider-subtle);
+  --vn-border-focus: var(--vinha-focus-ring);
+  --vn-text-primary: var(--vinha-text-primary);
+  --vn-text-secondary: var(--vinha-text-secondary);
+  --vn-text-muted: var(--vinha-text-muted);
+  --vn-text-disabled: var(--vinha-disabled);
+  --vn-primary: var(--vinha-primary);
+  --vn-primary-hover: var(--vinha-primary-hover);
+  --vn-primary-active: #0a504b;
+  --vn-primary-soft: var(--vinha-primary-soft);
+  --vn-on-primary: var(--vinha-primary-fg);
+  --vn-income: var(--vinha-income);
+  --vn-income-soft: var(--vinha-income-soft);
+  --vn-expense: var(--vinha-expense);
+  --vn-expense-soft: var(--vinha-expense-soft);
+  --vn-debt: var(--vinha-debt);
+  --vn-debt-soft: var(--vinha-debt-soft);
+  --vn-transfer: var(--vinha-transfer);
+  --vn-transfer-soft: var(--vinha-transfer-soft);
+  --vn-investment: var(--vinha-investment);
+  --vn-investment-soft: var(--vinha-investment-soft);
+  --vn-warning: var(--vinha-warning);
+  --vn-warning-soft: var(--vinha-warning-soft);
+  --vn-scrim: var(--vinha-scrim);
+  --vn-shadow-overlay: var(--elevation-2);
+  --vn-z-canvas: var(--z-base);
+  --vn-z-surface: 1;
+  --vn-z-sticky-header: var(--z-sticky);
+  --vn-z-bottom-nav: var(--z-nav);
+  --vn-z-floating-cta: 30;
+  --vn-z-dropdown-popover: 40;
+  --vn-z-scrim: 50;
+  --vn-z-modal-sheet: 60;
+  --vn-z-toast: 70;
+
   /* Soft outer-canvas wash (decorative only) */
   --canvas-atmosphere:
     radial-gradient(
@@ -558,15 +672,17 @@
   --vinha-canvas-outer: #111113;
   --vinha-canvas: #141416;
   --vinha-surface: #1c1c1f;
-  --vinha-surface-elevated: #27272b;
+  --vinha-surface-subtle: #242428;
+  --vinha-surface-elevated: #28282d;
   --vinha-surface-hover: #232326;
-  --vinha-surface-soft: #202b2a;
+  --vinha-surface-soft: #242428;
   --vinha-surface-highlight: #173b37;
   --vinha-progress-track: #3f4a48;
 
   --vinha-border-subtle: #3f3f46;
   --vinha-border-strong: #52525b;
-  --vinha-divider: #52525b;
+  --vinha-divider: #3f3f46;
+  --vinha-divider-subtle: #2e2e33;
 
   --vinha-text-primary: #f4f4f5;
   --vinha-text-secondary: #a1a1aa;
@@ -575,13 +691,22 @@
   --vinha-placeholder: #71717a;
   --vinha-disabled: #52525b;
 
+  /* --- Disabled & Read-Only System --- */
+  --vinha-disabled-bg: var(--vinha-surface-subtle);
+  --vinha-disabled-border: var(--vinha-border-subtle);
+  --vinha-disabled-text: var(--vinha-disabled);
+  --vinha-readonly-bg: var(--vinha-surface);
+  --vinha-readonly-border: var(--vinha-border-subtle);
+  --vinha-readonly-text: var(--vinha-text-primary);
+
   --vinha-accent: #2dd4bf;
-  --vinha-accent-fg: #111113;
+  --vinha-accent-fg: #0f172a;
   --vinha-accent-strong: #5eead4;
   --vinha-primary: #2dd4bf;
-  --vinha-primary-hover: #5eead4;
+  --vinha-primary-hover: #14b8a6;
+  --vinha-primary-active: #0d9488;
   --vinha-primary-soft: #173b37;
-  --vinha-primary-fg: #111113;
+  --vinha-primary-fg: #0f172a;
   --vinha-secondary: #27272b;
   --vinha-secondary-fg: #f4f4f5;
 
@@ -608,16 +733,17 @@
   --vinha-expense: #e4e4e7;
   --vinha-saving: #2dd4bf;
   --vinha-installment: #fbbf24;
-  --vinha-income-soft: #133c32;
-  --vinha-expense-soft: #451c2a;
+  --vinha-income-soft: #064e3b;
+  --vinha-expense-soft: #27272a;
   --vinha-transfer: #38bdf8;
-  --vinha-transfer-soft: #15324a;
+  --vinha-transfer-soft: #082f49;
   --vinha-investment: #a78bfa;
-  --vinha-investment-soft: #302550;
+  --vinha-investment-soft: #2e1065;
   --vinha-savings: #2dd4bf;
   --vinha-savings-soft: #173b37;
   --vinha-debt: #fb7185;
-  --vinha-debt-soft: #451c2a;
+  --vinha-debt-soft: #4c0519;
+  --vinha-warning-soft: #451a03;
   --vinha-refund: #22d3ee;
   --vinha-refund-soft: #153640;
 
@@ -637,6 +763,7 @@
   --vinha-skeleton: #27272b;
   --vinha-overlay: rgb(0 0 0 / 0.5);
   --vinha-backdrop: rgb(0 0 0 / 0.55);
+  --vinha-scrim: rgba(0, 0, 0, 0.65);
   --vinha-focus-ring: #2dd4bf;
   --vinha-focus-ring-soft: rgb(45 212 191 / 0.28);
   --vinha-scrollbar-thumb: rgb(161 161 170 / 0.48);
@@ -668,6 +795,47 @@
   --elevation-1: 0 1px 2px rgb(0 0 0 / 0.28);
   --elevation-2: 0 8px 24px rgb(0 0 0 / 0.4);
   --elevation-3: 0 16px 40px rgb(0 0 0 / 0.5);
+
+  /* Canonical ViNha (--vn-*) Design Tokens (Task 11 / Warm Precision Dark) */
+  --vn-canvas: var(--vinha-canvas);
+  --vn-surface: var(--vinha-surface);
+  --vn-surface-subtle: var(--vinha-surface-subtle);
+  --vn-surface-elevated: var(--vinha-surface-elevated);
+  --vn-border: var(--vinha-border-subtle);
+  --vn-border-subtle: var(--vinha-divider-subtle);
+  --vn-border-focus: var(--vinha-focus-ring);
+  --vn-text-primary: var(--vinha-text-primary);
+  --vn-text-secondary: var(--vinha-text-secondary);
+  --vn-text-muted: var(--vinha-text-muted);
+  --vn-text-disabled: var(--vinha-disabled);
+  --vn-primary: var(--vinha-primary);
+  --vn-primary-hover: var(--vinha-primary-hover);
+  --vn-primary-active: #0d9488;
+  --vn-primary-soft: var(--vinha-primary-soft);
+  --vn-on-primary: var(--vinha-primary-fg);
+  --vn-income: var(--vinha-income);
+  --vn-income-soft: var(--vinha-income-soft);
+  --vn-expense: var(--vinha-expense);
+  --vn-expense-soft: var(--vinha-expense-soft);
+  --vn-debt: var(--vinha-debt);
+  --vn-debt-soft: var(--vinha-debt-soft);
+  --vn-transfer: var(--vinha-transfer);
+  --vn-transfer-soft: var(--vinha-transfer-soft);
+  --vn-investment: var(--vinha-investment);
+  --vn-investment-soft: var(--vinha-investment-soft);
+  --vn-warning: var(--vinha-warning);
+  --vn-warning-soft: var(--vinha-warning-soft);
+  --vn-scrim: var(--vinha-scrim);
+  --vn-shadow-overlay: var(--elevation-2);
+  --vn-z-canvas: var(--z-base);
+  --vn-z-surface: 1;
+  --vn-z-sticky-header: var(--z-sticky);
+  --vn-z-bottom-nav: var(--z-nav);
+  --vn-z-floating-cta: 30;
+  --vn-z-dropdown-popover: 40;
+  --vn-z-scrim: 50;
+  --vn-z-modal-sheet: 60;
+  --vn-z-toast: 70;
 
   --canvas-atmosphere:
     radial-gradient(
@@ -800,4 +968,175 @@ body {
 /* Focused Savings creation flow owns its own sticky actions. */
 body:has([data-testid="money-savings-new"]) [data-slot="bottom-navigation"] {
   display: none;
+}
+
+@layer utilities {
+  /* --- Canonical Typography Scale (Task 11 / Warm Precision / Geist) --- */
+  .text-numeric-hero {
+    font-size: 32px;
+    line-height: 38px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-numeric-lg {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-numeric-md {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-display-lg {
+    font-size: 28px;
+    line-height: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .text-headline-lg {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .text-headline-md {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .text-title-md {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .text-title-sm {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .text-body-lg {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .text-body-md {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .text-body-sm {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .text-label-md {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .text-label-sm {
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* --- Touch Target Utilities (WCAG AA 44x44px) --- */
+  .touch-target-44 {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .touch-target-expand-sm {
+    position: relative;
+  }
+
+  .touch-target-expand-sm::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+  }
+
+  .touch-target-expand-md {
+    position: relative;
+  }
+
+  .touch-target-expand-md::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
+
+  /* --- Safe Area Utilities --- */
+  .pt-safe {
+    padding-top: var(--safe-area-top);
+  }
+
+  .pb-safe {
+    padding-bottom: var(--safe-area-bottom);
+  }
+
+  .pl-safe {
+    padding-left: var(--safe-area-left);
+  }
+
+  .pr-safe {
+    padding-right: var(--safe-area-right);
+  }
+
+  /* --- Canonical Screen Gutter --- */
+  .screen-gutter {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+
+  /* --- State Foundations --- */
+  .state-disabled {
+    opacity: var(--opacity-disabled);
+    pointer-events: none;
+    background-color: var(--color-disabled-bg);
+    color: var(--color-disabled-text);
+    border-color: var(--color-disabled-border);
+  }
+
+  .state-readonly {
+    opacity: 1;
+    pointer-events: auto;
+    background-color: var(--color-readonly-bg);
+    color: var(--color-readonly-text);
+    border-color: var(--color-readonly-border);
+  }
+
+  .focus-ring {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
 }

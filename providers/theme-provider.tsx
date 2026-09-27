@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -29,6 +28,8 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
+const themeSubscribers = new Set<() => void>();
+let fallbackTheme: ThemeMode | null = null;
 
 function isThemeMode(value: string | null): value is ThemeMode {
   return typeof value === "string" && THEME_MODES.includes(value as ThemeMode);
@@ -41,9 +42,26 @@ function readStoredTheme(): ThemeMode {
     const storedTheme = window.localStorage.getItem(STORAGE_KEY);
     return isThemeMode(storedTheme) ? storedTheme : DEFAULT_THEME;
   } catch {
-    // Storage may be unavailable; system theme remains the safe default.
-    return DEFAULT_THEME;
+    // Keep the last in-memory choice when storage is unavailable.
+    return fallbackTheme ?? DEFAULT_THEME;
   }
+}
+
+function subscribeToStoredTheme(onChange: () => void) {
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY || event.key === null) onChange();
+  };
+
+  themeSubscribers.add(onChange);
+  window.addEventListener("storage", handleStorageChange);
+  return () => {
+    themeSubscribers.delete(onChange);
+    window.removeEventListener("storage", handleStorageChange);
+  };
+}
+
+function notifyThemeSubscribers() {
+  themeSubscribers.forEach((onChange) => onChange());
 }
 
 function getSystemTheme(): ResolvedTheme {
@@ -88,7 +106,11 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>(readStoredTheme);
+  const theme = useSyncExternalStore(
+    subscribeToStoredTheme,
+    readStoredTheme,
+    (): ThemeMode => DEFAULT_THEME,
+  );
   const systemTheme = useSyncExternalStore(
     subscribeToSystemTheme,
     getSystemTheme,
@@ -100,27 +122,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(resolvedTheme, false);
   }, [resolvedTheme]);
 
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return;
-      setThemeState(
-        isThemeMode(event.newValue) ? event.newValue : DEFAULT_THEME,
-      );
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-
   const setTheme = useCallback((nextTheme: ThemeMode) => {
-    setThemeState(nextTheme);
     try {
       window.localStorage.setItem(STORAGE_KEY, nextTheme);
+      fallbackTheme = null;
     } catch {
-      // Theme changes still apply when storage is unavailable.
+      fallbackTheme = nextTheme;
     }
+    notifyThemeSubscribers();
     applyTheme(
       nextTheme === DEFAULT_THEME ? getSystemTheme() : nextTheme,
       true,
