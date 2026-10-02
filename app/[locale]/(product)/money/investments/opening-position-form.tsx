@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +28,6 @@ import {
 } from "@/modules/investments/application/client";
 import { GoldUnit, GOLD_UNIT_VALUES } from "@/modules/investments/domain";
 import {
-  investmentEntryModeMessageKeys,
   investmentUxConfig,
   resolveInvestmentPricingContract,
   type InvestmentUxType,
@@ -51,8 +51,25 @@ import {
   BottomActionBar,
   BottomActionBarLayout,
 } from "@/shared/patterns/bottom-action-bar";
-import { ChoiceTile } from "@/shared/patterns/choice-tile";
-import { Progress } from "@/shared/ui/progress";
+import { Card } from "@/shared/patterns/card";
+import { SegmentedControl } from "@/shared/ui/segmented-control";
+import { InlineAlert, InlineAlertVariant } from "@/shared/ui/inline-alert";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { OpeningStepIndicator } from "./opening-step-indicator";
+import { investmentAssetIcon } from "./investment-asset-icon";
+import { DecimalField } from "@/shared/patterns/decimal-field";
+import {
+  addQuantities,
+  subtractQuantities,
+  parseQuantity,
+} from "@/modules/investments/application/decimal-quantity";
+import {
+  INVESTMENT_OPENING_PRICE_INCREMENTS,
+  INVESTMENT_OPENING_QUANTITY_STEP,
+} from "@/modules/investments/application/investment-constants";
 import { MotionStep, MotionStepDirection } from "@/shared/motion";
 import { FormField, NumberField, SelectField } from "@/shared/ui/form";
 import { MoneyOfflineBanner } from "../money-offline-banner";
@@ -65,7 +82,11 @@ import { Textarea } from "@/shared/ui/textarea";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
-import { formatCurrency, formatNumber } from "@/shared/i18n/formatters";
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+} from "@/shared/i18n/formatters";
 import {
   createInitialPurchaseAction,
   createOpeningPositionAction,
@@ -74,7 +95,7 @@ import { getInvestmentInputCurrencyRateAction } from "./investment-input-currenc
 import { InstrumentPickerSheet } from "./instrument-picker-sheet";
 import { OpeningAssetClassPicker } from "./opening-asset-class-picker";
 import { OpeningReviewSection } from "./opening-review-section";
-import { InvestmentFactRow, InvestmentFactsCard } from "./investment-facts";
+import { InvestmentFactRow } from "./investment-facts";
 import {
   APP_PATH,
   moneyInvestmentPath,
@@ -210,13 +231,32 @@ const createDefaultValues = (accounts: AccountOption[]) =>
     inputRateToVnd: null,
   }) satisfies Partial<OpeningPositionFormValues>;
 
+function pnlBadgeTone(value: number | null) {
+  if (value == null) return StatusBadgeTone.NEUTRAL;
+  return value >= 0 ? StatusBadgeTone.POSITIVE : StatusBadgeTone.DANGER;
+}
+
+function OpeningInputCard({ children }: { children: ReactNode }) {
+  return (
+    <Card
+      tone="elevated"
+      className="gap-(--space-2) p-(--space-3) focus-within:border-primary [&_label]:text-xs [&_input]:border-0 [&_input]:bg-transparent [&_input]:shadow-none [&_p]:text-xs"
+    >
+      {children}
+    </Card>
+  );
+}
+
 export function OpeningPositionForm({ accounts = [] }: Props) {
   const t = useTranslations("money.investments.opening");
   const tUx = useTranslations("money.investments");
+  const tOwnership = useTranslations("money.ownership");
   const locale = useLocale();
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(FIRST_STEP_INDEX);
-  const [direction, setDirection] = useState<"forward" | "backward">("forward");
+  const [direction, setDirection] = useState<MotionStepDirection>(
+    MotionStepDirection.FORWARD,
+  );
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
   const [selectedInstrument, setSelectedInstrument] =
     useState<MarketInstrument | null>(null);
@@ -231,6 +271,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     control,
     register,
     handleSubmit,
+    trigger,
     reset,
     resetField,
     setValue,
@@ -245,6 +286,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     entryMode = InvestmentEntryMode.HISTORICAL,
     assetName = "",
     provider = "",
+    symbol = "",
     quantity = "",
     unit = GoldUnit.CHI,
     basisInputMode = HistoricalBasisInputMode.PER_UNIT,
@@ -254,6 +296,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     price = null,
     totalPurchaseValue = null,
     accountId,
+    notes = "",
     date = today(),
     financialScope = FINANCIAL_SCOPE.HOUSEHOLD,
     inputCurrency = InvestmentInputCurrency.VND,
@@ -296,6 +339,15 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       : InvestmentInputRateSource.AUTOMATIC
     : InvestmentInputRateSource.IDENTITY;
   const config = investmentUxConfig(assetClass);
+  const quantityValid =
+    openingPositionInputSchema.shape.quantity.safeParse(quantity).success;
+  const canDecreaseQuantity =
+    quantityValid &&
+    parseQuantity(quantity) >= parseQuantity(INVESTMENT_OPENING_QUANTITY_STEP);
+  const unitSuffix =
+    assetClass === InvestmentAssetClass.GOLD
+      ? t(`units.${unit}`)
+      : tUx(config.unitSuffixKey);
   const pricingContract = resolveInvestmentPricingContract(
     assetClass,
     selectedInstrument,
@@ -438,24 +490,32 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
 
   const goNext = () => {
     if (stepIndex === FIRST_STEP_INDEX) {
-      setError(null);
-      setDirection("forward");
-      setStepIndex(DETAILS_STEP_INDEX);
+      void trigger(["assetName", "symbol", "provider"], {
+        shouldFocus: true,
+      }).then((valid) => {
+        if (!valid) {
+          setError(INVESTMENT_ERROR_CODE.INVALID);
+          return;
+        }
+        setError(null);
+        setDirection(MotionStepDirection.FORWARD);
+        setStepIndex(DETAILS_STEP_INDEX);
+      });
       return;
     }
     void handleSubmit(
       () => {
         setError(null);
-        setDirection("forward");
+        setDirection(MotionStepDirection.FORWARD);
         setStepIndex(REVIEW_STEP_INDEX);
       },
-      () => setError("invalid"),
+      () => setError(INVESTMENT_ERROR_CODE.INVALID),
     )();
   };
 
   const goBack = () => {
     setError(null);
-    setDirection("backward");
+    setDirection(MotionStepDirection.BACKWARD);
     setStepIndex((value) => Math.max(value - 1, FIRST_STEP_INDEX));
   };
 
@@ -575,6 +635,13 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
     { label: t("quantityLabel"), value: quantityDisplay },
     { label: t("providerLabel"), value: provider || t("unknown") },
     { label: t("dateLabel"), value: date },
+    {
+      label: tOwnership("label"),
+      value: tOwnership(
+        financialScope === FINANCIAL_SCOPE.PERSONAL ? "personal" : "household",
+      ),
+    },
+    ...(notes ? [{ label: t("notesOptional"), value: notes }] : []),
   ];
   const historicalSideFacts = [
     ...(usesQuotedCurrency
@@ -701,33 +768,10 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       {error ? (
         <StatusAlert variant="danger" title={t(`errors.${error}`)} />
       ) : null}
-      <div
-        className="flex flex-col gap-(--space-2)"
-        data-testid="investment-step-indicator"
-      >
-        <Progress
-          value={stepIndex + 1}
-          max={OPENING_POSITION_STEP_VALUES.length}
-          label={t("stepOf", {
-            current: stepIndex + 1,
-            total: OPENING_POSITION_STEP_VALUES.length,
-          })}
-          showLabel={false}
-        />
-        <Text size="xs" tone="secondary" weight="medium">
-          {t("stepOf", {
-            current: stepIndex + 1,
-            total: OPENING_POSITION_STEP_VALUES.length,
-          })}
-        </Text>
-      </div>
+      <OpeningStepIndicator stepIndex={stepIndex} />
       <MotionStep
         stepKey={OPENING_POSITION_STEP_VALUES[stepIndex]}
-        direction={
-          direction === "forward"
-            ? MotionStepDirection.FORWARD
-            : MotionStepDirection.BACKWARD
-        }
+        direction={direction}
       >
         {stepIndex === FIRST_STEP_INDEX ? (
           <section
@@ -738,7 +782,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               <Text
                 as="div"
                 role="heading"
-                aria-level={1}
+                aria-level={2}
                 size="lg"
                 weight="semibold"
                 id="investment-type-title"
@@ -750,89 +794,7 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               </Text>
             </div>
             <OpeningAssetClassPicker selected={assetClass} onSelect={setType} />
-            <FinancialScopeField
-              value={financialScope}
-              onChange={(next) => setValue("financialScope", next)}
-              testId="investment-financial-scope"
-            />
-          </section>
-        ) : stepIndex === DETAILS_STEP_INDEX ? (
-          <section
-            className="flex flex-col gap-(--space-5)"
-            aria-labelledby="investment-details-title"
-          >
-            <div className="space-y-(--space-1)">
-              <Text
-                as="div"
-                role="heading"
-                aria-level={1}
-                size="lg"
-                weight="semibold"
-                id="investment-details-title"
-              >
-                {tUx(config.titleKey)}
-              </Text>
-              <Text size="sm" tone="secondary">
-                {tUx(config.descriptionKey)}
-              </Text>
-            </div>
-            <div
-              className="grid gap-(--space-2)"
-              role="radiogroup"
-              aria-labelledby="investment-details-title"
-            >
-              <ChoiceTile
-                selected={entryMode === InvestmentEntryMode.HISTORICAL}
-                role="radio"
-                onPress={() =>
-                  setValue("entryMode", InvestmentEntryMode.HISTORICAL)
-                }
-                testId="investment-entry-mode-historical"
-              >
-                <span className="flex min-w-0 flex-col gap-(--space-1) py-(--space-1)">
-                  <Text size="sm" weight="medium">
-                    {tUx(
-                      investmentEntryModeMessageKeys[
-                        InvestmentEntryMode.HISTORICAL
-                      ],
-                    )}
-                  </Text>
-                  <Text
-                    size="xs"
-                    tone="secondary"
-                    className="text-pretty leading-snug"
-                  >
-                    {t("historicalModeSubtitle")}
-                  </Text>
-                </span>
-              </ChoiceTile>
-              <ChoiceTile
-                selected={entryMode === InvestmentEntryMode.PURCHASE}
-                role="radio"
-                onPress={() =>
-                  setValue("entryMode", InvestmentEntryMode.PURCHASE)
-                }
-                testId="investment-entry-mode-purchase"
-              >
-                <span className="flex min-w-0 flex-col gap-(--space-1) py-(--space-1)">
-                  <Text size="sm" weight="medium">
-                    {tUx(
-                      investmentEntryModeMessageKeys[
-                        InvestmentEntryMode.PURCHASE
-                      ],
-                    )}
-                  </Text>
-                  <Text
-                    size="xs"
-                    tone="secondary"
-                    className="text-pretty leading-snug"
-                  >
-                    {t("purchaseModeSubtitle")}
-                  </Text>
-                </span>
-              </ChoiceTile>
-            </div>
-            <div className="flex flex-col gap-(--space-3)">
+            <Card tone="elevated" className="gap-(--space-3) p-(--space-3)">
               <TextField
                 id="investment-name"
                 label={t("holdingName")}
@@ -873,16 +835,147 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
                 registration={register("provider")}
                 error={errors.provider ? t("errors.invalid") : undefined}
               />
-              <ControlledField
-                control={control}
-                field={{
-                  type: "decimal",
-                  name: "quantity",
-                  id: "investment-quantity",
-                  label: tUx(config.quantityLabelKey),
-                  error: errors.quantity ? t("errors.invalid") : undefined,
-                }}
-              />
+            </Card>
+          </section>
+        ) : stepIndex === DETAILS_STEP_INDEX ? (
+          <section
+            className="flex flex-col gap-(--space-5)"
+            aria-labelledby="investment-details-title"
+          >
+            <SegmentedControl
+              value={entryMode}
+              onChange={(next) => setValue("entryMode", next)}
+              options={ENTRY_MODES.map((id) => ({
+                id,
+                label: t(
+                  id === InvestmentEntryMode.HISTORICAL
+                    ? "design.historical"
+                    : "design.purchase",
+                ),
+              }))}
+              className="h-12 min-h-12 [&_[aria-selected=true]]:bg-primary-soft [&_[aria-selected=true]]:text-primary [&_[aria-selected=true]]:ring-1 [&_[aria-selected=true]]:ring-primary/30"
+              data-testid="investment-entry-mode"
+            />
+            <InlineAlert
+              variant={
+                isHistoricalEntry
+                  ? InlineAlertVariant.WARNING
+                  : InlineAlertVariant.INFO
+              }
+              description={
+                <span
+                  className={
+                    isHistoricalEntry
+                      ? "text-xs leading-relaxed text-warning"
+                      : "text-xs leading-relaxed text-text-secondary"
+                  }
+                >
+                  {t(
+                    isHistoricalEntry
+                      ? "design.historicalNotice"
+                      : "design.purchaseNotice",
+                  )}
+                </span>
+              }
+              testId="investment-opening-mode-notice"
+            />
+            <Card
+              tone="elevated"
+              className="flex-row items-center gap-(--space-3) p-(--space-3)"
+            >
+              <IconContainer tone={IconContainerTone.INVESTMENT}>
+                <AppIcon
+                  icon={investmentAssetIcon(assetClass)}
+                  size={AppIconSize.MD}
+                />
+              </IconContainer>
+              <div className="min-w-0 flex-1">
+                <h2
+                  id="investment-details-title"
+                  className="text-sm font-semibold text-text-primary wrap-break-word"
+                >
+                  {assetName ||
+                    selectedInstrument?.name ||
+                    tUx(config.titleKey)}
+                </h2>
+                <p className="text-xs text-text-secondary wrap-break-word">
+                  {[selectedInstrument?.symbol || symbol, provider]
+                    .filter(Boolean)
+                    .join(" · ") || t("manualPricing")}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                className="shrink-0 px-(--space-2) text-xs text-primary"
+                onPress={goBack}
+              >
+                {t("changeType")}
+              </Button>
+            </Card>
+            <div className="flex flex-col gap-(--space-3)">
+              <OpeningInputCard>
+                <Controller
+                  name="quantity"
+                  control={control}
+                  render={({ field }) => (
+                    <DecimalField
+                      id="investment-quantity"
+                      label={tUx(config.quantityLabelKey)}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      onBlur={field.onBlur}
+                      className="pl-0 pr-[calc(var(--space-12)*2)] text-2xl font-semibold"
+                      description={t("design.quantityHint")}
+                      error={errors.quantity ? t("errors.invalid") : undefined}
+                      labelAccessory={
+                        <span className="text-xs text-text-secondary">
+                          {t("unitLabel")}: {unitSuffix}
+                        </span>
+                      }
+                      trailingElement={
+                        <span className="flex gap-(--space-1)">
+                          <Button
+                            variant="secondary"
+                            className="min-w-11 px-(--space-2)"
+                            aria-label={t("design.decreaseQuantity")}
+                            isDisabled={!canDecreaseQuantity}
+                            onPress={() =>
+                              field.onChange(
+                                subtractQuantities(
+                                  quantity,
+                                  INVESTMENT_OPENING_QUANTITY_STEP,
+                                ),
+                              )
+                            }
+                          >
+                            −
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            className="min-w-11 px-(--space-2)"
+                            aria-label={t("design.increaseQuantity")}
+                            isDisabled={
+                              quantity !== "" &&
+                              quantity !== "0" &&
+                              !quantityValid
+                            }
+                            onPress={() =>
+                              field.onChange(
+                                addQuantities(
+                                  quantity || "0",
+                                  INVESTMENT_OPENING_QUANTITY_STEP,
+                                ),
+                              )
+                            }
+                          >
+                            +
+                          </Button>
+                        </span>
+                      }
+                    />
+                  )}
+                />
+              </OpeningInputCard>
               {isCrypto ? (
                 <>
                   <Controller
@@ -971,181 +1064,276 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
               ) : null}
               {entryMode === InvestmentEntryMode.HISTORICAL ? (
                 <>
-                  <div className="flex items-center justify-between gap-(--space-3)">
-                    <Text size="sm" tone="secondary">
-                      {t("remainingBasisOptional")}
-                    </Text>
-                    <button
-                      type="button"
-                      className="text-sm font-medium text-accent underline-offset-4 hover:underline"
-                      onClick={() =>
-                        setValue(
-                          "basisInputMode",
-                          basisInputMode === HistoricalBasisInputMode.PER_UNIT
-                            ? HistoricalBasisInputMode.TOTAL
-                            : HistoricalBasisInputMode.PER_UNIT,
-                        )
-                      }
-                    >
-                      {basisInputMode === HistoricalBasisInputMode.PER_UNIT
-                        ? t("basisTotal")
-                        : t("basisPerUnit")}
-                    </button>
-                  </div>
-                  {basisInputMode === HistoricalBasisInputMode.PER_UNIT ? (
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "number",
-                        name: "costPerUnit",
-                        id: "investment-cost-per-unit",
-                        label: quotedLabel(t("remainingBasisOptional")),
-                        description: t("remainingBasisDescription"),
-                        minValue: 0,
-                        step: usesQuotedCurrency ? 0.00000001 : 1,
-                        formatOptions: quoteFormatOptions,
-                        error: errors.costPerUnit
-                          ? t("errors.invalid")
-                          : undefined,
-                      }}
-                    />
-                  ) : (
-                    <ControlledField
-                      control={control}
-                      field={{
-                        type: "number",
-                        name: "totalBasisInput",
-                        id: "investment-total-basis",
-                        label: quotedLabel(t("remainingBasisOptional")),
-                        description: t("remainingBasisDescription"),
-                        minValue: 0,
-                        step: usesQuotedCurrency ? 0.00000001 : 1,
-                        formatOptions: quoteFormatOptions,
-                        error: errors.totalBasisInput
-                          ? t("errors.invalid")
-                          : undefined,
-                      }}
-                    />
-                  )}
-                  <ControlledField
-                    control={control}
-                    field={{
-                      type: "number",
-                      name: "currentUnitValuation",
-                      id: "investment-current-unit-valuation",
-                      label: pricingContract.usesTotalValue
-                        ? quotedLabel(t("totalValue"))
-                        : assetClass === InvestmentAssetClass.GOLD
-                          ? t("goldBuyBackValuationOptional")
-                          : quotedLabel(t("currentValuationOptional")),
-                      description: t("currentValuationDescription"),
-                      minValue: 0,
-                      step: usesQuotedCurrency ? 0.00000001 : 1,
-                      formatOptions: quoteFormatOptions,
-                      error: errors.currentUnitValuation
-                        ? t("errors.invalid")
-                        : undefined,
-                    }}
-                  />
-                  <InvestmentFactsCard>
-                    <InvestmentFactRow
-                      label={t("remainingBasisOptional")}
-                      value={
-                        <FinancialValue>
-                          {money(historicalPreview.totalCostBasis)}
-                        </FinancialValue>
-                      }
-                    />
-                    <InvestmentFactRow
-                      label={t("currentValuationOptional")}
-                      value={
-                        <FinancialValue>
-                          {money(historicalPreview.currentTotalValue)}
-                        </FinancialValue>
-                      }
-                    />
-                    <InvestmentFactRow
-                      label={t("estimatedPnl")}
-                      value={
-                        <FinancialValue>
-                          {formatSignedMoney(
-                            historicalPreview.unrealizedPnl,
-                            money,
-                            t("unknown"),
+                  <OpeningInputCard>
+                    {basisInputMode === HistoricalBasisInputMode.PER_UNIT ? (
+                      <ControlledField
+                        control={control}
+                        field={{
+                          type: usesQuotedCurrency ? "number" : "amount",
+                          name: "costPerUnit",
+                          id: "investment-cost-per-unit",
+                          className: "px-0 text-2xl font-semibold",
+                          label: t("design.unitCost", {
+                            currency: inputCurrency,
+                            unit: unitSuffix,
+                          }),
+                          minValue: 0,
+                          step: usesQuotedCurrency ? 0.00000001 : 1,
+                          formatOptions: quoteFormatOptions,
+                          error: errors.costPerUnit
+                            ? t("errors.invalid")
+                            : undefined,
+                        }}
+                      />
+                    ) : (
+                      <ControlledField
+                        control={control}
+                        field={{
+                          type: usesQuotedCurrency ? "number" : "amount",
+                          name: "totalBasisInput",
+                          id: "investment-total-basis",
+                          className: "px-0 text-2xl font-semibold",
+                          label: quotedLabel(t("remainingBasisOptional")),
+                          description: t("remainingBasisDescription"),
+                          minValue: 0,
+                          step: usesQuotedCurrency ? 0.00000001 : 1,
+                          formatOptions: quoteFormatOptions,
+                          error: errors.totalBasisInput
+                            ? t("errors.invalid")
+                            : undefined,
+                        }}
+                      />
+                    )}
+                    <div className="flex flex-wrap items-center justify-between gap-(--space-1) border-t border-border-subtle pt-(--space-2)">
+                      {!usesQuotedCurrency &&
+                      basisInputMode === HistoricalBasisInputMode.PER_UNIT ? (
+                        <div
+                          className="flex items-center gap-(--space-1)"
+                          role="group"
+                          aria-label={t("design.adjust")}
+                        >
+                          {INVESTMENT_OPENING_PRICE_INCREMENTS.map(
+                            (increment) => (
+                              <Button
+                                key={increment}
+                                variant="secondary"
+                                className="px-(--space-2) text-xs tabular-nums"
+                                onPress={() =>
+                                  setValue(
+                                    "costPerUnit",
+                                    (costPerUnit ?? 0) + increment,
+                                    { shouldDirty: true },
+                                  )
+                                }
+                              >
+                                +{formatNumber(increment, locale)}
+                              </Button>
+                            ),
                           )}
-                        </FinancialValue>
-                      }
+                        </div>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="px-(--space-2) text-xs text-primary"
+                        onPress={() =>
+                          setValue(
+                            "basisInputMode",
+                            basisInputMode === HistoricalBasisInputMode.PER_UNIT
+                              ? HistoricalBasisInputMode.TOTAL
+                              : HistoricalBasisInputMode.PER_UNIT,
+                          )
+                        }
+                      >
+                        {basisInputMode === HistoricalBasisInputMode.PER_UNIT
+                          ? t("design.basisTotal")
+                          : t("design.basisPerUnit")}
+                      </Button>{" "}
+                    </div>
+                  </OpeningInputCard>
+                  <OpeningInputCard>
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "date",
+                        name: "date",
+                        id: "investment-date",
+                        label: t("asOfDate"),
+                        error: errors.date ? t("errors.invalid") : undefined,
+                      }}
                     />
-                  </InvestmentFactsCard>
+                  </OpeningInputCard>
+                  <OpeningInputCard>
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: usesQuotedCurrency ? "number" : "amount",
+                        name: "currentUnitValuation",
+                        id: "investment-current-unit-valuation",
+                        className: "px-0 text-2xl font-semibold",
+                        label: pricingContract.usesTotalValue
+                          ? quotedLabel(t("totalValue"))
+                          : assetClass === InvestmentAssetClass.GOLD
+                            ? t("goldBuyBackValuationOptional")
+                            : t("design.marketUnitPrice", {
+                                currency: inputCurrency,
+                                unit: unitSuffix,
+                              }),
+                        description: pricingContract.usesTotalValue
+                          ? t("currentValuationDescription")
+                          : t("design.marketUnitHint"),
+                        minValue: 0,
+                        step: usesQuotedCurrency ? 0.00000001 : 1,
+                        formatOptions: quoteFormatOptions,
+                        error: errors.currentUnitValuation
+                          ? t("errors.invalid")
+                          : undefined,
+                      }}
+                    />
+                  </OpeningInputCard>
+                  <Card
+                    tone="soft"
+                    className="gap-(--space-3) p-(--space-4)"
+                    data-testid="investment-opening-calculations"
+                  >
+                    <h3 className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                      {t("design.calculations")}
+                    </h3>
+                    <dl className="divide-y divide-border-subtle">
+                      <InvestmentFactRow
+                        label={t("design.totalBasis")}
+                        value={
+                          <FinancialValue>
+                            {money(historicalPreview.totalCostBasis)}
+                          </FinancialValue>
+                        }
+                      />
+                      <InvestmentFactRow
+                        label={t("design.marketValue")}
+                        value={
+                          <FinancialValue>
+                            {money(historicalPreview.currentTotalValue)}
+                          </FinancialValue>
+                        }
+                      />
+                      <InvestmentFactRow
+                        label={t("estimatedPnl")}
+                        value={
+                          <StatusBadge
+                            tone={pnlBadgeTone(historicalPreview.unrealizedPnl)}
+                          >
+                            <FinancialValue>
+                              {formatSignedMoney(
+                                historicalPreview.unrealizedPnl,
+                                money,
+                                t("unknown"),
+                              )}
+                              {historicalPreview.unrealizedPnlPercent == null
+                                ? ""
+                                : ` (${formatPercent(historicalPreview.unrealizedPnlPercent, locale, { maximumFractionDigits: 1 })})`}
+                            </FinancialValue>
+                          </StatusBadge>
+                        }
+                      />
+                    </dl>
+                    <p className="flex gap-(--space-2) border-t border-border-subtle pt-(--space-3) text-xs text-text-secondary">
+                      <AppIcon
+                        icon={ACTION_ICONS.success}
+                        size={AppIconSize.SM}
+                        className="shrink-0 text-income"
+                      />
+                      {t("design.cashFlow")}
+                    </p>
+                  </Card>
                 </>
               ) : (
                 <>
+                  <OpeningInputCard>
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: usesQuotedCurrency ? "number" : "amount",
+                        name: pricingContract.usesTotalValue
+                          ? "totalPurchaseValue"
+                          : "price",
+                        id: "investment-price",
+                        className: "px-0 text-2xl font-semibold",
+                        label: pricingContract.usesTotalValue
+                          ? quotedLabel(t("totalValue"))
+                          : selectedInstrument?.pricingMode ===
+                              MarketPricingMode.NAV_PER_UNIT
+                            ? quotedLabel(tUx(config.priceLabelKey))
+                            : selectedInstrument
+                              ? quotedLabel(
+                                  t("purchasePriceFor", {
+                                    symbol: selectedInstrument.symbol,
+                                  }),
+                                )
+                              : quotedLabel(tUx(config.priceLabelKey)),
+                        minValue: 0,
+                        step: usesQuotedCurrency ? 0.00000001 : 1,
+                        formatOptions: quoteFormatOptions,
+                        error: (
+                          pricingContract.usesTotalValue
+                            ? errors.totalPurchaseValue
+                            : errors.price
+                        )
+                          ? t("errors.invalid")
+                          : undefined,
+                      }}
+                    />
+                  </OpeningInputCard>
+                  <Card
+                    tone="elevated"
+                    className="gap-(--space-3) p-(--space-3)"
+                  >
+                    <Controller
+                      name="accountId"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectField
+                          id="investment-source-account"
+                          label={t("sourceAccountLabel")}
+                          value={field.value ?? ""}
+                          options={accountOptions}
+                          onChange={field.onChange}
+                          isDisabled={accountOptions.length === 0}
+                        />
+                      )}
+                    />
+                  </Card>
+                </>
+              )}
+              {entryMode === InvestmentEntryMode.PURCHASE ? (
+                <OpeningInputCard>
                   <ControlledField
                     control={control}
                     field={{
-                      type: "number",
-                      name: pricingContract.usesTotalValue
-                        ? "totalPurchaseValue"
-                        : "price",
-                      id: "investment-price",
-                      label: pricingContract.usesTotalValue
-                        ? quotedLabel(t("totalValue"))
-                        : selectedInstrument?.pricingMode ===
-                            MarketPricingMode.NAV_PER_UNIT
-                          ? quotedLabel(tUx(config.priceLabelKey))
-                          : selectedInstrument
-                            ? quotedLabel(
-                                t("purchasePriceFor", {
-                                  symbol: selectedInstrument.symbol,
-                                }),
-                              )
-                            : quotedLabel(tUx(config.priceLabelKey)),
-                      minValue: 0,
-                      step: usesQuotedCurrency ? 0.00000001 : 1,
-                      formatOptions: quoteFormatOptions,
-                      error: (
-                        pricingContract.usesTotalValue
-                          ? errors.totalPurchaseValue
-                          : errors.price
-                      )
-                        ? t("errors.invalid")
-                        : undefined,
+                      type: "date",
+                      name: "date",
+                      id: "investment-date",
+                      label:
+                        assetClass === InvestmentAssetClass.FUND
+                          ? t("investmentDate")
+                          : t("transactionDate"),
+                      error: errors.date ? t("errors.invalid") : undefined,
                     }}
                   />
-                  <Controller
-                    name="accountId"
-                    control={control}
-                    render={({ field }) => (
-                      <SelectField
-                        id="investment-source-account"
-                        label={t("sourceAccountLabel")}
-                        value={field.value ?? ""}
-                        options={accountOptions}
-                        onChange={field.onChange}
-                        isDisabled={accountOptions.length === 0}
-                      />
-                    )}
-                  />
-                </>
-              )}
-              <ControlledField
-                control={control}
-                field={{
-                  type: "date",
-                  name: "date",
-                  id: "investment-date",
-                  label:
-                    entryMode === InvestmentEntryMode.HISTORICAL
-                      ? t("asOfDate")
-                      : assetClass === InvestmentAssetClass.FUND
-                        ? t("investmentDate")
-                        : t("transactionDate"),
-                  error: errors.date ? t("errors.invalid") : undefined,
-                }}
-              />
-              <FormField id="investment-notes" label={t("notesOptional")}>
-                <Textarea id="investment-notes" {...register("notes")} />
-              </FormField>
+                </OpeningInputCard>
+              ) : null}
+              <Card tone="elevated" className="gap-(--space-3) p-(--space-3)">
+                <h3 className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
+                  {t("design.scope")}
+                </h3>
+                <FinancialScopeField
+                  value={financialScope}
+                  onChange={(next) => setValue("financialScope", next)}
+                  testId="investment-financial-scope"
+                />
+                <FormField id="investment-notes" label={t("notesOptional")}>
+                  <Textarea id="investment-notes" {...register("notes")} />
+                </FormField>
+              </Card>
             </div>
           </section>
         ) : (
@@ -1166,44 +1354,47 @@ export function OpeningPositionForm({ accounts = [] }: Props) {
       </MotionStep>
       <BottomActionBar
         className="mt-auto"
-        layout={
-          hasBackAction
-            ? BottomActionBarLayout.SPLIT
-            : BottomActionBarLayout.STACKED
-        }
+        layout={BottomActionBarLayout.STACKED}
       >
-        {hasBackAction ? (
-          <Button
-            variant="secondary"
-            className="min-h-11 min-w-0 flex-1 px-(--space-3) text-pretty"
-            onPress={goBack}
-          >
-            {isReviewStep ? t("back") : t("changeType")}
-          </Button>
-        ) : null}
-        {isReviewStep ? (
-          <Button
-            className={primaryActionClassName}
-            isPending={pending}
-            isDisabled={!online}
-            onPress={() => void submit()}
-            data-testid="investment-opening-confirm"
-          >
-            {confirmLabel}
-          </Button>
-        ) : (
-          <Button
-            className={primaryActionClassName}
-            onPress={goNext}
-            data-testid={
-              stepIndex === DETAILS_STEP_INDEX
-                ? "investment-opening-review"
-                : "investment-opening-next"
-            }
-          >
-            {stepIndex === FIRST_STEP_INDEX ? t("continue") : t("review")}
-          </Button>
-        )}
+        <div className="flex gap-(--space-2)">
+          {hasBackAction ? (
+            <Button
+              variant="secondary"
+              className="min-h-11 min-w-0 flex-1 px-(--space-3) text-pretty"
+              onPress={goBack}
+            >
+              {isReviewStep ? t("back") : t("changeType")}
+            </Button>
+          ) : null}
+          {isReviewStep ? (
+            <Button
+              className={primaryActionClassName}
+              isPending={pending}
+              isDisabled={!online}
+              onPress={() => void submit()}
+              data-testid="investment-opening-confirm"
+            >
+              <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.SM} />
+              {confirmLabel}
+            </Button>
+          ) : (
+            <Button
+              className={primaryActionClassName}
+              onPress={goNext}
+              data-testid={
+                stepIndex === DETAILS_STEP_INDEX
+                  ? "investment-opening-review"
+                  : "investment-opening-next"
+              }
+            >
+              {stepIndex === FIRST_STEP_INDEX ? t("continue") : t("review")}
+            </Button>
+          )}
+        </div>
+        <p className="flex items-center justify-center gap-(--space-1) text-center text-xs text-text-secondary">
+          <AppIcon icon={UTILITY_ICONS.shield} size={AppIconSize.SM} />
+          {t("design.security")}
+        </p>
       </BottomActionBar>
     </div>
   );

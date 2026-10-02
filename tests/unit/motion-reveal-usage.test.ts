@@ -17,7 +17,7 @@ describe("MotionReveal usage contract (B09)", () => {
     expect(reveal).toContain("springs.gentle");
   });
 
-  it("keeps one hero-group reveal on Plan, Home, and Together", () => {
+  it("keeps one lead-group reveal on Plan, Home, and Together", () => {
     const planHub = readProjectFile("app/[locale]/(product)/plan/page.tsx");
     const home = [
       "app/[locale]/(product)/home/page.tsx",
@@ -34,7 +34,7 @@ describe("MotionReveal usage contract (B09)", () => {
     expect(home.match(REVEAL_OPEN_TAG)).toHaveLength(1);
     expect(home).toContain("<HomeFinancialPulse");
     expect(together.match(REVEAL_OPEN_TAG)).toHaveLength(1);
-    expect(together).toContain('tone="hero"');
+    expect(together).toContain('<Card tone="elevated"');
 
     for (const source of [planHub, home, together]) {
       expect(source).not.toMatch(/delay\s*=/);

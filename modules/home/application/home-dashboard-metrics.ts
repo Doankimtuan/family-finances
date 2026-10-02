@@ -52,6 +52,11 @@ export type HomeSpendingCategory = {
   progressPercent: number;
 };
 
+export type HomeSpendingRemainder = Pick<
+  HomeSpendingCategory,
+  "amount" | "proportion" | "progressPercent"
+>;
+
 export type HomeSpendingInsight = {
   kind: "higher" | "lower";
   amount: number;
@@ -68,6 +73,7 @@ export type HomeFinancialMetrics = {
   expenseComparison: HomePeriodComparison | null;
   trend: HomeCashFlowTrend;
   spendingCategories: HomeSpendingCategory[];
+  spendingRemainder: HomeSpendingRemainder | null;
   spendingInsight: HomeSpendingInsight;
   hasTransactions: boolean;
 };
@@ -267,10 +273,13 @@ function buildTrend(
   };
 }
 
-function buildSpendingCategories(
+function buildSpendingBreakdown(
   transactions: LedgerTransaction[],
   totalExpense: number,
-): HomeSpendingCategory[] {
+): {
+  categories: HomeSpendingCategory[];
+  remainder: HomeSpendingRemainder | null;
+} {
   const categories = new Map<
     string,
     {
@@ -292,17 +301,36 @@ function buildSpendingCategories(
     current.amount += transaction.amount;
     categories.set(key, current);
   }
-  return Array.from(categories.values())
-    .sort((a, b) => b.amount - a.amount)
+  const rankedCategories = Array.from(categories.values()).sort(
+    (a, b) => b.amount - a.amount,
+  );
+  const visibleCategories = rankedCategories
     .slice(0, HOME_DASHBOARD_MAX_CATEGORY_COUNT)
     .map((category) => {
       const proportion = totalExpense > 0 ? category.amount / totalExpense : 0;
       return {
         ...category,
         proportion,
-        progressPercent: Math.round(proportion * HOME_PERCENT_SCALE),
+        progressPercent: proportion * HOME_PERCENT_SCALE,
       };
     });
+  const remainderAmount = rankedCategories
+    .slice(HOME_DASHBOARD_MAX_CATEGORY_COUNT)
+    .reduce((total, category) => total + category.amount, 0);
+  const remainderProportion =
+    totalExpense > 0 ? remainderAmount / totalExpense : 0;
+
+  return {
+    categories: visibleCategories,
+    remainder:
+      remainderAmount > 0
+        ? {
+            amount: remainderAmount,
+            proportion: remainderProportion,
+            progressPercent: remainderProportion * HOME_PERCENT_SCALE,
+          }
+        : null,
+  };
 }
 
 export function calculateHomeFinancialMetrics(input: {
@@ -330,6 +358,10 @@ export function calculateHomeFinancialMetrics(input: {
   const netCashFlow = income - expense;
   const previousNetCashFlow = previousIncome - previousExpense;
   const expenseComparison = calculatePeriodComparison(expense, previousExpense);
+  const spendingBreakdown = buildSpendingBreakdown(
+    currentTransactions,
+    expense,
+  );
 
   return {
     income,
@@ -344,7 +376,8 @@ export function calculateHomeFinancialMetrics(input: {
     ),
     expenseComparison,
     trend: buildTrend(currentTransactions, input.range),
-    spendingCategories: buildSpendingCategories(currentTransactions, expense),
+    spendingCategories: spendingBreakdown.categories,
+    spendingRemainder: spendingBreakdown.remainder,
     spendingInsight:
       expenseComparison && expenseComparison.amount !== 0
         ? {

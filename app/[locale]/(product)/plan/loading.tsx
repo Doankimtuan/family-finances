@@ -7,27 +7,28 @@ import { Skeleton } from "@/shared/ui/skeleton";
 
 export function PlanContextSkeleton() {
   return (
-    <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="flex flex-col gap-(--space-2)">
+    <>
+      <div className="flex items-center justify-between gap-(--space-2)">
+        <Skeleton className="h-11 w-40 rounded-full" />
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+      <Card tone="default" className="gap-(--space-3) p-(--space-4)">
+        <div className="flex items-center justify-between gap-(--space-2)">
+          <Skeleton className="h-6 w-36 rounded-full" />
           <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-4 w-36" />
         </div>
-        <Skeleton className="size-11 rounded-(--radius-control)" />
-      </div>
-      <div className="flex items-start gap-(--space-3)">
-        <Skeleton className="size-8 rounded-(--radius-control)" />
-        <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
-          <Skeleton className="h-5 w-36" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-3 w-40" />
-        </div>
-      </div>
-      <div className="border-t border-divider pt-(--space-3)">
         <Skeleton className="h-3 w-48" />
-        <Skeleton className="mt-(--space-2) h-4 w-28" />
-      </div>
-    </Card>
+        <div className="relative pb-(--space-5)">
+          <Skeleton className="h-2 w-full rounded-full" />
+          <Skeleton className="absolute top-2 right-(--space-5) h-5 w-12 rounded-sm" />
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-divider-subtle border-t border-divider-subtle pt-(--space-3)">
+          <Skeleton className="h-10 w-16" />
+          <Skeleton className="h-10 w-16" />
+          <Skeleton className="h-10 w-16" />
+        </div>
+      </Card>
+    </>
   );
 }
 
@@ -44,32 +45,49 @@ export function PlanWorkRowSkeleton() {
   );
 }
 
+export function PlanShortcutTilesFallback() {
+  return (
+    <div
+      className="grid grid-cols-2 gap-(--space-2)"
+      data-testid="plan-shortcuts"
+      aria-hidden="true"
+    >
+      {[0, 1].map((item) => (
+        <Card
+          key={item}
+          tone="elevated"
+          className="gap-(--space-2) p-(--space-3)"
+        >
+          <Skeleton className="size-7 rounded-(--radius-control)" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-32" />
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default async function PlanLoading() {
   const t = await getTranslations("plan");
 
   return (
-    <Page topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}>
+    <Page
+      topBar={
+        <TopAppBar
+          title={t("home.title")}
+          subtitle={t("home.subtitle")}
+          trailing={<Skeleton className="h-11 w-24 rounded-full" />}
+        />
+      }
+    >
       <PlanContextSkeleton />
       <Section
-        title={<Skeleton className="h-4 w-40" />}
-        testId="plan-home-exceptions"
+        title={<Skeleton className="h-4 w-32" />}
+        testId="plan-home-overspending"
       >
-        <Card tone="elevated" className="gap-0 p-0">
-          <PlanWorkRowSkeleton />
-        </Card>
-      </Section>
-      <Section title={<Skeleton className="h-4 w-32" />}>
-        <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-          <Skeleton className="h-4 w-48" />
+        <Card tone="warning" className="gap-(--space-3) p-(--space-4)">
+          <Skeleton className="h-4 w-40" />
           <Skeleton className="h-4 w-full" />
-        </Card>
-      </Section>
-      <Section
-        title={<Skeleton className="h-4 w-28" />}
-        testId="plan-home-upcoming"
-      >
-        <Card tone="elevated" className="gap-0 p-0">
-          <PlanWorkRowSkeleton />
         </Card>
       </Section>
       <Section
@@ -81,14 +99,27 @@ export default async function PlanLoading() {
           <PlanWorkRowSkeleton />
         </Card>
       </Section>
-      <Section
-        title={<Skeleton className="h-4 w-28" />}
-        testId="plan-home-goals"
-      >
+      <Section title={<Skeleton className="h-4 w-32" />}>
         <Card tone="elevated" className="gap-0 p-0">
+          <PlanWorkRowSkeleton />
           <PlanWorkRowSkeleton />
         </Card>
       </Section>
+      <Section
+        title={<Skeleton className="h-4 w-28" />}
+        description={<Skeleton className="h-3 w-52" />}
+        testId="plan-home-upcoming"
+      >
+        <div className="flex flex-col gap-(--space-2)">
+          <Card tone="elevated" className="gap-0 p-0">
+            <PlanWorkRowSkeleton />
+          </Card>
+          <Card tone="elevated" className="gap-0 p-0">
+            <PlanWorkRowSkeleton />
+          </Card>
+        </div>
+      </Section>
+      <PlanShortcutTilesFallback />
     </Page>
   );
 }

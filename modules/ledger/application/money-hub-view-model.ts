@@ -70,6 +70,7 @@ export type MoneyHubAccount = LedgerAccount & {
 export type MoneyHubAccountGroup = {
   key: MoneyAccountGroupKey;
   accounts: MoneyHubAccount[];
+  totalBalance: number;
 };
 
 export type MoneyAssetAllocationSegment = {
@@ -111,6 +112,7 @@ export type MoneyHubViewModel = {
   totalOwnedBalance: number;
   activeAccountCount: number;
   accountGroups: MoneyHubAccountGroup[];
+  directoryAccountGroups: MoneyHubAccountGroup[];
   initialAccountGroups: MoneyHubAccountGroup[];
   accountPresentation: "flat" | "grouped";
   hasMoreAccounts: boolean;
@@ -137,6 +139,19 @@ const MONEY_ACCOUNT_GROUP_ORDER: readonly MoneyAccountGroupKey[] = [
   MoneyAccountGroupKey.INVESTMENT,
   MoneyAccountGroupKey.OTHER,
 ] as const;
+
+const MONEY_ACCOUNT_DIRECTORY_GROUP_ORDER: readonly MoneyAccountGroupKey[] = [
+  MoneyAccountGroupKey.BANK,
+  MoneyAccountGroupKey.CASH,
+  MoneyAccountGroupKey.SAVINGS,
+  MoneyAccountGroupKey.INVESTMENT,
+  MoneyAccountGroupKey.OTHER,
+] as const;
+
+const CASH_AND_WALLET_GROUP_KEYS = new Set<MoneyAccountGroupKey>([
+  MoneyAccountGroupKey.CASH,
+  MoneyAccountGroupKey.WALLET,
+]);
 
 const MONEY_ACCOUNT_TYPE_PRIORITY: Record<AccountTypeValue, number> = {
   [AccountType.CASH]: 0,
@@ -197,7 +212,45 @@ function buildGroups(accounts: MoneyHubAccount[]) {
 
   return MONEY_ACCOUNT_GROUP_ORDER.flatMap((key) => {
     const group = accountsByGroup.get(key);
-    return group?.length ? [{ key, accounts: group }] : [];
+    return group?.length
+      ? [
+          {
+            key,
+            accounts: group,
+            totalBalance: group.reduce(
+              (sum, account) => sum + account.balance,
+              0,
+            ),
+          },
+        ]
+      : [];
+  });
+}
+
+function buildDirectoryGroups(groups: MoneyHubAccountGroup[]) {
+  const accountsByGroup = new Map(
+    groups.map((group) => [group.key, group.accounts]),
+  );
+
+  return MONEY_ACCOUNT_DIRECTORY_GROUP_ORDER.flatMap((key) => {
+    const accounts =
+      key === MoneyAccountGroupKey.CASH
+        ? groups
+            .filter((group) => CASH_AND_WALLET_GROUP_KEYS.has(group.key))
+            .flatMap((group) => group.accounts)
+        : (accountsByGroup.get(key) ?? []);
+    return accounts.length
+      ? [
+          {
+            key,
+            accounts,
+            totalBalance: accounts.reduce(
+              (sum, account) => sum + account.balance,
+              0,
+            ),
+          },
+        ]
+      : [];
   });
 }
 
@@ -332,6 +385,7 @@ export function createMoneyHubViewModel(input: {
     0,
   );
   const accountGroups = buildGroups(accounts);
+  const directoryAccountGroups = buildDirectoryGroups(accountGroups);
   const creditCards = createMoneyHubCreditCards(input.creditCards, input.today);
 
   return {
@@ -339,6 +393,7 @@ export function createMoneyHubViewModel(input: {
     totalOwnedBalance,
     activeAccountCount: accounts.length,
     accountGroups,
+    directoryAccountGroups,
     initialAccountGroups: groupsForInitialRows(accountGroups),
     accountPresentation: accountGroups.length > 1 ? "grouped" : "flat",
     hasMoreAccounts: accounts.length > MONEY_HUB_INITIAL_ACCOUNT_ROW_LIMIT,

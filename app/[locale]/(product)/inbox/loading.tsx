@@ -18,9 +18,9 @@ export default async function InboxLoading() {
       topBar={
         <TopAppBar
           variant="primary"
-          eyebrow={t("header.eyebrow")}
           title={t("title")}
-          meta={<Skeleton className="h-4 w-20" />}
+          status={<Skeleton className="h-4 w-20" />}
+          trailing={<Skeleton className="size-11 rounded-(--radius-control)" />}
         />
       }
       contentClassName="gap-(--space-5)"

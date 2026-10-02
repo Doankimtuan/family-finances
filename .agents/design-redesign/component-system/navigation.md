@@ -2,19 +2,18 @@
 
 ## 1. Bottom Navigation Bar (`<BottomNav>`)
 
-The canonical 5-tab docked bar serving as the primary navigation spine across the entire ViNha product.
+The canonical five-route docked bar serves as the primary navigation spine across ViNha. Create Transaction is a separate floating pill above the bar, not a route tab.
 
 ### Global Specifications
 
-- **Position**: Permanently fixed at the bottom of the 440px viewport container (`position: fixed; bottom: 0`).
+- **Position**: Attached to the bottom of the 440px app viewport; the shared shell owns placement and safe-area insets.
 - **Dimensions**:
-  - Base Height: 56px.
-  - Total Height: 56px + `env(safe-area-inset-bottom)`.
+  - Tab Row Height: 64px.
+  - Total Height: 64px + the device safe-area inset.
   - Max Width: 440px (Centered horizontally on desktop).
 - **Background & Border**:
-  - Light: Surface `#FFFFFF`, top hairline border `1px solid #DDE4E1`.
-  - Dark: Surface `#1C1C1F`, top hairline border `1px solid #3F3F46`.
-  - Shadow: Subtle ambient elevation (`0 -2px 8px rgba(0, 0, 0, 0.04)`).
+  - Light and dark use the semantic elevated-surface and divider tokens.
+  - Keep separation quiet; avoid heavy shadows and detached tab cards.
 - **Z-Index**: `var(--vn-z-bottom-nav)` (20).
 
 ### Tab Composition (5 Equal Slots)
@@ -27,19 +26,28 @@ The canonical 5-tab docked bar serving as the primary navigation spine across th
 
 ### Slot Anatomy & States
 
-- **Container**: Equal flex width (20% each), centered content, minimum 56px touch target.
+- **Container**: Five equal-width slots, centered content, minimum 56px touch target.
 - **Icon**: 24×24px canonical SVG glyph:
-  - _Inactive State_: Stroke width `1.5px`, color `var(--vn-text-muted)` (`#71717A`).
-  - _Active State_: Stroke width `1.9px`, color `var(--vn-primary)` (`#0F766E` Light / `#2DD4BF` Dark).
-- **Label**: 11px font (`--vn-font-label-sm`):
-  - _Inactive State_: 400 weight, color `var(--vn-text-muted)`.
-  - _Active State_: 600 semibold, color `var(--vn-primary)`.
+  - Render registered Stitch navigation artwork through `AppIcon`.
+  - _Inactive State_: Regular stroke and secondary-text token.
+  - _Active State_: Emphasized stroke and primary-text token.
+- **Label**: 11px single-line label token; regular weight when inactive and semibold when active.
+- **Active Indicator**: A small primary line at the top of the active slot. Do not use a filled card or large selected pill.
 - **Badge Integration (Inbox)**:
-  - Position: Absolute, top: 4px, right: 18px.
-  - Structure: 18px high pill (`border-radius: 9999px`), 6px horizontal padding.
-  - Colors: Primary brand teal or amber background, crisp white 10px bold text.
+  - Position: Anchored to the upper trailing shoulder of the Inbox icon.
+  - Use the semantic warning surface with a contrasting foreground and surface ring.
+  - Keep counts compact and support `1`, `9`, `17`, and `99+` without moving the icon or label.
 - **Interaction Feedback**:
   - _Pressed_: Icon and label scale down to 0.94 with 100ms spring.
+
+### Create Transaction Action
+
+- Use the shared `FloatingAction` and `FloatingActionButton` pattern.
+- Keep the 44px-high primary pill above the navigation bar, trailing aligned within the app viewport.
+- Keep the plus icon and localized Add label visible; disable it while offline.
+- Reserve scroll clearance so the floating pill does not cover the last content row.
+- Suppress it on Savings, Investments, Debts, and Loans lists that own a contextual floating create action.
+- Hide both the pill and navigation on standalone create/edit flows.
 
 ---
 

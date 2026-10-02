@@ -68,6 +68,7 @@ const emptyMetrics = {
     points: [],
   },
   spendingCategories: [],
+  spendingRemainder: null,
   spendingInsight: null,
   hasTransactions: false,
 } as const;
@@ -83,9 +84,8 @@ describe("Home command-center composition", () => {
 
     expect(page).toContain("calculateMoneyAssetOverview");
     expect(page).toContain("<HomeInboxCta");
-    expect(page).toContain("<HomePlanPulse");
     expect(page).toContain("<HomePeriodStory");
-    expect(page).toContain("<HomeCaptureAction");
+    expect(page).not.toContain("<HomeCaptureAction");
   });
 
   it("renders one current-state hero with a path to transactions", () => {
@@ -129,7 +129,6 @@ describe("Home command-center composition", () => {
           currency="VND"
           locale="en"
           period={HomeDashboardPeriod.MONTH}
-          canReviewUncategorized={false}
           periodControl={<div data-testid={HOME_TEST_ID.PERIOD_CONTROL} />}
         />
       </HomePeriodTransition>,

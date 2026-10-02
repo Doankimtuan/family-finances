@@ -27,6 +27,7 @@
   "householdClosureUnavailableTitle": "Household closure is not available yet",
   "householdClosureUnavailableBody": "You are the only Admin. Invite a partner when ready; household closure is not available yet.",
   "invitationsLink": "Pending invitations",
+  "viewInvitationsWithCount": "View invitations ({count})",
   "policiesLink": "Shared rules",
   "preferencesLink": "Preferences",
   "settingsLink": "Settings",

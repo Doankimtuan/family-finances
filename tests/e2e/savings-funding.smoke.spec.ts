@@ -47,12 +47,12 @@ test.describe("Savings funding", () => {
     );
 
     await expect(surface.getByTestId("savings-step-indicator")).toBeVisible();
+    await surface.getByTestId("savings-type-platform").click();
     const firstPackage = surface
       .locator("[data-testid^=savings-package-]")
       .first();
     test.skip((await firstPackage.count()) === 0, "No savings packages");
     await firstPackage.click();
-    await surface.getByTestId("savings-wizard-next").click();
     await expect(surface.getByTestId("savings-estimate")).toBeVisible();
     const principal = 1_000_000;
     await surface.locator("#savings-principal").fill(String(principal));

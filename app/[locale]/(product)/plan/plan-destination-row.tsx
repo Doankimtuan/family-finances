@@ -8,7 +8,8 @@ import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
   IconContainer,
-  type IconContainerTone,
+  IconContainerTone,
+  type IconContainerTone as IconContainerToneValue,
 } from "@/shared/ui/icon-container";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { PLAN_DESTINATION_ROW_CLASS } from "./plan-chrome";
@@ -18,7 +19,7 @@ export type PlanDestinationRowProps = {
   href: string;
   testId: string;
   icon: IconSvgElement;
-  iconTone: IconContainerTone;
+  iconTone: IconContainerToneValue;
   label: string;
   meta: ReactNode;
 };
@@ -58,6 +59,38 @@ export function PlanDestinationRow({
         size="sm"
         className="shrink-0 text-text-tertiary"
       />
+    </Link>
+  );
+}
+
+export function PlanDestinationTile({
+  href,
+  testId,
+  icon,
+  label,
+  meta,
+}: Pick<
+  PlanDestinationRowProps,
+  "href" | "testId" | "icon" | "label" | "meta"
+>) {
+  return (
+    <Link
+      href={href}
+      prefetch={PRODUCT_LINK_PREFETCH}
+      className="block h-full rounded-(--radius-card) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      data-testid={testId}
+    >
+      <Card tone="interactive" className="h-full gap-(--space-2) p-(--space-3)">
+        <IconContainer tone={IconContainerTone.PRIMARY} size="xs">
+          <AppIcon icon={icon} size="sm" />
+        </IconContainer>
+        <Text size="sm" weight="semibold" className="text-text-primary">
+          {label}
+        </Text>
+        <Text size="xs" tone="muted" className="text-pretty">
+          {meta}
+        </Text>
+      </Card>
     </Link>
   );
 }

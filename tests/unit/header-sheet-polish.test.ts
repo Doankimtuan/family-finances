@@ -15,14 +15,14 @@ describe("header and sheet polish contracts", () => {
 
     for (const source of [moneyPage, moneyLoading]) {
       expect(source).toContain('variant="primary"');
-      expect(source).toContain('title={t("title")}');
+      expect(source).toContain('t("title")');
       expect(source).not.toContain("header.headline");
       expect(source).not.toContain("header.supporting");
     }
   });
 
-  it("keeps Home on the canonical contextual app header", () => {
-    const homePage = [
+  it("keeps Home on the canonical primary app header", () => {
+    const homeSource = [
       "app/[locale]/(product)/home/page.tsx",
       "app/[locale]/(product)/home/home-streaming-sections.tsx",
     ]
@@ -32,11 +32,11 @@ describe("header and sheet polish contracts", () => {
       "app/[locale]/(product)/home/loading.tsx",
     );
 
-    for (const source of [homePage, homeLoading]) {
-      expect(source).toContain("TopAppBar");
-      expect(source).toContain('variant="contextual"');
-      expect(source).not.toContain("<header");
-    }
+    expect(homeSource).toContain("HomeTopBar");
+    expect(homeLoading).toContain("HomeTopBarFallback");
+    expect(homeLoading).toContain("HomeStreamingFallback");
+    expect(homeSource).toContain("TopAppBarVariant.PRIMARY");
+    expect(`${homeSource}\n${homeLoading}`).not.toContain("<header");
   });
 
   it("defines sheet footer breathing room as a shared token", () => {

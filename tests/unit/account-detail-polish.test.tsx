@@ -15,6 +15,19 @@ import {
 } from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-presentations";
 
 describe("Account sheet and detail composition", () => {
+  it("keeps compound button content in one flex row", () => {
+    render(
+      <Button variant="ghost">
+        <span data-testid="action-label">Edit account</span>
+        <span data-testid="action-icon" aria-hidden="true" />
+      </Button>,
+    );
+
+    const button = screen.getByRole("button");
+    expect(screen.getByTestId("action-label").parentElement).toBe(button);
+    expect(screen.getByTestId("action-icon").parentElement).toBe(button);
+  });
+
   it("suppresses only the duplicate account type label", () => {
     expect(resolveAccountIdentity("Cash", "Cash")).toEqual({
       name: "Cash",

@@ -17,7 +17,7 @@ export type SystemShellProps = {
 
 /**
  * Full-viewport system message shell (error / offline / permission / maintenance).
- * No five-tab chrome — pair with ChromeShell chrome="system".
+ * No product navigation — pair with ChromeShell chrome="system".
  */
 export function SystemShell({
   title,

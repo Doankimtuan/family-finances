@@ -2,13 +2,18 @@ import {
   AccountingMethod,
   disposeCostBasis,
   deriveRealizedPnl,
+  applyAcquisition,
 } from "../domain";
 import {
   formatQuantity,
   parseQuantity,
   subtractQuantities,
+  isPositiveQuantity,
 } from "./decimal-quantity";
-import { INVESTMENT_QUANTITY_SCALE } from "./investment-constants";
+import {
+  INVESTMENT_QUANTITY_SCALE,
+  INVESTMENT_SELL_QUANTITY_PERCENTAGES,
+} from "./investment-constants";
 
 const QUANTITY_SCALE = BigInt(10) ** BigInt(INVESTMENT_QUANTITY_SCALE);
 
@@ -23,6 +28,7 @@ export type PurchasePreview = {
   investedPrincipal: number | null;
   feeValue: number | null;
   cashLeavingAccount: number | null;
+  positionAfterPurchase?: ReturnType<typeof applyAcquisition>;
 };
 
 export type DisposalPreview = {
@@ -109,17 +115,31 @@ export function buildPurchasePreview(input: {
   cashFeeAmount?: number | null;
   feeValue?: number | null;
   manualTotalValue?: boolean;
+  position?: Parameters<typeof applyAcquisition>[0]["position"];
 }): PurchasePreview {
   const investedPrincipal = input.manualTotalValue
     ? input.totalValue
     : multiplyQuantityByUnitPrice(input.quantity, input.executionPricePerUnit);
   const cashFeeAmount = input.cashFeeAmount ?? 0;
+  const feeValue = input.feeValue ?? cashFeeAmount;
   return {
     investedPrincipal,
-    feeValue:
-      input.feeValue ?? (input.cashFeeAmount == null ? 0 : cashFeeAmount),
+    feeValue,
     cashLeavingAccount:
       investedPrincipal == null ? null : investedPrincipal + cashFeeAmount,
+    ...(input.position &&
+    investedPrincipal != null &&
+    Number.isSafeInteger(investedPrincipal + feeValue) &&
+    feeValue >= 0 &&
+    isPositiveQuantity(input.quantity)
+      ? {
+          positionAfterPurchase: applyAcquisition({
+            position: input.position,
+            quantity: input.quantity,
+            totalCost: investedPrincipal + feeValue,
+          }),
+        }
+      : {}),
   };
 }
 
@@ -199,4 +219,14 @@ export function normalizeAvailableQuantity(quantity: string) {
   } catch {
     return quantity;
   }
+}
+
+/** Keeps quick quantity selections within the supported decimal precision. */
+export function quantityAtPercentage(
+  quantity: string,
+  percent: (typeof INVESTMENT_SELL_QUANTITY_PERCENTAGES)[number],
+): string {
+  return formatQuantity(
+    (parseQuantity(quantity) * BigInt(percent)) / BigInt(100),
+  );
 }

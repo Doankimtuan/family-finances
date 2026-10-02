@@ -97,6 +97,10 @@ export const ACCOUNT_TYPE_CAPTURE_VALUES = [
 /** Maximum account count that remains scannable as a compact two-column picker. */
 export const CAPTURE_ACCOUNT_COMPACT_LIMIT = 4;
 
+/** Money account-list deep link opens the hub with the full inventory expanded. */
+export const MONEY_HUB_ACCOUNTS_QUERY_PARAM = "accounts";
+export const MONEY_HUB_ACCOUNTS_ALL_VALUE = "all";
+
 const ACCOUNT_TYPE_CAPTURE_SET = new Set<AccountType>(
   ACCOUNT_TYPE_CAPTURE_VALUES,
 );

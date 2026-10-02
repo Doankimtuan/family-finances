@@ -151,21 +151,28 @@ export function TogetherNavGroup({ children }: { children: ReactNode }) {
 
 const TOGETHER_PRIMARY_LINK_CLASSNAME =
   "inline-flex min-h-12 w-full items-center justify-center gap-(--space-2) rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-semibold text-accent-fg shadow-(--elevation-1) transition-[background-color,transform,box-shadow] duration-(--duration-fast) hover:-translate-y-px hover:shadow-(--elevation-2) active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring";
+const TOGETHER_PRIMARY_LINK_TONAL_CLASSNAME =
+  "border border-primary/40 bg-primary-soft text-primary shadow-none hover:bg-primary-soft/80";
 
 export function TogetherPrimaryLink({
   href,
   testId,
   children,
+  tonal = false,
 }: {
   href: string;
   testId?: string;
   children: ReactNode;
+  tonal?: boolean;
 }) {
   return (
     <Link
       href={href}
       data-testid={testId}
-      className={TOGETHER_PRIMARY_LINK_CLASSNAME}
+      className={cn(
+        TOGETHER_PRIMARY_LINK_CLASSNAME,
+        tonal ? TOGETHER_PRIMARY_LINK_TONAL_CLASSNAME : null,
+      )}
     >
       {children}
     </Link>

@@ -158,6 +158,43 @@ describe("getSessionMembership overlap", () => {
     expect(client.maybeSingle).toHaveBeenCalledTimes(1);
   });
 
+  it("retains authenticated identity when active membership is missing", async () => {
+    const client = createClient({
+      claims: { sub: USER_ID },
+      user: { id: USER_ID },
+      membership: null,
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    await expect(getSessionMembership()).resolves.toEqual({
+      user: { id: USER_ID },
+      membership: null,
+    });
+    await expect(assertMoneyActionAllowed()).resolves.toEqual({
+      ok: false,
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
+    });
+    expect(client.maybeSingle).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a membership belonging to another user", async () => {
+    const client = createClient({
+      claims: { sub: USER_ID },
+      user: { id: USER_ID },
+      membership: { ...membershipRow, user_id: OTHER_USER_ID },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    await expect(getSessionMembership()).resolves.toEqual({
+      user: null,
+      membership: null,
+    });
+    await expect(assertMoneyActionAllowed()).resolves.toEqual({
+      ok: false,
+      reason: MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED,
+    });
+  });
+
   it("does not authenticate from claims alone when getUser fails", async () => {
     const client = createClient({
       claims: { sub: USER_ID },

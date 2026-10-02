@@ -14,19 +14,29 @@ import {
   listTransactionTags,
   DEFAULT_CURRENCY,
   TransactionDirection,
+  MoneyCaptureMode,
+  TRANSACTION_ACCOUNT_QUERY_PARAM,
+  TRANSACTION_CAPTURE_MODE_QUERY_PARAM,
 } from "@/modules/ledger/application";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { MoneyCaptureEntry } from "../money-capture-entry";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 /**
  * money.transaction-add — capture <15s (ST-E04-002) + owned-account transfer.
  */
-export default async function MoneyTransactionAddPage({ params }: Props) {
+export default async function MoneyTransactionAddPage({
+  params,
+  searchParams,
+}: Props) {
   const { locale: rawLocale } = await params;
+  const query = await searchParams;
   const locale = hasLocale(routing.locales, rawLocale)
     ? rawLocale
     : routing.defaultLocale;
@@ -56,6 +66,16 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
       account.canMutate &&
       isCaptureAccountType(account.type),
   );
+  const requestedAccountId = query[TRANSACTION_ACCOUNT_QUERY_PARAM];
+  const initialAccountId =
+    typeof requestedAccountId === "string" &&
+    accounts.some((account) => account.id === requestedAccountId)
+      ? requestedAccountId
+      : undefined;
+  const initialMode =
+    query[TRANSACTION_CAPTURE_MODE_QUERY_PARAM] === MoneyCaptureMode.TRANSFER
+      ? MoneyCaptureMode.TRANSFER
+      : MoneyCaptureMode.EXPENSE;
 
   return (
     <Page
@@ -79,6 +99,8 @@ export default async function MoneyTransactionAddPage({ params }: Props) {
         jars={jars ?? []}
         transactionTags={transactionTags ?? []}
         currency={listed?.currency ?? DEFAULT_CURRENCY}
+        initialAccountId={initialAccountId}
+        initialMode={initialMode}
       />
     </Page>
   );

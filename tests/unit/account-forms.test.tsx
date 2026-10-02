@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountDetailActions } from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-actions";
@@ -21,7 +21,11 @@ vi.mock("next-intl", () => ({
 }));
 
 vi.mock("@/i18n/navigation", () => ({
-  useRouter: () => ({ refresh: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn(),
+    replace: vi.fn(),
+  }),
 }));
 
 vi.mock("@/shared/hooks/use-online-status", () => ({
@@ -199,5 +203,52 @@ describe("account create form", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("linkedBankDescription")).toBeInTheDocument();
     expect(screen.getByTestId("account-linked-bank")).toBeInTheDocument();
+  });
+
+  it("renders the dedicated credit route with its zero-debt semantics and in-flow action", () => {
+    render(
+      <AddAccountForm
+        liquidAccounts={[]}
+        currency="VND"
+        fixedType={AccountType.CREDIT_CARD}
+        hideCreditCardType
+        hideDefaultTrigger
+        presentation="page"
+      />,
+    );
+
+    expect(screen.getByTestId("account-add-page-form")).toBeInTheDocument();
+    expect(screen.queryByTestId("account-type")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("account-opening-balance"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("account-credit-card-settings"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("creditInitialDebtHint")).toBeInTheDocument();
+    expect(screen.getByTestId("account-add-submit")).toBeInTheDocument();
+  });
+
+  it("keeps credit-card creation out of the dedicated asset-account selector", () => {
+    render(
+      <AddAccountForm
+        liquidAccounts={[]}
+        currency="VND"
+        hideCreditCardType
+        hideDefaultTrigger
+        presentation="page"
+      />,
+    );
+
+    expect(
+      within(screen.getByTestId("account-type")).queryByRole("button", {
+        name: AccountType.CREDIT_CARD,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(screen.getByTestId("account-type")).getByRole("button", {
+        name: AccountType.CHECKING,
+      }),
+    ).toBeInTheDocument();
   });
 });

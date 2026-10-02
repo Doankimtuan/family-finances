@@ -7,8 +7,7 @@ import {
   APP_PATH,
   moneySavingsEarlyWithdrawPath,
 } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { getSessionMembership } from "@/modules/tenancy/application/get-session-membership";
 import {
   getSavingDetail,
   listProviderPackages,
@@ -48,6 +47,8 @@ import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-b
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import {
   FINANCE_ICONS,
+  UTILITY_ICONS,
+  ACTION_ICONS,
   SAVINGS_PROVIDER_ICONS,
 } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
@@ -57,7 +58,7 @@ import { SavingsCycleHistory } from "./savings-cycle-history";
 import { SavingsMaturityBadge } from "../savings-maturity-badge";
 import { SavingsPrivacyToggle } from "../savings-privacy-toggle";
 import { SavingsSectionTitle } from "../savings-section-title";
-import { SavingsFactRow, SavingsFactsCard } from "../savings-facts";
+import { SavingsFactRow } from "../savings-facts";
 import { SavingsUnavailable } from "../savings-unavailable";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
@@ -92,38 +93,13 @@ function savingsFamilyIcon(family: SavingsFamily) {
     : SAVINGS_PROVIDER_ICONS.smartphone;
 }
 
-function CycleMetric({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="min-w-0">
-      <Text size="xs" tone="secondary" className="text-pretty">
-        {label}
-      </Text>
-      <Text
-        size="sm"
-        weight="semibold"
-        tabular
-        className="mt-(--space-1) text-pretty text-text-primary"
-      >
-        {children}
-      </Text>
-    </div>
-  );
-}
-
 export default async function SavingsDetailPage({ params }: Props) {
   const { locale: raw, id } = await params;
   const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
   setLocale(locale);
-  const user = await getSessionUser();
+  const { user, membership } = await getSessionMembership();
   if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
-  if (!(await resolveActiveMembership(user.id)))
-    return redirect({ href: APP_PATH.ONBOARD, locale });
+  if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
 
   const [t, tProducts, detail] = await Promise.all([
     getTranslations("money.savingsDetail"),
@@ -223,28 +199,20 @@ export default async function SavingsDetailPage({ params }: Props) {
   return (
     <Page
       testId="savings-detail"
-      contentClassName="gap-(--space-5)"
+      contentClassName="gap-(--space-4)"
       topBar={
         <TopAppBar
           variant="detail"
           backHref={APP_PATH.MONEY_SAVINGS}
-          title={detailName}
-          subtitle={familyLabel}
+          title={t("detailTitle")}
+          trailing={<SavingsPrivacyToggle onHero={false} />}
+          className="border-b border-divider [&_[data-slot=header-title]]:block [&_[data-slot=header-title]]:text-center [&_[data-slot=header-title]]:text-base"
         />
       }
     >
       <MoneyOfflineBanner />
       {legacyImport ? (
         <StatusAlert variant="info" title={t("legacyBanner")} />
-      ) : null}
-      {historicalOpening ? (
-        <Text
-          size="xs"
-          tone="muted"
-          data-testid="savings-added-between-periods"
-        >
-          {t("addedBetweenPeriods")}
-        </Text>
       ) : null}
       {targetUnavailable ? (
         <StatusAlert
@@ -259,248 +227,287 @@ export default async function SavingsDetailPage({ params }: Props) {
           data-testid="savings-identity"
         >
           <Card
-            tone="hero"
+            tone="elevated"
             className="gap-0 p-(--space-4)"
             data-financial-object="savings"
           >
-            <div className="flex items-center gap-(--space-3)">
-              <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
-                <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-hero-fg">
-                  <AppIcon icon={familyIcon} size={AppIconSize.MD} emphasized />
-                </span>
-                <Text size="sm" weight="medium" className="text-hero-muted">
-                  {t("principalHeroLabel")}
+            <div className="flex min-w-0 items-start gap-(--space-3)">
+              <IconContainer tone={IconContainerTone.SAVINGS} size="md">
+                <AppIcon icon={familyIcon} size={AppIconSize.MD} emphasized />
+              </IconContainer>
+              <div className="min-w-0 flex-1">
+                <Text size="sm" weight="semibold" className="text-pretty">
+                  {detailName}
+                </Text>
+                <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                  {item.providerName || t("title")} · {familyLabel}
                 </Text>
               </div>
-              <SavingsPrivacyToggle />
+              <FinancialOwnershipBadge
+                financialScope={item.ownership.financialScope}
+                isOwnedByMe={item.ownership.isOwnedByMe}
+                ownerStatus={item.ownership.ownerStatus}
+                className="px-(--space-3) py-(--space-1-5)"
+              />
             </div>
-            <Amount
-              amountLabel={money(model.principal)}
-              size={AmountSize.HERO}
-              className="mt-(--space-3)"
-              amountClassName="text-hero-fg"
-            />
-            <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
+            <div className="mt-(--space-3) border-t border-divider pt-(--space-3)">
               <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
-                <FinancialOwnershipBadge
-                  financialScope={item.ownership.financialScope}
-                  isOwnedByMe={item.ownership.isOwnedByMe}
-                  ownerStatus={item.ownership.ownerStatus}
-                  onHero
-                />
-                {cycle ? (
-                  <Text size="xs" className="text-pretty text-hero-muted">
-                    {t("maturityDate", {
-                      date: formatIsoDate(cycle.endDate, locale),
-                    })}
-                    {model.daysUntilMaturity != null &&
-                    model.daysUntilMaturity >= 0
-                      ? ` · ${t("daysRemaining", { days: model.daysUntilMaturity })}`
-                      : ""}
-                  </Text>
-                ) : null}
-              </div>
-            </div>
-          </Card>
-          {cycle ? (
-            <Card
-              tone="elevated"
-              className="gap-(--space-3) p-(--space-4)"
-              data-testid="savings-cycle-facts"
-              aria-label={t("cycleFactsTitle")}
-            >
-              <div className="flex items-center justify-between gap-(--space-3)">
-                <Text size="xs" tone="secondary" className="text-pretty">
-                  {t("maturityStateLabel")}
+                <Text size="xs" weight="medium" tone="secondary">
+                  {t("principalHeroLabel")}
                 </Text>
                 <SavingsMaturityBadge state={state} label={stateLabel} />
               </div>
-              <div className="grid grid-cols-2 gap-(--space-3)">
-                <CycleMetric label={t("rateLabel")}>
-                  {formatPercent(cycle.lockedRate / 100, locale, {
-                    maximumFractionDigits: 2,
-                  })}
-                </CycleMetric>
-                <CycleMetric label={t("termLabel")}>{termLabel}</CycleMetric>
-                <CycleMetric label={t("startDateLabel")}>
-                  {formatIsoDate(cycle.startDate, locale)}
-                </CycleMetric>
-              </div>
-              <dl
-                className="flex flex-col gap-(--space-1) border-t border-divider pt-(--space-3)"
-                data-testid="savings-expected-return"
-              >
-                <SavingsFactRow
-                  label={t("expectedGrossInterestLabel")}
-                  value={
+              <Amount
+                amountLabel={money(model.principal)}
+                size={AmountSize.HERO}
+                className="mt-(--space-1)"
+                amountClassName="text-text-primary"
+              />
+              {historicalOpening ? (
+                <Text
+                  size="xs"
+                  tone="muted"
+                  className="mt-(--space-1)"
+                  data-testid="savings-added-between-periods"
+                >
+                  {t("addedBetweenPeriods")}
+                </Text>
+              ) : null}
+              <div className="mt-(--space-4) grid grid-cols-2 items-stretch gap-(--space-2)">
+                <div className="min-w-0 rounded-(--radius-control) border border-border-subtle bg-surface-muted p-(--space-3)">
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="min-h-8 text-pretty leading-snug"
+                  >
+                    {t("accruedNonPostedLabel")}
+                  </Text>
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    tabular
+                    className="mt-(--space-1) text-success"
+                  >
                     <FinancialValue>
                       {money(model.grossInterest)}
                     </FinancialValue>
-                  }
-                  className="px-0 py-(--space-1)"
-                />
-                {model.tax > 0 ? (
-                  <SavingsFactRow
-                    label={t("expectedTaxLabel")}
-                    value={<FinancialValue>{money(model.tax)}</FinancialValue>}
-                    className="px-0 py-(--space-1)"
-                  />
-                ) : null}
-                <SavingsFactRow
-                  label={t("expectedNetInterestLabel")}
-                  value={
-                    <FinancialValue>{money(model.netInterest)}</FinancialValue>
-                  }
-                  className="px-0 py-(--space-1)"
-                />
-                <div className="border-t border-divider pt-(--space-2)">
-                  <SavingsFactRow
-                    label={t("expectedReceivedLabel")}
-                    value={
-                      <FinancialValue>
-                        {money(model.totalCashReceived)}
-                      </FinancialValue>
-                    }
-                    emphasis
-                    className="px-0 py-(--space-1)"
-                  />
+                  </Text>
                 </div>
-              </dl>
-              <Text size="xs" tone="muted" className="text-pretty">
-                {t("expectedValueHint")}
-              </Text>
-            </Card>
-          ) : null}
-        </section>
-      </MotionReveal>
-
-      {cycle && model.totalTermDays && model.elapsedDays != null ? (
-        <section
-          className="flex flex-col gap-(--space-2)"
-          data-testid="savings-term-progress"
-        >
-          <SavingsSectionTitle>{t("progressLabel")}</SavingsSectionTitle>
-          <Card tone="elevated" className="gap-(--space-2) p-(--space-4)">
-            <Progress
-              value={Math.min(model.elapsedDays, model.totalTermDays)}
-              max={model.totalTermDays}
-              label={t("progressLabel")}
-              showLabel={false}
-              tone={IconContainerTone.SAVINGS}
-            />
-            <div className="flex items-center justify-between gap-(--space-3)">
-              <Text size="xs" tone="secondary">
-                {formatIsoDate(cycle.startDate, locale)}
-              </Text>
-              <Text size="xs" weight="medium" className="text-center">
-                {t("progressDays", {
-                  elapsed: Math.min(model.elapsedDays, model.totalTermDays),
-                  total: model.totalTermDays,
-                })}
-              </Text>
-              <Text size="xs" tone="secondary">
-                {formatIsoDate(cycle.endDate, locale)}
-              </Text>
+                <div className="min-w-0 rounded-(--radius-control) border border-border-subtle bg-surface-muted p-(--space-3)">
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="min-h-8 text-pretty leading-snug"
+                  >
+                    {t("rateLabel")}
+                  </Text>
+                  {cycle ? (
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      tabular
+                      className="mt-(--space-1) text-primary"
+                    >
+                      {formatPercent(cycle.lockedRate / 100, locale, {
+                        maximumFractionDigits: 2,
+                      })}
+                    </Text>
+                  ) : (
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      className="mt-(--space-1)"
+                    >
+                      {t("unknown")}
+                    </Text>
+                  )}
+                </div>
+              </div>
             </div>
           </Card>
         </section>
+      </MotionReveal>
+
+      {cycle && model.totalTermDays != null && model.elapsedDays != null ? (
+        <section
+          className="flex flex-col gap-(--space-2)"
+          data-testid="savings-cycle-facts"
+        >
+          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+            <div
+              className="flex flex-col gap-(--space-3) p-(--space-4)"
+              data-testid="savings-term-progress"
+            >
+              <div className="flex items-center justify-between gap-(--space-2)">
+                <div className="flex items-center gap-(--space-2)">
+                  <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
+                    <AppIcon
+                      icon={UTILITY_ICONS.calendar}
+                      size={AppIconSize.SM}
+                    />
+                  </IconContainer>
+                  <SavingsSectionTitle>
+                    {t("progressLabel")}
+                  </SavingsSectionTitle>
+                </div>
+                <Text
+                  size="xs"
+                  tone="secondary"
+                  className="shrink-0 rounded-(--radius-control) bg-surface-muted px-(--space-2) py-(--space-1)"
+                >
+                  {t("cycleProgress", {
+                    percent: formatPercent(model.progressRatio ?? 0, locale, {
+                      maximumFractionDigits: 0,
+                    }),
+                  })}
+                </Text>
+              </div>
+              <Text size="xs" tone="secondary">
+                {t("termLine", { term: termLabel })}
+              </Text>
+              <div className="grid grid-cols-2 gap-(--space-3)">
+                <div className="min-w-0 rounded-(--radius-control) border border-border-subtle bg-surface-muted p-(--space-3)">
+                  <Text size="xs" tone="secondary">
+                    {t("startDateLabel")}
+                  </Text>
+                  <Text size="sm" weight="semibold" tabular>
+                    {formatIsoDate(cycle.startDate, locale)}
+                  </Text>
+                </div>
+                <div className="min-w-0 rounded-(--radius-control) border border-warning/30 bg-warning/10 p-(--space-3)">
+                  <Text size="xs" className="text-warning">
+                    {t("maturityDateLabel")}
+                  </Text>
+                  <Text size="sm" weight="semibold" tabular>
+                    {formatIsoDate(cycle.endDate, locale)}
+                  </Text>
+                  {model.daysUntilMaturity != null &&
+                  model.daysUntilMaturity >= 0 ? (
+                    <Text size="xs" className="mt-(--space-1) text-warning">
+                      {t("daysRemaining", { days: model.daysUntilMaturity })}
+                    </Text>
+                  ) : null}
+                </div>
+              </div>
+              <Progress
+                value={Math.min(model.elapsedDays, model.totalTermDays)}
+                max={Math.max(1, model.totalTermDays)}
+                label={t("progressLabel")}
+                showLabel={false}
+                tone={IconContainerTone.SAVINGS}
+              />
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-(--space-2)">
+                <Text size="xs" tone="secondary" className="min-w-0">
+                  {t("timelineDay", { day: 0 })}
+                </Text>
+                <Text size="xs" weight="medium" className="text-center">
+                  {t("progressDays", {
+                    elapsed: Math.min(model.elapsedDays, model.totalTermDays),
+                    total: model.totalTermDays,
+                  })}
+                </Text>
+                <Text size="xs" tone="secondary" className="min-w-0 text-right">
+                  {t("timelineDay", { day: model.totalTermDays })}
+                </Text>
+              </div>
+            </div>
+            <dl
+              className="divide-y divide-divider border-t border-divider"
+              data-testid="savings-expected-return"
+            >
+              <SavingsFactRow
+                label={t("expectedTaxLabel")}
+                value={<FinancialValue>{money(model.tax)}</FinancialValue>}
+                className="py-(--space-2)"
+              />
+              <SavingsFactRow
+                label={t("expectedNetInterestLabel")}
+                value={
+                  <FinancialValue className="text-success">
+                    {money(model.netInterest)}
+                  </FinancialValue>
+                }
+                className="py-(--space-2)"
+              />
+              <SavingsFactRow
+                label={t("expectedReceivedLabel")}
+                value={
+                  <FinancialValue>
+                    {money(model.totalCashReceived)}
+                  </FinancialValue>
+                }
+                emphasis
+                className="py-(--space-2)"
+              />
+            </dl>
+            <Text
+              size="xs"
+              tone="muted"
+              className="border-t border-divider px-(--space-4) py-(--space-3) text-pretty"
+            >
+              {t("expectedValueHint")}
+            </Text>
+          </Card>
+        </section>
       ) : null}
-
-      <SavingsFactsCard
-        title={t("productDetailsTitle")}
-        testId="savings-product-details"
-        footer={
-          <Text
-            size="xs"
-            tone="muted"
-            className="border-t border-divider px-(--space-4) py-(--space-3) text-pretty"
-          >
-            {tProducts("notBankBalance")}
-          </Text>
-        }
-      >
-        <SavingsFactRow
-          label={t("providerLabel")}
-          value={item.providerName || t("title")}
-        />
-        <SavingsFactRow label={t("familyLabel")} value={familyLabel} />
-        <SavingsFactRow label={t("termLabel")} value={termLabel} />
-        <SavingsFactRow label={t("currencyLabel")} value={currency} />
-      </SavingsFactsCard>
-
-      <section
-        className="flex flex-col gap-(--space-2)"
-        data-testid="savings-money-flow"
-      >
-        <SavingsSectionTitle>{t("moneyFlowTitle")}</SavingsSectionTitle>
-        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-          <div className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)">
-            <IconContainer tone={IconContainerTone.NEUTRAL} size="sm">
-              <AppIcon icon={FINANCE_ICONS.wallet} size={AppIconSize.SM} />
-            </IconContainer>
-            <div className="min-w-0 flex-1">
-              <Text size="xs" tone="secondary">
-                {t("fundingAccountLabel")}
-              </Text>
-              <Text size="sm" weight="medium" className="text-pretty">
-                {historicalOpening
-                  ? t("historicalOpeningFlowLine")
-                  : fundingAccountName}
-              </Text>
-            </div>
-          </div>
-          <div className="flex items-start gap-(--space-3) border-t border-divider px-(--space-4) py-(--space-3)">
-            <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
-              <AppIcon icon={FINANCE_ICONS.income} size={AppIconSize.SM} />
-            </IconContainer>
-            <div className="min-w-0 flex-1">
-              <Text size="xs" tone="secondary">
-                {t("settlementAccountLabel")}
-              </Text>
-              <Text size="sm" weight="medium" className="text-pretty">
-                {settlementAccountName}
-              </Text>
-            </div>
-          </div>
-        </Card>
-      </section>
 
       {canAct ? (
         <section
           className="flex flex-col gap-(--space-2)"
           data-testid="savings-maturity-instruction"
         >
-          <SavingsSectionTitle>
-            {t("maturityInstructionTitle")}
-          </SavingsSectionTitle>
-          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <Text
-              size="xs"
-              tone="secondary"
-              className="px-(--space-4) pt-(--space-3) text-pretty"
-            >
-              {t(
-                item.renewalPolicy === RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED
-                  ? "renewalPolicyAutoHint"
-                  : "renewalPolicyManualHint",
-              )}
-            </Text>
-            <dl className="divide-y divide-divider">
-              <SavingsFactRow
-                label={t("maturityStrategyLabel")}
-                value={t(
-                  `settlementRules.${item.maturityInstruction.strategy}` as never,
-                )}
-              />
-              {item.maturityInstruction.strategy !==
-              SettlementRule.WITHDRAW_EVERYTHING ? (
-                <SavingsFactRow
-                  label={t("targetPackageLabel")}
-                  value={targetPackageDisplay}
+          <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
+            <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
+              <SavingsSectionTitle>
+                {t("maturityInstructionTitle")}
+              </SavingsSectionTitle>
+              <Text
+                size="xs"
+                className="rounded-full bg-primary-soft px-(--space-2) py-(--space-1) text-primary"
+              >
+                {t(`renewalPolicies.${item.renewalPolicy}`)}
+              </Text>
+            </div>
+            <div className="rounded-(--radius-control) border border-border-subtle bg-surface-muted p-(--space-3)">
+              <div className="flex items-start gap-(--space-2)">
+                <AppIcon
+                  icon={ACTION_ICONS.success}
+                  size={AppIconSize.MD}
+                  className="shrink-0 text-primary"
                 />
-              ) : null}
-            </dl>
-            <div className="border-t border-divider px-(--space-4) py-(--space-3)">
+                <Text size="sm" weight="semibold">
+                  {t(`settlementRules.${item.maturityInstruction.strategy}`)}
+                </Text>
+              </div>
+              <Text
+                size="xs"
+                tone="secondary"
+                className="mt-(--space-2) text-pretty"
+              >
+                {t(
+                  item.renewalPolicy ===
+                    RenewalPolicy.AUTO_RENEW_UNTIL_CANCELLED
+                    ? "renewalPolicyAutoHint"
+                    : "renewalPolicyManualHint",
+                )}
+              </Text>
+              <dl className="divide-y divide-divider">
+                {item.maturityInstruction.strategy !==
+                SettlementRule.WITHDRAW_EVERYTHING ? (
+                  <SavingsFactRow
+                    label={t("targetPackageLabel")}
+                    value={targetPackageDisplay}
+                    className="px-0"
+                  />
+                ) : null}
+                <SavingsFactRow
+                  label={t("settlementAccountLabel")}
+                  value={settlementAccountName}
+                  className="px-0"
+                />
+              </dl>
+            </div>
+            <div>
               <RenewalPolicyEditor
                 savingId={item.id}
                 renewalPolicy={item.renewalPolicy}
@@ -513,10 +520,60 @@ export default async function SavingsDetailPage({ params }: Props) {
         </section>
       ) : null}
 
+      <div
+        className="grid grid-cols-3 gap-(--space-2)"
+        data-testid="savings-detail-actions"
+      >
+        {model.canSettleEarly ? (
+          <Link
+            href={moneySavingsEarlyWithdrawPath(item.id)}
+            data-testid="savings-early-withdraw"
+            className="flex min-h-20 min-w-0 flex-col items-center justify-center gap-(--space-1) rounded-(--radius-control) border border-warning/30 bg-warning/10 p-(--space-2) text-center text-warning focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            <AppIcon icon={FINANCE_ICONS.expense} size={AppIconSize.MD} />
+            <Text size="xs" weight="semibold">
+              {t("earlyWithdraw")}
+            </Text>
+          </Link>
+        ) : null}
+        {canAct ? (
+          <RenewalPolicyEditor
+            savingId={item.id}
+            renewalPolicy={item.renewalPolicy}
+            renewalConfig={item.renewalConfig}
+            packages={packages}
+            accounts={accounts}
+            compact
+          />
+        ) : null}
+        {cycles && cycles.length > 0 ? (
+          <a
+            href="#savings-cycle-history"
+            className="flex min-h-20 min-w-0 flex-col items-center justify-center gap-(--space-1) rounded-(--radius-control) border border-border-subtle bg-surface p-(--space-2) text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            <AppIcon
+              icon={UTILITY_ICONS.calendar}
+              size={AppIconSize.MD}
+              className="text-text-secondary"
+            />
+            <Text size="xs" weight="semibold">
+              {t("historyTitle")}
+            </Text>
+            <Text size="xs" tone="secondary">
+              {t("cycleLabel", { number: cycles.length })}
+            </Text>
+          </a>
+        ) : null}
+      </div>
+      {model.canSettleEarly ? (
+        <StatusAlert variant="warning" title={t("earlyWithdrawalNotice")} />
+      ) : null}
+
       {cycles && cycles.length > 0 ? (
         <section
           className="flex flex-col gap-(--space-2)"
           data-testid="savings-cycle-history"
+          id="savings-cycle-history"
         >
           <div>
             <SavingsSectionTitle>{t("historyTitle")}</SavingsSectionTitle>
@@ -594,53 +651,87 @@ export default async function SavingsDetailPage({ params }: Props) {
         )}
       </section>
 
+      <details className="rounded-(--radius-control) border border-border-subtle bg-surface p-(--space-4)">
+        <summary className="min-h-11 cursor-pointer text-sm font-semibold focus-visible:outline-2 focus-visible:outline-focus-ring">
+          {t("productDetailsTitle")}
+        </summary>
+        <div className="flex flex-col gap-(--space-3)">
+          <dl
+            data-testid="savings-product-details"
+            className="divide-y divide-divider"
+          >
+            <SavingsFactRow
+              label={t("providerLabel")}
+              value={item.providerName || t("title")}
+            />
+            <SavingsFactRow label={t("familyLabel")} value={familyLabel} />
+            <SavingsFactRow label={t("termLabel")} value={termLabel} />
+            <SavingsFactRow label={t("currencyLabel")} value={currency} />
+          </dl>
+          <Text size="xs" tone="muted">
+            {tProducts("notBankBalance")}
+          </Text>
+          <dl
+            data-testid="savings-money-flow"
+            className="divide-y divide-divider"
+          >
+            <SavingsFactRow
+              label={t("fundingAccountLabel")}
+              value={
+                historicalOpening
+                  ? t("historicalOpeningFlowLine")
+                  : fundingAccountName
+              }
+            />
+            <SavingsFactRow
+              label={t("settlementAccountLabel")}
+              value={settlementAccountName}
+            />
+          </dl>
+        </div>
+      </details>
+
       {isTerminal ? (
         <StatusAlert variant="info" title={t("terminalReadOnly")} />
       ) : null}
 
-      <BottomActionBar>
-        {model.canSettle && cycle ? (
-          accounts.length > 0 ? (
-            <SavingsSettlementFlow
-              cycleId={cycle.id}
-              currentPackageId={
-                cycle.packageSnapshot.packageId ??
-                item.productSnapshot.packageId ??
-                null
-              }
-              currentMaturityDate={cycle.endDate}
-              principal={model.principal}
-              grossInterest={model.grossInterest}
-              taxRule={model.taxRule}
-              taxRatePercent={model.taxRatePercent}
-              fee={model.fee}
-              settlementAccountId={item.settlementAccountId}
-              accounts={accounts}
-              packages={packages}
-              currency={currency}
-              targetUnavailable={targetUnavailable}
-            />
-          ) : (
+      {(model.canSettle && cycle) ||
+      (!model.canSettle && !model.canSettleEarly && !isTerminal) ? (
+        <BottomActionBar>
+          {model.canSettle && cycle ? (
+            accounts.length > 0 ? (
+              <SavingsSettlementFlow
+                cycleId={cycle.id}
+                currentPackageId={
+                  cycle.packageSnapshot.packageId ??
+                  item.productSnapshot.packageId ??
+                  null
+                }
+                currentMaturityDate={cycle.endDate}
+                principal={model.principal}
+                grossInterest={model.grossInterest}
+                taxRule={model.taxRule}
+                taxRatePercent={model.taxRatePercent}
+                fee={model.fee}
+                settlementAccountId={item.settlementAccountId}
+                accounts={accounts}
+                packages={packages}
+                currency={currency}
+                targetUnavailable={targetUnavailable}
+              />
+            ) : (
+              <Text size="sm" tone="secondary">
+                {t("noSettlementYet")}
+              </Text>
+            )
+          ) : null}
+          {!model.canSettle && !model.canSettleEarly && !isTerminal ? (
             <Text size="sm" tone="secondary">
               {t("noSettlementYet")}
             </Text>
-          )
-        ) : null}
-        {model.canSettleEarly ? (
-          <Link
-            href={moneySavingsEarlyWithdrawPath(item.id)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-4) text-sm font-medium text-text-primary transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
-            data-testid="savings-early-withdraw"
-          >
-            {t("earlyWithdraw")}
-          </Link>
-        ) : null}
-        {!model.canSettle && !model.canSettleEarly && !isTerminal ? (
-          <Text size="sm" tone="secondary">
-            {t("noSettlementYet")}
-          </Text>
-        ) : null}
-      </BottomActionBar>
+          ) : null}
+        </BottomActionBar>
+      ) : null}
     </Page>
   );
 }

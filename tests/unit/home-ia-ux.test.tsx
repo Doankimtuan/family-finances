@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { HomeCaptureAction } from "@/app/[locale]/(product)/home/home-capture-action";
 import { HomeDayZeroTrio } from "@/app/[locale]/(product)/home/home-day-zero-trio";
 import { HomeInboxCta } from "@/app/[locale]/(product)/home/home-inbox-cta";
 import { HomeCashFlowChart } from "@/app/[locale]/(product)/home/home-cash-flow-chart";
@@ -14,6 +13,7 @@ import { HomeProductSummaries } from "@/app/[locale]/(product)/home/home-product
 import { FilterChip } from "@/shared/patterns/filter-chip";
 import {
   HOME_TEST_ID,
+  HomeDashboardPeriod,
   HomeCashFlowGranularity,
   HomeProductReadStatus,
 } from "@/modules/home/application/home-constants";
@@ -58,30 +58,6 @@ vi.mock("recharts", () => ({
 }));
 
 describe("Home IA and action states", () => {
-  it("uses capture when an account exists and account setup otherwise", () => {
-    const { rerender } = render(<HomeCaptureAction accountCount={1} />);
-
-    const captureBtn = screen.getByTestId(HOME_TEST_ID.CAPTURE_ACTION);
-    expect(captureBtn).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "capture" })).toBeVisible();
-    fireEvent.click(captureBtn);
-    expect(pushMock).toHaveBeenLastCalledWith(APP_PATH.MONEY_ADD);
-
-    rerender(<HomeCaptureAction accountCount={0} />);
-    const addAccountBtn = screen.getByTestId(HOME_TEST_ID.ACCOUNT_ACTION);
-    expect(addAccountBtn).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "addAccount" })).toBeVisible();
-    expect(
-      screen.queryByTestId(HOME_TEST_ID.CAPTURE_ACTION),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "capture" }),
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(addAccountBtn);
-    expect(pushMock).toHaveBeenLastCalledWith(APP_PATH.MONEY);
-  });
-
   it("orders day-zero setup without exposing transaction capture", () => {
     render(<HomeDayZeroTrio />);
 
@@ -118,7 +94,9 @@ describe("Home IA and action states", () => {
     const inboxPreview = screen.getByTestId(HOME_TEST_ID.INBOX_CTA);
     expect(inboxPreview).toBeVisible();
     expect(inboxPreview).toHaveAttribute("href", APP_PATH.INBOX);
-    expect(inboxPreview).toHaveAccessibleName("inbox.open");
+    expect(inboxPreview).toHaveAccessibleName(
+      /inbox\.pending:3.*inbox\.pendingDetail.*inbox\.open/,
+    );
 
     rerender(<HomeInboxCta openCount={0} />);
     expect(screen.getByText("inbox.clear")).toBeInTheDocument();
@@ -175,6 +153,7 @@ describe("Home IA and action states", () => {
     expect(table).toHaveAccessibleName("cashFlow.dataTableTitle");
     expect(screen.getAllByRole("row")).toHaveLength(2);
     expect(table).toHaveTextContent("cashFlow.dataTable.period");
+    expect(table).toHaveTextContent("19/08");
     expect(table).toHaveTextContent("cashFlow.income");
     expect(table).toHaveTextContent("cashFlow.expense");
   });
@@ -193,7 +172,45 @@ describe("Home IA and action states", () => {
     ).toEqual([0, 1120]);
   });
 
-  it("keeps Net out of the period analytics summary", () => {
+  it("keeps daily cash-flow values on the period they were recorded", () => {
+    render(
+      <HomeCashFlowChart
+        trend={{
+          granularity: HomeCashFlowGranularity.DAY,
+          activePointCount: 1,
+          points: [
+            {
+              key: "2026-08-19",
+              startDate: "2026-08-19",
+              endDate: "2026-08-19",
+              income: 1000,
+              expense: 200,
+            },
+            {
+              key: "2026-08-20",
+              startDate: "2026-08-20",
+              endDate: "2026-08-20",
+              income: 0,
+              expense: 0,
+            },
+          ],
+        }}
+        currency="VND"
+        locale="vi"
+      />,
+    );
+
+    const rows = screen
+      .getByTestId(HOME_TEST_ID.CASH_FLOW_DATA_TABLE)
+      .querySelectorAll("tbody tr");
+    const quietDay = rows.item(1);
+    const quietDayAmounts = quietDay.querySelectorAll("td");
+
+    expect(quietDayAmounts.item(0)).toHaveTextContent("0");
+    expect(quietDayAmounts.item(1)).toHaveTextContent("0");
+  });
+
+  it("summarizes net, income, and expense for the selected period", () => {
     render(
       <HomeCashFlowSection
         metrics={{
@@ -211,20 +228,22 @@ describe("Home IA and action states", () => {
             points: [],
           },
           spendingCategories: [],
+          spendingRemainder: null,
           spendingInsight: null,
           hasTransactions: true,
         }}
         currency="VND"
         locale="vi"
+        period={HomeDashboardPeriod.MONTH}
       />,
     );
 
-    expect(screen.queryByText("cashFlow.net")).not.toBeInTheDocument();
+    expect(screen.getByText("cashFlow.net")).toBeVisible();
     expect(screen.getAllByText("cashFlow.income").length).toBeGreaterThan(0);
     expect(screen.getAllByText("cashFlow.expense").length).toBeGreaterThan(0);
   });
 
-  it("only exposes Uncategorized review when Inbox supports it", () => {
+  it("keeps the spending composition free of an Inbox action", () => {
     const metrics = {
       income: 0,
       expense: 1000,
@@ -248,33 +267,15 @@ describe("Home IA and action states", () => {
           progressPercent: 100,
         },
       ],
+      spendingRemainder: null,
       spendingInsight: null,
       hasTransactions: true,
     };
-    const { rerender } = render(
-      <HomeSpendingSection
-        metrics={metrics}
-        currency="VND"
-        locale="vi"
-        canReviewUncategorized={false}
-      />,
+    render(
+      <HomeSpendingSection metrics={metrics} currency="VND" locale="vi" />,
     );
 
-    expect(screen.queryByText("spending.review")).not.toBeInTheDocument();
-
-    rerender(
-      <HomeSpendingSection
-        metrics={metrics}
-        currency="VND"
-        locale="vi"
-        canReviewUncategorized={true}
-      />,
-    );
-
-    expect(screen.getByText("spending.review")).toHaveAttribute(
-      "href",
-      APP_PATH.INBOX,
-    );
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
   it("gives the total-assets balance current-state meaning without a competing net hero", () => {

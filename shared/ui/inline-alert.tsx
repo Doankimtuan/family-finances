@@ -4,24 +4,19 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { InlineAlertVariant as InlineAlertVariantValue } from "@/shared/ui/inline-alert-constants";
+import type { InlineAlertVariant as InlineAlertVariantType } from "@/shared/ui/inline-alert-constants";
 import {
   InformationCircleIcon,
   Alert02Icon,
   CheckmarkCircle02Icon,
 } from "@/shared/ui/stitch-icon-compat";
 
-export const InlineAlertVariant = {
-  INFO: "info",
-  WARNING: "warning",
-  ERROR: "error",
-  SUCCESS: "success",
-} as const;
-
-export type InlineAlertVariant =
-  (typeof InlineAlertVariant)[keyof typeof InlineAlertVariant];
+export const InlineAlertVariant = InlineAlertVariantValue;
+export type InlineAlertVariant = InlineAlertVariantType;
 
 export type InlineAlertProps = {
-  variant?: InlineAlertVariant;
+  variant?: InlineAlertVariantType;
   title?: ReactNode;
   children?: ReactNode;
   description?: ReactNode;
@@ -33,32 +28,32 @@ export type InlineAlertProps = {
 };
 
 const VARIANT_ICONS = {
-  [InlineAlertVariant.INFO]: InformationCircleIcon,
-  [InlineAlertVariant.WARNING]: Alert02Icon,
-  [InlineAlertVariant.ERROR]: Alert02Icon,
-  [InlineAlertVariant.SUCCESS]: CheckmarkCircle02Icon,
+  [InlineAlertVariantValue.INFO]: InformationCircleIcon,
+  [InlineAlertVariantValue.WARNING]: Alert02Icon,
+  [InlineAlertVariantValue.ERROR]: Alert02Icon,
+  [InlineAlertVariantValue.SUCCESS]: CheckmarkCircle02Icon,
 };
 
 const VARIANT_STYLES: Record<
-  InlineAlertVariant,
+  InlineAlertVariantType,
   { container: string; title: string; body: string }
 > = {
-  [InlineAlertVariant.INFO]: {
+  [InlineAlertVariantValue.INFO]: {
     container: "bg-transfer-soft/80 border-transfer/20 text-transfer",
     title: "text-transfer",
     body: "text-text-secondary",
   },
-  [InlineAlertVariant.WARNING]: {
+  [InlineAlertVariantValue.WARNING]: {
     container: "bg-warning-soft/80 border-warning/20 text-warning",
     title: "text-warning",
     body: "text-text-secondary",
   },
-  [InlineAlertVariant.ERROR]: {
+  [InlineAlertVariantValue.ERROR]: {
     container: "bg-danger-soft/80 border-danger/20 text-danger",
     title: "text-danger",
     body: "text-text-secondary",
   },
-  [InlineAlertVariant.SUCCESS]: {
+  [InlineAlertVariantValue.SUCCESS]: {
     container: "bg-income-soft/80 border-income/20 text-income",
     title: "text-income",
     body: "text-text-secondary",
@@ -72,7 +67,7 @@ const VARIANT_STYLES: Record<
  * Role: alert (error/warning) or status (info/success)
  */
 export function InlineAlert({
-  variant = InlineAlertVariant.INFO,
+  variant = InlineAlertVariantValue.INFO,
   title,
   children,
   description,
@@ -84,8 +79,8 @@ export function InlineAlert({
 }: InlineAlertProps) {
   const tA11y = useTranslations("a11y");
   const isHighUrgency =
-    variant === InlineAlertVariant.ERROR ||
-    variant === InlineAlertVariant.WARNING;
+    variant === InlineAlertVariantValue.ERROR ||
+    variant === InlineAlertVariantValue.WARNING;
   const styles = VARIANT_STYLES[variant];
   const defaultIconArtwork = VARIANT_ICONS[variant];
   const bodyContent = children ?? description;

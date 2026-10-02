@@ -172,7 +172,7 @@ export function AccountDetailActions({
             startTransition(async () => {
               const result = await archiveAccountAction({ accountId });
               if (result.status === "success") {
-                router.replace(APP_PATH.MONEY);
+                router.replace(APP_PATH.MONEY_ACCOUNTS);
                 router.refresh();
                 return;
               }
@@ -276,7 +276,7 @@ export function AccountDetailActions({
   }
 
   return (
-    <ActionSheetLayout.Body>
+    <ActionSheetLayout.Body className="pb-[calc(var(--sheet-footer-space)+env(safe-area-inset-bottom,0px))]">
       <ul
         className="divide-y divide-border-subtle/70"
         data-testid="account-actions"

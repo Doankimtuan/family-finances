@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import type {
   CreditCardDetail,
   CreditCardInstallment,
@@ -9,16 +10,20 @@ import type {
 import {
   CardBillingItemType,
   CardBillingMonthStatus,
+  MoneyCaptureMode,
   MoneyPaymentFlowStep,
+  TRANSACTION_ACCOUNT_QUERY_PARAM,
+  TRANSACTION_CAPTURE_MODE_QUERY_PARAM,
 } from "@/modules/ledger/application/client";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
-import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Sheet } from "@/shared/patterns/sheet";
 import { Button } from "@/shared/ui/button";
+import { InlineAlert, InlineAlertVariant } from "@/shared/ui/inline-alert";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Text } from "@/shared/ui/text";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import {
@@ -68,6 +73,8 @@ export function CreditCardDetailActions({
 }: CreditCardDetailActionsProps) {
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
+  const router = useRouter();
+  const { online } = useOnlineStatusClient();
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [payStep, setPayStep] = useState<MoneyPaymentFlowStep>(
     MoneyPaymentFlowStep.FORM,
@@ -85,21 +92,13 @@ export function CreditCardDetailActions({
   );
   const leadMonth = openMonths[0] ?? null;
   const remainingDue = leadMonth?.remaining ?? card.outstanding;
-  const statementAmount = leadMonth?.statementAmount ?? 0;
-  const paymentProgress =
-    statementAmount > 0
-      ? Math.min(
-          Math.max(
-            Math.round(((leadMonth?.paidAmount ?? 0) / statementAmount) * 100),
-            0,
-          ),
-          100,
-        )
-      : 0;
   const activityItems = card.items.filter(
     (item) => item.itemType === CardBillingItemType.STANDARD,
   );
-  const canPay = card.outstanding > 0 && liquidAccounts.length > 0;
+  const canPay = card.outstanding > 0 && liquidAccounts.length > 0 && online;
+  const linkedPaymentAccount = liquidAccounts.find(
+    (account) => account.id === card.linkedBankAccountId,
+  )?.name;
 
   const closePayment = () => {
     setErrorCode(null);
@@ -125,7 +124,7 @@ export function CreditCardDetailActions({
           remainingDueLabel={formatMoney(remainingDue)}
           statementLabel={formatMoney(leadMonth.statementAmount)}
           paidLabel={formatMoney(leadMonth.paidAmount)}
-          paymentProgress={paymentProgress}
+          linkedPaymentAccount={linkedPaymentAccount}
         />
       ) : (
         <EmptyState
@@ -136,38 +135,59 @@ export function CreditCardDetailActions({
           className="flex-none py-(--space-4)"
         />
       )}
-      <CreditCardInstallmentsSection
-        cardAccountId={card.accountId}
-        installments={installments}
-        eligiblePurchases={eligiblePurchases}
-        currency={currency}
-        canMutate={canMutate}
-      />
+      <div
+        className="grid grid-cols-3 gap-(--space-2)"
+        role="group"
+        aria-label={t("quickActions")}
+        data-testid="credit-card-quick-actions"
+      >
+        <Button
+          variant="primary"
+          className="h-auto min-h-12 w-full flex-col gap-(--space-1) px-(--space-2) py-(--space-1)"
+          data-testid="card-payment-open"
+          isDisabled={!canPay || !canMutate}
+          onPress={() => {
+            setErrorCode(null);
+            setIsPaymentOpen(true);
+          }}
+        >
+          <AppIcon icon={FINANCE_ICONS.debt} size={AppIconSize.SM} />
+          <span className="text-xs">{t("actionPay")}</span>
+        </Button>
+        <Button
+          variant="secondary"
+          className="h-auto min-h-12 w-full flex-col gap-(--space-1) px-(--space-2) py-(--space-1)"
+          isDisabled={!online || !canMutate}
+          onPress={() => {
+            const params = new URLSearchParams({
+              [TRANSACTION_ACCOUNT_QUERY_PARAM]: card.accountId,
+              [TRANSACTION_CAPTURE_MODE_QUERY_PARAM]: MoneyCaptureMode.EXPENSE,
+            });
+            router.push(`${APP_PATH.MONEY_ADD}?${params.toString()}`);
+          }}
+          data-testid="card-charge-open"
+        >
+          <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.SM} />
+          <span className="text-xs">{t("actionCharge")}</span>
+        </Button>
+        <CreditCardInstallmentsSection
+          cardAccountId={card.accountId}
+          installments={installments}
+          eligiblePurchases={eligiblePurchases}
+          currency={currency}
+          canMutate={canMutate}
+          presentation="quick-action"
+        />
+      </div>
       <CreditCardActivitySection
+        accountId={card.accountId}
         items={activityItems}
         formatMoney={formatMoney}
       />
-      {canMutate ? (
-        <BottomActionBar>
-          <Button
-            variant="primary"
-            className="w-full"
-            data-testid="card-payment-open"
-            isDisabled={!canPay}
-            onPress={() => {
-              setErrorCode(null);
-              setIsPaymentOpen(true);
-            }}
-          >
-            {t("settleTitle")}
-          </Button>
-          {!canPay ? (
-            <Text size="sm" tone="secondary">
-              {t("paymentUnavailable")}
-            </Text>
-          ) : null}
-        </BottomActionBar>
-      ) : null}
+      <InlineAlert
+        variant={InlineAlertVariant.INFO}
+        description={t("ledgerReminder")}
+      />
       <Sheet
         isOpen={isPaymentOpen}
         onOpenChange={(next) => {

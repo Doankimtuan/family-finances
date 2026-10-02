@@ -28,6 +28,8 @@ type Props = {
   jars: CaptureJarOption[];
   transactionTags: TransactionTag[];
   currency: string;
+  initialMode?: MoneyCaptureMode;
+  initialAccountId?: string;
 };
 
 /**
@@ -40,9 +42,11 @@ export function MoneyCaptureEntry({
   jars,
   transactionTags,
   currency,
+  initialMode = MoneyCaptureMode.EXPENSE,
+  initialAccountId,
 }: Props) {
   const t = useTranslations("money.captureForm");
-  const [mode, setMode] = useState<MoneyCaptureMode>(MoneyCaptureMode.EXPENSE);
+  const [mode, setMode] = useState<MoneyCaptureMode>(initialMode);
 
   return (
     <div
@@ -104,6 +108,7 @@ export function MoneyCaptureEntry({
             <TransferCaptureFlow
               accounts={accounts}
               currency={currency}
+              initialSourceAccountId={initialAccountId}
               onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
             />
           ) : (
@@ -116,6 +121,7 @@ export function MoneyCaptureEntry({
               transactionTags={transactionTags}
               currency={currency}
               initialDirection={mode}
+              initialAccountId={initialAccountId}
             />
           )}
         </MotionStep>

@@ -9,6 +9,8 @@ export type FormFieldProps = {
   label: ReactNode;
   error?: ReactNode;
   description?: ReactNode;
+  labelAccessory?: ReactNode;
+  labelClassName?: string;
   required?: boolean;
   children: ReactNode;
   className?: string;
@@ -23,6 +25,8 @@ export function FormField({
   label,
   error,
   description,
+  labelAccessory,
+  labelClassName,
   required,
   children,
   className,
@@ -32,15 +36,30 @@ export function FormField({
 
   return (
     <div className={cn("flex flex-col gap-(--space-2)", className)}>
-      <label htmlFor={id} className="text-sm font-medium text-text-primary">
-        {label}
-        {required ? (
-          <span className="text-danger" aria-hidden>
-            {" "}
-            *
-          </span>
+      <div
+        className={cn(
+          labelAccessory && "flex items-center justify-between gap-(--space-2)",
+        )}
+      >
+        <label
+          htmlFor={id}
+          className={cn(
+            "text-sm font-medium text-text-primary",
+            labelClassName,
+          )}
+        >
+          {label}
+          {required ? (
+            <span className="text-danger" aria-hidden>
+              {" "}
+              *
+            </span>
+          ) : null}
+        </label>
+        {labelAccessory ? (
+          <div className="shrink-0">{labelAccessory}</div>
         ) : null}
-      </label>
+      </div>
       {children}
       {description && !error ? (
         <Text id={descriptionId} tone="muted" size="sm">

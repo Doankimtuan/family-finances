@@ -10,11 +10,8 @@ vi.mock("@/i18n/navigation", () => ({
   Link: () => null,
   redirect: vi.fn(),
 }));
-vi.mock("@/modules/tenancy/application/get-session-user", () => ({
-  getSessionUser: vi.fn(async () => ({ id: "user-1" })),
-}));
-vi.mock("@/modules/tenancy/application/resolve-active-membership", () => ({
-  resolveActiveMembership: vi.fn(async () => ({ id: "membership-1" })),
+vi.mock("@/modules/tenancy/application/get-session-membership", () => ({
+  getSessionMembership: vi.fn(),
 }));
 vi.mock("@/app/[locale]/(product)/money/money-offline-banner", () => ({
   MoneyOfflineBanner: () => null,
@@ -31,6 +28,10 @@ vi.mock("@/modules/savings/application", async (importOriginal) => {
   };
 });
 
+import { getSessionMembership } from "@/modules/tenancy/application/get-session-membership";
+import { redirect } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { HOUSEHOLD_ROLE } from "@/modules/tenancy/application/tenancy-constants";
 import SavingsPage from "@/app/[locale]/(product)/money/savings/page";
 import SavingsLayout from "@/app/[locale]/(product)/money/savings/layout";
 import {
@@ -83,6 +84,16 @@ function isSavingsReadPathFile(file: string): boolean {
 
 describe("Savings page render purity", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getSessionMembership).mockResolvedValue({
+      user: { id: "user-1" } as never,
+      membership: {
+        membershipId: "membership-1",
+        householdId: "household-1",
+        userId: "user-1",
+        role: HOUSEHOLD_ROLE.ADMIN,
+      },
+    });
     vi.mocked(listSavings).mockResolvedValue([]);
   });
 
@@ -103,6 +114,22 @@ describe("Savings page render purity", () => {
     expect(detectMaturedSavings).not.toHaveBeenCalled();
     expect(backfillLegacySavingsAccounts).not.toHaveBeenCalled();
   });
+
+  it.each([
+    [null, APP_PATH.LOGIN],
+    [{ id: "user-1" }, APP_PATH.ONBOARD],
+  ])(
+    "redirects rejected sessions before loading Savings",
+    async (user, href) => {
+      vi.mocked(getSessionMembership).mockResolvedValue({
+        user: user as never,
+        membership: null,
+      });
+      await SavingsPage({ params: Promise.resolve({ locale: "en" }) });
+      expect(redirect).toHaveBeenCalledWith({ href, locale: "en" });
+      expect(listSavings).not.toHaveBeenCalled();
+    },
+  );
 
   it("does not mount lifecycle mutations on the Savings GET tree", () => {
     expect(existsSync(join(SAVINGS_APP_DIR, "layout.tsx"))).toBe(true);

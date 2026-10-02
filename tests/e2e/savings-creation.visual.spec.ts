@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Savings creation visual contract", () => {
   test.setTimeout(120_000);
 
-  test("three-step flow stays focused and responsive", async ({ page }) => {
+  test("two-step flow stays focused and responsive", async ({ page }) => {
     const email = process.env.E2E_USER_EMAIL;
     const password = process.env.E2E_USER_PASSWORD;
     test.skip(!email || !password, "E2E credentials not provided");
@@ -42,20 +42,12 @@ test.describe("Savings creation visual contract", () => {
       await expect(
         page.locator('[data-slot="bottom-navigation"]'),
       ).toBeHidden();
-      await expect(
-        page.locator('[data-testid^="savings-provider-"]').first(),
-      ).toBeVisible();
-      await expect(
-        page.locator('[data-testid^="savings-package-"]').first(),
-      ).toBeVisible();
+      await expect(page.getByTestId("savings-type-manual")).toBeVisible();
+      await expect(page.getByTestId("savings-type-platform")).toBeVisible();
+      await expect(page.getByTestId("savings-provider")).toBeVisible();
       await expect
         .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
         .toBeLessThanOrEqual(width);
-      await page.screenshot({
-        path: test.info().outputPath(`savings-product-${width}.png`),
-        fullPage: true,
-      });
-
       await expect(
         page.getByTestId("savings-create-mode-live").first(),
       ).toBeVisible();
@@ -63,8 +55,8 @@ test.describe("Savings creation visual contract", () => {
         page.getByTestId("savings-create-mode-historical").first(),
       ).toBeVisible();
       await page.getByTestId("savings-create-mode-historical").click();
+      await expect(page.getByTestId("savings-provider")).toBeVisible();
       await page.locator('[data-testid^="savings-package-"]').first().click();
-      await page.getByTestId("savings-wizard-next").first().click();
       await expect(page.getByTestId("savings-estimate").first()).toBeVisible();
       await expect(page.getByText(/Term details|Thông tin kỳ hạn/)).toHaveCount(
         0,
@@ -75,9 +67,7 @@ test.describe("Savings creation visual contract", () => {
       await expect(
         page.getByText(/No source account|Không có tài khoản nguồn/),
       ).toBeVisible();
-      await page.getByTestId("savings-wizard-back").click();
       await page.getByTestId("savings-create-mode-live").click();
-      await page.getByTestId("savings-wizard-next").click();
       await expect(
         page.locator('[data-testid^="savings-source-"]').first(),
       ).toBeVisible();
@@ -90,7 +80,7 @@ test.describe("Savings creation visual contract", () => {
         page.getByTestId("savings-wizard-next").first(),
       ).toBeVisible();
       await page.screenshot({
-        path: test.info().outputPath(`savings-deposit-${width}.png`),
+        path: test.info().outputPath(`savings-setup-${width}.png`),
         fullPage: true,
       });
 

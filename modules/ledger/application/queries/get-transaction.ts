@@ -248,6 +248,7 @@ export type ListTransactionsFilter = {
 
 export type ListTransactionEventsFilter = {
   type: TransactionFilterType;
+  accountId?: string;
   tagIds?: readonly string[];
   q?: string;
   categoryIds?: readonly string[];
@@ -359,6 +360,8 @@ async function listTransactionEventRows(
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .limit(limit);
+
+    if (filter.accountId) query = query.eq("account_id", filter.accountId);
 
     if (filter.type === TransactionFilterType.INCOME) {
       query = query.in("type", [TransactionLedgerType.INCOME]);

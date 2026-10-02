@@ -16,9 +16,11 @@ import type {
   HomeCashFlowTrend,
   HomeCashFlowTrendPoint,
 } from "@/modules/home/application/home-dashboard-metrics";
+import { APP_LOCALE } from "@/i18n/routing";
 import {
   HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS,
   HOME_CASH_FLOW_CHART_AREA_OPACITY,
+  HOME_CASH_FLOW_GRID_DASH_PATTERN,
   HOME_CASH_FLOW_CHART_HEADROOM_RATIO,
   HOME_CASH_FLOW_CHART_HEIGHT,
   HOME_CASH_FLOW_CHART_MARGIN,
@@ -34,8 +36,8 @@ import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 
 const CASH_FLOW_CHART_DATE_OPTIONS = {
-  month: "short",
-  day: "numeric",
+  day: "2-digit",
+  month: "2-digit",
 } satisfies Intl.DateTimeFormatOptions;
 
 function dateFromStorageValue(value: string) {
@@ -43,11 +45,14 @@ function dateFromStorageValue(value: string) {
 }
 
 function formatTrendDate(value: string, locale: string) {
-  return formatDate(
+  const formatted = formatDate(
     dateFromStorageValue(value),
     locale,
     CASH_FLOW_CHART_DATE_OPTIONS,
   );
+  return locale === APP_LOCALE.VIETNAMESE
+    ? formatted.replace("-", "/")
+    : formatted;
 }
 
 function formatTrendDateRange(point: HomeCashFlowTrendPoint, locale: string) {
@@ -84,7 +89,7 @@ export function HomeCashFlowChart({
   const hasSparseData = trend.activePointCount <= 1;
 
   return (
-    <div className="pb-(--space-1)" data-testid={HOME_TEST_ID.CASH_FLOW_CHART}>
+    <div data-testid={HOME_TEST_ID.CASH_FLOW_CHART}>
       <div
         className="w-full"
         style={{ height: HOME_CASH_FLOW_CHART_HEIGHT }}
@@ -122,35 +127,17 @@ export function HomeCashFlowChart({
                   stopOpacity={0}
                 />
               </linearGradient>
-              <linearGradient
-                id={`${gradientId}-expense`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--color-chart-negative)"
-                  stopOpacity={HOME_CASH_FLOW_CHART_AREA_OPACITY.EXPENSE}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--color-chart-negative)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
             </defs>
             <CartesianGrid
               vertical={false}
               stroke="var(--color-chart-grid)"
               strokeOpacity={0.4}
+              strokeDasharray={HOME_CASH_FLOW_GRID_DASH_PATTERN}
             />
             <ReferenceLine
               y={0}
               stroke="var(--color-border-strong)"
               strokeOpacity={0.8}
-              strokeDasharray="4 4"
             />
             <XAxis
               dataKey="startDate"
@@ -237,16 +224,14 @@ export function HomeCashFlowChart({
               dot={(props) => {
                 const point = props.payload as
                   HomeCashFlowTrendPoint | undefined;
-                const hasActivity =
-                  point !== undefined &&
-                  (point.income > 0 || point.expense > 0);
+                const hasIncome = point !== undefined && point.income > 0;
                 return (
                   <circle
                     key={point ? `income-${point.key}` : "income-dot"}
                     cx={props.cx}
                     cy={props.cy}
                     r={2.5}
-                    opacity={hasActivity ? 1 : 0}
+                    opacity={hasIncome ? 1 : 0}
                     fill="var(--color-chart-positive)"
                     stroke="var(--color-surface)"
                     strokeWidth={1.5}
@@ -265,20 +250,18 @@ export function HomeCashFlowChart({
               name={t("cashFlow.expense")}
               stroke="var(--color-chart-negative)"
               strokeWidth={HOME_CASH_FLOW_CHART_STROKE_WIDTH}
-              fill={`url(#${gradientId}-expense)`}
+              fill="none"
               dot={(props) => {
                 const point = props.payload as
                   HomeCashFlowTrendPoint | undefined;
-                const hasActivity =
-                  point !== undefined &&
-                  (point.income > 0 || point.expense > 0);
+                const hasExpense = point !== undefined && point.expense > 0;
                 return (
                   <circle
                     key={point ? `expense-${point.key}` : "expense-dot"}
                     cx={props.cx}
                     cy={props.cy}
                     r={2.5}
-                    opacity={hasActivity ? 1 : 0}
+                    opacity={hasExpense ? 1 : 0}
                     fill="var(--color-chart-negative)"
                     stroke="var(--color-surface)"
                     strokeWidth={1.5}

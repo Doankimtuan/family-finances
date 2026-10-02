@@ -14,13 +14,18 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { StatusBadgeTone } from "@/shared/ui/status-badge";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  Link: (linkProps: ComponentProps<"a"> & { prefetch?: boolean }) => {
+    const { href, children, ...anchorProps } = linkProps;
+    delete anchorProps.prefetch;
+    return (
+      <a href={href} {...anchorProps}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("next-intl", () => ({
@@ -30,24 +35,18 @@ vi.mock("next-intl", () => ({
 const labels = {
   sectionTitle: "Accounts",
   sectionDescription: "Scan usable money.",
-  groupTitles: {
-    cash: "Cash",
-    bank: "Bank",
-    wallet: "E-wallet",
-    savings: "Savings",
-    investment: "Investments",
-    other: "Other",
-  },
-  creditCardsTitle: "Credit cards",
+  totalBalanceLabel: "₫1,200,000",
   creditCardType: "Credit card",
-  creditCardsHint: "Money owed on cards.",
-  outstanding: "Outstanding",
   availableCredit: "Available credit",
   creditLimit: "Credit limit",
+  outstanding: "Outstanding",
+  accountsUnavailable: "Accounts unavailable",
+  creditCardsUnavailable: "Credit cards unavailable",
   emptyTitle: "No accounts",
   emptyDescription: "Add an account.",
-  showAll: "See all accounts",
-  showLess: "Show fewer accounts",
+  viewAccounts: "View accounts",
+  showAllAccounts: "Show all accounts",
+  showFewerAccounts: "Show fewer accounts",
   attentionLabels: {
     overdue: "Overdue",
     due_soon: "Due soon",
@@ -62,6 +61,7 @@ describe("Money financial reality hub", () => {
         ownedMoneyLabel="Money in active accounts"
         ownedMoneyHint="Not investments or Plan envelopes."
         ownedMoneyValue="₫3,000,000"
+        ownedMoneyKind={FinancialNumberKind.CURRENT_STATE}
         positionUnavailableLabel="Unavailable"
         heroAccessibleLabel="Accessible money in active accounts"
         metaLine={<span>2 active accounts</span>}
@@ -114,12 +114,8 @@ describe("Money financial reality hub", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={[]}
-        initialAccountGroups={[]}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
+        accounts={[]}
         creditCards={[]}
-        createAction={<button type="button">Header create</button>}
         emptyAction={<button type="button">Add account</button>}
       />,
     );
@@ -135,46 +131,26 @@ describe("Money financial reality hub", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={[
+        accounts={[
           {
             key: MoneyAccountGroupKey.CASH,
             accounts: [
               {
                 id: "cash-1",
                 title: "Daily cash",
-                typeLabel: "Cash",
-                balanceCaption: "Balance",
                 balanceLabel: "₫1,200,000",
                 icon: FINANCE_ICONS.cash,
                 iconTone: IconContainerTone.INCOME,
-                financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
-                isOwnedByMe: false,
-                ownerStatus: OWNER_STATUS.ACTIVE,
+                typeLabel: "Cash",
+                ownership: {
+                  financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
+                  isOwnedByMe: false,
+                  ownerStatus: OWNER_STATUS.ACTIVE,
+                },
               },
             ],
           },
         ]}
-        initialAccountGroups={[
-          {
-            key: MoneyAccountGroupKey.CASH,
-            accounts: [
-              {
-                id: "cash-1",
-                title: "Daily cash",
-                typeLabel: "Cash",
-                balanceCaption: "Balance",
-                balanceLabel: "₫1,200,000",
-                icon: FINANCE_ICONS.cash,
-                iconTone: IconContainerTone.INCOME,
-                financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
-                isOwnedByMe: false,
-                ownerStatus: OWNER_STATUS.ACTIVE,
-              },
-            ],
-          },
-        ]}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
         creditCards={[
           {
             id: "card-1",
@@ -184,30 +160,112 @@ describe("Money financial reality hub", () => {
             limitLabel: "₫1,000,000",
             utilizationPct: 80,
             utilizationLabel: "80% used",
-            utilizationAriaLabel: "80% of the card credit limit used",
+            utilizationAriaLabel: "80% of the credit limit used",
           },
         ]}
-        createAction={<button type="button">Add account</button>}
       />,
     );
 
-    expect(screen.getByTestId("account-card-balance")).toHaveTextContent(
+    expect(screen.getByTestId("money-hub-account-row")).toHaveTextContent(
       "₫1,200,000",
-    );
-    expect(screen.getByTestId("credit-card-card")).toHaveTextContent(
-      "Outstanding",
     );
     expect(
       screen
-        .getByTestId("credit-card-card")
+        .getByTestId("money-hub-credit-card-row")
         .querySelector(
           `[data-financial-kind="${FinancialNumberKind.CURRENT_STATE}"]`,
         ),
     ).toBeTruthy();
-    expect(screen.getByText("Money owed on cards.")).toBeInTheDocument();
+    expect(screen.getByTestId("money-hub-account-row")).toHaveTextContent(
+      "Cash",
+    );
+    expect(screen.getByTestId("money-hub-account-row")).toHaveTextContent(
+      "household",
+    );
+    expect(screen.getByTestId("money-hub-credit-card-row")).toHaveTextContent(
+      "Available credit",
+    );
+    expect(screen.getByTestId("money-hub-credit-card-row")).toHaveTextContent(
+      "₫200,000",
+    );
+    expect(screen.getByTestId("money-hub-credit-card-row")).toHaveTextContent(
+      "Credit limit",
+    );
     expect(
       screen.getByTestId("money-hub-credit-card-row"),
     ).not.toHaveTextContent("Daily cash");
+    expect(screen.getByTestId("money-accounts-route-link")).toHaveAttribute(
+      "href",
+      APP_PATH.MONEY_ACCOUNTS,
+    );
+    expect(
+      screen.queryByTestId("money-accounts-manage"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders the Accounts directory with asset groups and a separate credit section", () => {
+    render(
+      <MoneyAccountsScan
+        labels={{
+          ...labels,
+          ownedBalanceLabel: "Total in accounts",
+          ownedBalanceValue: "₫1,500,000",
+          creditCardsTitle: "Credit cards",
+          creditCardsHint: "Money owed, not money to spend.",
+          addCreditCard: "Add credit card",
+          accountGroupLabels: {
+            [MoneyAccountGroupKey.BANK]: "Bank",
+            [MoneyAccountGroupKey.CASH]: "Cash",
+          },
+          cashWalletGroupTitle: "Cash & e-wallets",
+        }}
+        accounts={[
+          {
+            key: MoneyAccountGroupKey.BANK,
+            totalBalanceLabel: "₫1,000,000",
+            accounts: [
+              {
+                id: "bank-1",
+                title: "Everyday bank",
+                balanceLabel: "₫1,000,000",
+                icon: FINANCE_ICONS.account,
+                iconTone: IconContainerTone.PRIMARY,
+              },
+            ],
+          },
+          {
+            key: MoneyAccountGroupKey.CASH,
+            totalBalanceLabel: "₫500,000",
+            accounts: [
+              {
+                id: "cash-1",
+                title: "Family cash",
+                balanceLabel: "₫500,000",
+                icon: FINANCE_ICONS.cash,
+                iconTone: IconContainerTone.INCOME,
+              },
+            ],
+          },
+        ]}
+        creditCards={[]}
+        initiallyExpanded
+        showGroupSections
+      />,
+    );
+
+    expect(
+      screen.getByTestId("money-accounts-balance-summary"),
+    ).toHaveTextContent("₫1,500,000");
+    expect(screen.getByRole("heading", { name: "Bank" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Cash & e-wallets" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Credit cards" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Add credit card" }),
+    ).toHaveAttribute("href", APP_PATH.MONEY_ACCOUNTS_NEW_CREDIT);
   });
 
   it("stamps investment module values as estimates", () => {
@@ -223,20 +281,22 @@ describe("Money financial reality hub", () => {
           label: "₫12,000,000",
           kind: FinancialNumberKind.ESTIMATE,
         }}
+        status={{
+          label: "Valuation up to date",
+          tone: StatusBadgeTone.POSITIVE,
+        }}
         meta="2 holdings"
       />,
     );
 
+    const row = screen.getByTestId("money-link-investments");
     expect(
-      screen
-        .getByTestId("money-link-investments")
-        .querySelector(
-          `[data-financial-kind="${FinancialNumberKind.ESTIMATE}"]`,
-        ),
+      row.querySelector(
+        `[data-financial-kind="${FinancialNumberKind.ESTIMATE}"]`,
+      ),
     ).toHaveTextContent("₫12,000,000");
-    expect(screen.getByTestId("money-link-investments")).toHaveAttribute(
-      "href",
-      APP_PATH.MONEY_INVESTMENTS,
-    );
+    expect(row).toHaveTextContent("Valuation up to date");
+    expect(row).toHaveTextContent("2 holdings");
+    expect(row).toHaveAttribute("href", APP_PATH.MONEY_INVESTMENTS);
   });
 });

@@ -7,151 +7,166 @@ import {
 import { formatCurrency, formatPercent } from "@/shared/i18n/formatters";
 import { Heading } from "@/shared/ui/heading";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainerTone } from "@/shared/ui/icon-container";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { categoryVisualFor } from "@/shared/ui/icon-registry";
-import { Progress } from "@/shared/ui/progress";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
-import { Link } from "@/i18n/navigation";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+
+const DISTRIBUTION_TONES = [
+  IconContainerTone.PRIMARY,
+  IconContainerTone.INFO,
+  IconContainerTone.INVESTMENT,
+  IconContainerTone.DEBT,
+] as const;
+
+const DISTRIBUTION_TONE_CLASS = {
+  [IconContainerTone.NEUTRAL]: "bg-progress-track",
+  [IconContainerTone.PRIMARY]: "bg-primary",
+  [IconContainerTone.INFO]: "bg-info",
+  [IconContainerTone.INVESTMENT]: "bg-investment",
+  [IconContainerTone.DEBT]: "bg-debt",
+} satisfies Record<
+  (typeof DISTRIBUTION_TONES)[number] | typeof IconContainerTone.NEUTRAL,
+  string
+>;
+
+type SpendingDistributionItem = {
+  key: string;
+  label: string;
+  amount: number;
+  proportion: number;
+  progressPercent: number;
+  tone: DistributionTone;
+};
+
+type DistributionTone =
+  (typeof DISTRIBUTION_TONES)[number] | typeof IconContainerTone.NEUTRAL;
 
 export function HomeSpendingSection({
   metrics,
   currency,
   locale,
-  canReviewUncategorized,
 }: {
   metrics: HomeFinancialMetrics;
   currency: string;
   locale: string;
-  canReviewUncategorized: boolean;
 }) {
   const t = useTranslations("home");
   if (metrics.spendingCategories.length === 0) return null;
-  const insightPresentation = metrics.spendingInsight
+  const distributionItems: SpendingDistributionItem[] =
+    metrics.spendingCategories.map((category, index) => {
+      const visual = categoryVisualFor({
+        categoryId: category.id,
+        categoryName: category.name,
+        iconKey: category.iconKey,
+      });
+      return {
+        key: category.id ?? visual.iconKey,
+        label: category.name ?? t("spending.uncategorized"),
+        amount: category.amount,
+        proportion: category.proportion,
+        progressPercent: category.progressPercent,
+        tone: DISTRIBUTION_TONES[index],
+      };
+    });
+  if (metrics.spendingRemainder) {
+    distributionItems.push({
+      key: t("spending.other"),
+      label: t("spending.other"),
+      ...metrics.spendingRemainder,
+      tone: IconContainerTone.NEUTRAL,
+    });
+  }
+  const insight = metrics.spendingInsight;
+  const insightPresentation = insight
     ? {
         icon:
-          metrics.spendingInsight.kind === "higher"
+          insight.kind === "higher"
             ? FINANCE_ICONS.expense
             : FINANCE_ICONS.income,
-        tone: metrics.spendingInsight.kind === "higher" ? "danger" : "success",
+        tone: insight.kind === "higher" ? "text-danger" : "text-success",
       }
     : null;
-  const description = metrics.spendingInsight
-    ? t.rich(`spending.insight.${metrics.spendingInsight.kind}`, {
+  const description = insight
+    ? t.rich(`spending.insight.${insight.kind}`, {
         amount: () => (
           <span
-            className={`inline-flex items-center gap-(--space-1) ${
-              insightPresentation?.tone === "danger"
-                ? "text-danger"
-                : "text-success"
-            }`}
+            className={`inline-flex items-center gap-(--space-1) ${insightPresentation?.tone}`}
           >
             {insightPresentation ? (
               <AppIcon icon={insightPresentation.icon} size={AppIconSize.XS} />
             ) : null}
             <FinancialValue className="tabular-nums">
-              {formatCurrency(
-                metrics.spendingInsight?.amount ?? 0,
-                currency,
-                locale,
-                { maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS },
-              )}
+              {formatCurrency(insight.amount, currency, locale, {
+                maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+              })}
             </FinancialValue>
           </span>
         ),
       })
-    : t("spending.hint");
+    : null;
 
   return (
     <div
-      className="flex flex-col gap-(--space-2)"
+      className="flex flex-col gap-(--space-2) pt-(--space-2)"
       data-testid={HOME_TEST_ID.SPENDING}
     >
-      <Heading
-        level={3}
-        className="text-sm font-semibold tracking-normal text-text-primary"
-      >
-        {t("spending.title")}
-      </Heading>
-      <Text size="xs" tone="secondary" className="text-pretty">
-        {description}
-      </Text>
+      <div className="flex items-center justify-between gap-(--space-3)">
+        <Heading
+          level={3}
+          className="text-sm font-semibold tracking-normal text-text-primary"
+        >
+          {t("spending.title")}
+        </Heading>
+      </div>
+      {description ? (
+        <Text size="xs" tone="secondary" className="text-pretty">
+          {description}
+        </Text>
+      ) : null}
       <div
         id="home-cash-flow-breakdown"
-        className="flex flex-col divide-y divide-divider"
+        className="flex h-2.5 w-full overflow-hidden rounded-full bg-surface-muted"
+        aria-hidden="true"
       >
-        {metrics.spendingCategories.map((category) => {
-          const visual = categoryVisualFor({
-            categoryId: category.id,
-            categoryName: category.name,
-            iconKey: category.iconKey,
-          });
-          const categoryName = category.name ?? t("spending.uncategorized");
-          const percentage = formatPercent(category.proportion, locale, {
+        {distributionItems.map((item) => (
+          <span
+            key={item.key}
+            className={DISTRIBUTION_TONE_CLASS[item.tone]}
+            style={{ width: `${item.progressPercent}%` }}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-x-(--space-3) gap-y-(--space-2)">
+        {distributionItems.map((item) => {
+          const percentage = formatPercent(item.proportion, locale, {
             maximumFractionDigits: 0,
           });
-          const isUncategorized = category.id == null;
-
           return (
             <div
-              key={category.id ?? visual.iconKey}
-              className="grid grid-cols-[auto_minmax(0,1fr)_var(--financial-number-column-width)] items-start gap-(--space-3) py-(--space-3) first:pt-0 last:pb-0"
+              key={item.key}
+              className="flex min-w-0 items-start gap-(--space-1)"
             >
-              <IconContainer tone={visual.tone} size="sm" className="mt-0.5">
-                <AppIcon icon={visual.icon} size="sm" />
-              </IconContainer>
+              <span
+                className={`mt-(--space-1) size-2 shrink-0 rounded-full ${DISTRIBUTION_TONE_CLASS[item.tone]}`}
+                aria-hidden="true"
+              />
               <div className="min-w-0">
-                <Text
-                  size="sm"
-                  className="truncate font-medium text-text-primary"
-                >
-                  {categoryName}
-                </Text>
-                <div className="mt-(--space-2) flex h-3 items-center">
-                  <Progress
-                    value={category.progressPercent}
-                    label={t("spending.share", {
-                      category: categoryName,
-                      percentage,
-                    })}
-                    showLabel={false}
-                    tone={visual.tone}
-                    className="w-full"
-                    trackClassName="h-1.5"
-                  />
-                </div>
-                {isUncategorized && canReviewUncategorized ? (
-                  <Link
-                    href={APP_PATH.INBOX}
-                    aria-label={t("spending.reviewAria", {
-                      category: categoryName,
-                    })}
-                    className="mt-(--space-2) inline-flex min-h-9 w-fit items-center gap-(--space-1) rounded-full border border-warning/30 bg-warning/10 px-(--space-3) text-xs font-semibold text-warning transition-[background-color,transform] duration-(--duration-fast) hover:bg-warning/20 active:scale-[var(--press-scale)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none motion-reduce:active:scale-100"
-                  >
-                    {t("spending.review")}
-                    <AppIcon icon={ACTION_ICONS.forward} size="xs" />
-                  </Link>
-                ) : null}
-              </div>
-              <div className="min-w-0 tabular-nums text-right">
-                <Text
-                  size="sm"
-                  className="font-semibold text-text-primary"
-                  tabular
-                >
+                <Text size="xs" className="text-pretty text-text-secondary">
+                  <span className="font-medium">{item.label}:</span>{" "}
+                  <span className="font-semibold tabular-nums text-text-primary">
+                    {percentage}
+                  </span>{" "}
+                  <span className="tabular-nums text-text-muted">(</span>
                   <FinancialValue>
-                    {formatCurrency(category.amount, currency, locale, {
-                      maximumFractionDigits: HOME_CURRENCY_FRACTION_DIGITS,
+                    {formatCurrency(item.amount, currency, locale, {
+                      notation: "compact",
+                      maximumFractionDigits: 1,
                     })}
                   </FinancialValue>
+                  <span className="text-text-muted">)</span>
                 </Text>
-                <div className="mt-(--space-2) flex h-3 items-center justify-end">
-                  <Text size="xs" tone="muted" tabular className="leading-none">
-                    {percentage}
-                  </Text>
-                </div>
               </div>
             </div>
           );

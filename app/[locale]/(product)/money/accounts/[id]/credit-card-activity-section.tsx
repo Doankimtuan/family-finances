@@ -4,10 +4,6 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import type { CardBillingItem } from "@/modules/ledger/application/client";
-import {
-  TransactionDirection,
-  TRANSACTION_LEDGER_AMOUNT_PREFIX,
-} from "@/modules/ledger/application/client";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -18,6 +14,7 @@ import {
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { Text } from "@/shared/ui/text";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import {
   ACCOUNT_ACTIVITY_LIST_CLASS,
@@ -27,12 +24,14 @@ import { AccountSectionTitle } from "./account-section-title";
 import { AccountViewActivityAction } from "./account-view-activity-action";
 
 type CreditCardActivitySectionProps = {
+  accountId: string;
   items: CardBillingItem[];
   formatMoney: (amount: number) => string;
 };
 
 /** A bounded card-purchase preview; the transactions domain remains authoritative. */
 export function CreditCardActivitySection({
+  accountId,
   items,
   formatMoney,
 }: CreditCardActivitySectionProps) {
@@ -49,7 +48,11 @@ export function CreditCardActivitySection({
     >
       <SectionHeader
         title={<AccountSectionTitle>{t("activityTitle")}</AccountSectionTitle>}
-        action={<AccountViewActivityAction testId="card-quick-activity" />}
+        action={
+          <Text size="xs" tone="secondary">
+            {t("activityCount", { count: items.length })}
+          </Text>
+        }
       />
       {previewItems.length === 0 ? (
         <EmptyState
@@ -87,7 +90,8 @@ export function CreditCardActivitySection({
                       {item.isPaid ? t("activityPaid") : t("activityUnpaid")}
                     </StatusBadge>
                   }
-                  amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[TransactionDirection.EXPENSE]}${formatMoney(item.amount)}`}
+                  amountLabel={formatMoney(Math.abs(item.amount))}
+                  currency=""
                   tone={TransactionAmountTone.DEBIT}
                   showChevron={isLinked}
                 />
@@ -111,6 +115,12 @@ export function CreditCardActivitySection({
           </ul>
         </Card>
       )}
+      {previewItems.length > 0 ? (
+        <AccountViewActivityAction
+          accountId={accountId}
+          testId="card-quick-activity"
+        />
+      ) : null}
     </section>
   );
 }

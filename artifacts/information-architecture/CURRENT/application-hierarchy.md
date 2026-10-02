@@ -246,9 +246,8 @@ Entry points:
 
 | Decision | Reason |
 |---|---|
-| Keep five bottom tabs. | Preserves minimal navigation and existing strong shell. |
+| Keep four bottom route tabs and center transaction creation; use the Home household shortcut for Together. | Preserves the main daily destinations while making transaction creation consistent and keeping Together access with household context. |
 | Keep Health outside bottom tabs. | Avoids a sixth tab and positions Health as insight, not daily navigation. |
 | Group Debts, Loans, Savings under Money Products. | Keeps Money predictable and leaves room for Investments, Insurance, and Net Worth. |
 | Keep Settings under Together. | Household-first identity makes settings a household management concern. |
 | Make action routes children of the object they act on. | Reduces route ambiguity and keeps back navigation predictable. |
-

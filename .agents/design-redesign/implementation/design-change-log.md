@@ -7,6 +7,16 @@
 
 ## Log Entries
 
+### ENTRY-04: Bottom Navigation Five-Route Redesign
+
+- **ID**: `DCL-004`
+- **Date**: 2026-09-30
+- **Gap Discovered**: The live navigation used four route tabs and placed Create transaction in the middle of the dock, removing Together from the primary navigation and making the active tab and action compete.
+- **Resolution**: Restore five equal route tabs (Home, Money, Plan, Inbox, Together). Move Create transaction to a separate 44px floating pill above the bar. Replace the filled selected tile with a small top indicator, primary text, and emphasized icon stroke.
+- **Stitch Change**: Refined the supplied navigation screen. Previous exploration `2b70f6125b134d3d9ca2499befaecf1b` is superseded by canonical reference `468646066fc14f1f87f6080af33308eb`.
+- **Code Impact**: `BottomNavigation`, its semantic icon registry, the shared `FloatingAction` control size, and the authenticated product shell. Route semantics and Add transaction destination stay unchanged.
+- **Verification**: Responsive geometry and localized light/dark screens were reviewed in the authenticated browser at 360, 390, 430, 440, 768, and 1280px. Lint, typecheck, and navigation-focused tests pass. Remaining live checks are listed in `implementation/04-navigation-shell/bottom-navigation-redesign.md`.
+
 ### ENTRY-01: Soft Expense Container Harmonization
 
 - **ID**: `DCL-001`

@@ -4,6 +4,7 @@ import { useLocale } from "next-intl";
 import type { ReactNode } from "react";
 import { formatNumber } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
+import type { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { cn } from "@/shared/utils/cn";
 
 export const FinancialAmountSize = {
@@ -68,6 +69,7 @@ export type FinancialAmountProps = {
   currencyPosition?: "prefix" | "suffix";
   size?: FinancialAmountSize;
   tone?: FinancialAmountTone;
+  kind?: FinancialNumberKind;
   /** Explicit sign prefix: "+" for income, "−" for expense, "⇄" for transfer. */
   showSign?: boolean;
   /** When true, masks value when financial privacy mode is enabled. */
@@ -98,6 +100,7 @@ export function FinancialAmount({
   currencyPosition = "prefix",
   size = FinancialAmountSize.ROW_AMOUNT,
   tone = FinancialAmountTone.NEUTRAL,
+  kind,
   showSign = false,
   privacyAware = true,
   className,
@@ -163,6 +166,7 @@ export function FinancialAmount({
         TONE_CLASSES[tone] ?? TONE_CLASSES.neutral,
         className,
       )}
+      data-financial-kind={kind}
       data-testid={testId}
     >
       {privacyAware ? <FinancialValue>{content}</FinancialValue> : content}

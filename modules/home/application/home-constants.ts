@@ -21,6 +21,7 @@ export const HomeProductSummaryKey = {
   INVESTMENTS: "investments",
 } as const;
 export const HOME_DASHBOARD_MAX_CATEGORY_COUNT = 4;
+export const HOME_RECENT_ACTIVITY_LIMIT = 3;
 
 export const HomeDashboardReadStatus = {
   ERROR: "error",
@@ -83,13 +84,13 @@ export const HOME_CASH_FLOW_CHART_MARGIN = {
   LEFT: 4,
   BOTTOM: 2,
 } as const;
+export const HOME_CASH_FLOW_GRID_DASH_PATTERN = "3 5";
 export const HOME_CASH_FLOW_CHART_STROKE_WIDTH = 2;
 export const HOME_CASH_FLOW_CHART_ACTIVE_DOT_RADIUS = 4;
 export const HOME_CASH_FLOW_CHART_HEADROOM_RATIO = 0.12;
 export const HOME_CASH_FLOW_EXPENSE_DASH_PATTERN = "5 4";
 export const HOME_CASH_FLOW_CHART_AREA_OPACITY = {
   INCOME: 0.16,
-  EXPENSE: 0.1,
 } as const;
 export const HOME_PERCENT_SCALE = 100;
 export const HomeStatusLaneKind = {
@@ -135,19 +136,16 @@ export const HOME_TEST_ID = {
   CASH_FLOW_DATA_TABLE: "home-cash-flow-data-table",
   CASH_FLOW_TOOLTIP: "home-cash-flow-tooltip",
   SPENDING: "home-spending",
-  PLAN_PULSE: "home-plan-pulse",
   INBOX_BLOCK: "home-inbox-block",
-  PLAN_LINK: "home-plan-link",
   PRODUCT_SUMMARIES: "home-product-summaries",
   PRODUCT_SAVINGS: "home-product-savings",
   PRODUCT_INVESTMENTS: "home-product-investments",
   PRODUCT_LOANS: "home-product-loans",
   PRODUCT_DEBT: "home-product-debt",
+  RECENT_ACTIVITY: "home-recent-activity",
   PERIOD_STORY: "home-period-story",
   MOVEMENT: "home-movement",
   TRANSACTIONS_LINK: "home-transactions-link",
-  CAPTURE_ACTION: "home-capture",
-  ACCOUNT_ACTION: "home-add-account",
   FINANCIAL_PRIVACY_TOGGLE: "home-financial-privacy-toggle",
   DAY_ZERO: "home-day-zero",
   DAY_ZERO_ACCOUNT: "home-day-zero-account",

@@ -43,7 +43,7 @@ export function OpeningReviewSection({
 }: OpeningReviewSectionProps) {
   return (
     <section
-      className="flex flex-col gap-(--space-5)"
+      className="flex flex-col gap-(--space-4)"
       aria-labelledby="investment-review-title"
       data-testid="investment-opening-preview"
     >
@@ -51,7 +51,7 @@ export function OpeningReviewSection({
         <Text
           as="div"
           role="heading"
-          aria-level={1}
+          aria-level={2}
           size="lg"
           weight="semibold"
           id="investment-review-title"
@@ -62,24 +62,27 @@ export function OpeningReviewSection({
           {subtitle}
         </Text>
       </div>
-      <Card tone="hero" className="gap-0 p-(--space-4)">
-        <Text size="sm" weight="medium" className="text-hero-muted">
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
+        <Text size="sm" weight="medium" className="text-text-secondary">
           {heroLabel}
         </Text>
         <Amount
           amountLabel={heroAmount}
           size={AmountSize.HERO}
           className="mt-(--space-2)"
-          amountClassName="text-hero-fg"
+          amountClassName="text-text-primary"
         />
-        <Text size="xs" className="mt-(--space-1) text-pretty text-hero-muted">
+        <Text
+          size="xs"
+          className="mt-(--space-1) text-pretty text-text-secondary"
+        >
           {holdingName}
           {heroMeta ? ` · ${heroMeta}` : ""}
         </Text>
         {trackedAsset ? (
           <Text
             size="xs"
-            className="mt-(--space-1) text-pretty text-hero-muted"
+            className="mt-(--space-1) text-pretty text-text-secondary"
           >
             {trackedAsset}
           </Text>

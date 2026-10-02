@@ -9,7 +9,6 @@ async function openAsset(
 ) {
   await page.goto(`/${locale}${APP_PATH.MONEY_INVESTMENTS_NEW}`);
   await page.getByTestId(`investment-type-${asset}`).first().click();
-  await page.getByTestId("investment-opening-next").first().click();
 }
 
 test.describe("Investment asset picker UI 01", () => {
@@ -42,6 +41,7 @@ test.describe("Investment asset picker UI 01", () => {
     await expect(page.getByText("Giá tự động")).toBeVisible();
 
     await page.locator("#investment-name").fill("FPT dài hạn");
+    await page.getByTestId("investment-opening-next").first().click();
     await page.locator("#investment-quantity").fill("10");
     await page.getByTestId("investment-opening-review").first().click();
     await expect(page.getByTestId("investment-opening-preview")).toContainText(
@@ -52,6 +52,10 @@ test.describe("Investment asset picker UI 01", () => {
     );
 
     await page.getByRole("button", { name: "Quay lại" }).click();
+    await page
+      .getByRole("button", { name: "Đổi loại tài sản", exact: true })
+      .first()
+      .click();
     await page
       .getByTestId("investment-instrument-picker-trigger")
       .first()
@@ -85,7 +89,9 @@ test.describe("Investment asset picker UI 01", () => {
       page.getByTestId("investment-instrument-BTC").first(),
     ).toBeVisible();
     await page.getByTestId("investment-instrument-BTC").first().click();
-    await page.getByText("I am buying / investing right now").click();
+    await page.locator("#investment-name").fill("Smoke investment");
+    await page.getByTestId("investment-opening-next").first().click();
+    await page.getByRole("tab", { name: "Buy now" }).click();
     await expect(page.getByText("Purchase price / BTC")).toBeVisible();
 
     await openAsset(page, "en", "fund");
@@ -98,12 +104,16 @@ test.describe("Investment asset picker UI 01", () => {
       page.getByTestId("investment-instrument-PVBF").first(),
     ).toBeVisible();
     await page.getByTestId("investment-instrument-PVBF").first().click();
-    await page.getByText("I am buying / investing right now").click();
+    await page.locator("#investment-name").fill("Smoke investment");
+    await page.getByTestId("investment-opening-next").first().click();
+    await page.getByRole("tab", { name: "Buy now" }).click();
     await expect(page.getByText("Fund units", { exact: true })).toBeVisible();
     await expect(page.getByText("NAV / unit", { exact: true })).toBeVisible();
 
     await openAsset(page, "en", "bond");
-    await page.getByText("I am buying / investing right now").click();
+    await page.locator("#investment-name").fill("Smoke investment");
+    await page.getByTestId("investment-opening-next").first().click();
+    await page.getByRole("tab", { name: "Buy now" }).click();
     await expect(page.getByText("Total value")).toBeVisible();
     await expect(page.getByText("Where is money coming from?")).toBeVisible();
   });

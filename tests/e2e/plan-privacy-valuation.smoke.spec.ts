@@ -56,7 +56,8 @@ test.describe("Plan privacy and valuation", () => {
 
     await page.goto("/vi/plan");
     await expect(page.getByTestId("plan-hub")).toBeVisible();
-    await expect(page.getByTestId("plan-home-recommendations")).toBeVisible();
+    await expect(page.getByTestId("plan-summary-planned")).toBeVisible();
+    await expect(page.getByTestId("plan-home-jars")).toBeVisible();
     await assertNoOverflow(page);
 
     await page.goto("/vi/plan/jars");
@@ -118,7 +119,8 @@ test.describe("Plan privacy and valuation", () => {
 
     await page.goto("/en/plan");
     await expect(page.getByTestId("plan-hub")).toBeVisible();
-    await expect(page.getByTestId("plan-home-recommendations")).toBeVisible();
+    await expect(page.getByTestId("plan-summary-planned")).toBeVisible();
+    await expect(page.getByTestId("plan-home-jars")).toBeVisible();
     await assertNoOverflow(page);
 
     await page.goto("/en/plan/goals");

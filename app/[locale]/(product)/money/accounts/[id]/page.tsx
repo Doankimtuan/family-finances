@@ -22,11 +22,12 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
 import { Card } from "@/shared/patterns/card";
-import { FinancialAccountHero } from "@/shared/patterns/financial-account-hero";
+import { Balance } from "@/shared/patterns/balance";
+import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
@@ -40,12 +41,13 @@ import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { moneyAccountVisualFor } from "../../money-account-visuals";
 import { AccountDetailManagement } from "./account-detail-management";
+import { AccountDetailQuickActions } from "./account-detail-quick-actions";
 import { AccountDetailPrivacyToggle } from "./account-detail-privacy-toggle";
 import { AccountDetailUnavailable } from "./account-detail-unavailable";
-import { AccountQuickCapture } from "./account-quick-capture";
 import { AccountSectionTitle } from "./account-section-title";
 import { AccountViewActivityAction } from "./account-view-activity-action";
 import {
@@ -56,10 +58,7 @@ import { CreditCardDetailActions } from "./credit-card-detail-actions";
 import { CreditCardHero } from "./credit-card-hero";
 import { isCreditFacilityComplete } from "@/modules/ledger/ui/credit-facility-presentation";
 import { CreditCardRefundAction } from "./credit-card-refund-action";
-import {
-  resolveAccountActivityLeading,
-  resolveAccountIdentity,
-} from "./account-detail-presentations";
+import { resolveAccountActivityLeading } from "./account-detail-presentations";
 
 type AccountDetailPageProps = {
   params: Promise<{ locale: string; id: string }>;
@@ -102,14 +101,15 @@ export default async function AccountDetailPage({
       >
         <TopAppBar
           variant="detail"
-          backHref={APP_PATH.MONEY}
+          backHref={APP_PATH.MONEY_ACCOUNTS}
+          backLabel={t("accountsPage.title")}
           title={t("accountDetail.unavailableTitle")}
         />
         <AccountDetailUnavailable
           title={t("accountDetail.unavailableTitle")}
           description={t("accountDetail.unavailableBody")}
-          actionHref={APP_PATH.MONEY}
-          actionLabel={t("backToMoney")}
+          actionHref={APP_PATH.MONEY_ACCOUNTS}
+          actionLabel={t("accountsPage.title")}
         />
       </div>
     );
@@ -125,7 +125,9 @@ export default async function AccountDetailPage({
       ])
     : [null, [], []];
   const activityLoadFailed = recent == null;
-  const activity = recent ?? [];
+  const activity = [...(recent ?? [])].sort((left, right) =>
+    right.transactionDate.localeCompare(left.transactionDate),
+  );
   const liquidAccounts = (liquidListed?.accounts ?? []).map(
     (liquidAccount) => ({
       id: liquidAccount.id,
@@ -134,7 +136,6 @@ export default async function AccountDetailPage({
   );
   const accountName = localizeCatalogName(tCatalog, "accounts", account.name);
   const accountTypeLabel = t(`types.${account.type}`);
-  const accountIdentity = resolveAccountIdentity(accountName, accountTypeLabel);
   const accountManagement = (
     <AccountDetailManagement
       accountId={account.id}
@@ -142,6 +143,7 @@ export default async function AccountDetailPage({
       initialType={account.type}
       initialIconKey={account.iconKey}
       canMutate={account.canMutate}
+      settingsTrigger
     >
       {isCreditCard ? (
         <CreditCardRefundAction cardAccountId={account.id} />
@@ -158,9 +160,9 @@ export default async function AccountDetailPage({
       >
         <TopAppBar
           variant="detail"
-          backHref={APP_PATH.MONEY}
-          title={accountName}
-          subtitle={accountTypeLabel}
+          backHref={APP_PATH.MONEY_ACCOUNTS}
+          backLabel={t("accountsPage.title")}
+          title={t("creditCard.detailTitle")}
           trailing={account.canMutate ? accountManagement : undefined}
         />
         <AccountDetailUnavailable
@@ -207,16 +209,19 @@ export default async function AccountDetailPage({
       >
         <TopAppBar
           variant="detail"
-          backHref={APP_PATH.MONEY}
-          title={accountName}
-          subtitle={accountTypeLabel}
+          backHref={APP_PATH.MONEY_ACCOUNTS}
+          backLabel={t("accountsPage.title")}
+          title={t("creditCard.detailTitle")}
           trailing={account.canMutate ? accountManagement : undefined}
         />
-        <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
+        <div className="flex flex-1 flex-col gap-(--space-3) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
           <MoneyOfflineBanner />
           <CreditCardHero
+            title={accountName}
+            typeLabel={accountTypeLabel}
             outstandingLabel={outstandingLabel}
             outstandingCaption={t("creditCard.currentOutstandingLabel")}
+            debtWarning={t("creditCard.debtWarning")}
             outstandingAriaLabel={t("creditCard.owedAriaLabel")}
             utilizationPct={creditFacilityComplete ? card.utilizationPct : null}
             utilizationLabel={
@@ -234,19 +239,13 @@ export default async function AccountDetailPage({
             limitLabel={limitLabel}
             limitCaption={t("creditCard.creditLimitLabel")}
             creditFacilityComplete={creditFacilityComplete}
-            dueLabel={
-              card.nextDueDate
-                ? t("creditCard.due.dueDate", { date: card.nextDueDate })
-                : undefined
-            }
             trailing={<AccountDetailPrivacyToggle />}
             context={
               <FinancialOwnershipBadge
                 financialScope={account.financialScope}
                 isOwnedByMe={account.isOwnedByMe}
                 ownerStatus={account.ownerStatus}
-                onHero
-                showExplanation
+                compact
               />
             }
           />
@@ -258,6 +257,25 @@ export default async function AccountDetailPage({
             eligiblePurchases={eligiblePurchases ?? []}
             canMutate={account.canMutate}
           />
+          <AccountDetailManagement
+            accountId={account.id}
+            initialName={account.name}
+            initialType={account.type}
+            initialIconKey={account.iconKey}
+            canMutate={account.canMutate}
+            presentation="settings"
+            settingsHeading={t("creditCard.settingsTitle")}
+            settingsDetail={{
+              title: t("creditCard.billingCycleLabel"),
+              description: t("creditCard.billingCycleDays", {
+                statementDay: card.statementDay,
+                dueDay: card.dueDay,
+              }),
+            }}
+            financialScope={account.financialScope}
+            isOwnedByMe={account.isOwnedByMe}
+            ownerStatus={account.ownerStatus}
+          />
         </div>
       </div>
     );
@@ -268,6 +286,12 @@ export default async function AccountDetailPage({
   const balanceLabel = formatCurrency(account.balance, currency, locale, {
     maximumFractionDigits: 0,
   });
+  const activityPeriod = activity[0]?.transactionDate
+    ? formatDate(new Date(`${activity[0].transactionDate}T00:00:00Z`), locale, {
+        month: "short",
+        year: "numeric",
+      })
+    : undefined;
 
   return (
     <div
@@ -276,51 +300,92 @@ export default async function AccountDetailPage({
     >
       <TopAppBar
         variant="detail"
-        backHref={APP_PATH.MONEY}
-        title={accountName}
-        subtitle={accountIdentity.typeLabel ?? undefined}
+        backHref={APP_PATH.MONEY_ACCOUNTS}
+        backLabel={t("accountsPage.title")}
+        title={t("accountDetail.title")}
         trailing={account.canMutate ? accountManagement : undefined}
       />
-      <div className="flex flex-1 flex-col gap-(--space-5) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
+      <div className="flex flex-1 flex-col gap-(--space-3) px-(--page-gutter) pb-(--space-6) pt-(--space-3)">
         <MoneyOfflineBanner />
         <MotionReveal>
-          <FinancialAccountHero
-            icon={accountVisual.icon}
-            amountCaption={t("accountDetail.balanceLabel")}
-            amountLabel={balanceLabel}
-            trailing={<AccountDetailPrivacyToggle />}
-            context={
-              <>
+          <Card
+            tone="elevated"
+            className="gap-0 p-(--space-3)"
+            data-testid="account-detail-hero"
+          >
+            <div className="flex items-center gap-(--space-3)">
+              <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
+                <IconContainer tone={accountVisual.tone} size="md">
+                  <AppIcon icon={accountVisual.icon} size={AppIconSize.MD} />
+                </IconContainer>
+                <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+                  <Text size="sm" weight="semibold" className="truncate">
+                    {accountName}
+                  </Text>
+                  <Text size="xs" tone="secondary" className="truncate">
+                    {accountTypeLabel}
+                  </Text>
+                </div>
                 <FinancialOwnershipBadge
                   financialScope={account.financialScope}
                   isOwnedByMe={account.isOwnedByMe}
                   ownerStatus={account.ownerStatus}
-                  onHero
-                  showExplanation
+                  compact={false}
                 />
+              </div>
+            </div>
+            <div className="mt-(--space-3) border-t border-border-subtle pt-(--space-2)">
+              <div className="flex items-center justify-between gap-(--space-3)">
+                <Text size="xs" tone="secondary">
+                  {t("accountDetail.currentBalance")}
+                </Text>
+                <AccountDetailPrivacyToggle />
+              </div>
+              <Balance
+                amountLabel={balanceLabel}
+                size={BalanceSize.LG}
+                className="mt-(--space-1)"
+              />
+              <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                {account.financialScope === FINANCIAL_SCOPE.HOUSEHOLD
+                  ? t("accountDetail.ownershipHint")
+                  : account.isOwnedByMe
+                    ? t("accountDetail.personalAccountHint")
+                    : t("accountDetail.ownershipReadOnly")}
+              </Text>
+              <div className="mt-(--space-3) flex flex-col gap-(--space-2)">
                 {health === AccountHealthSignal.ZERO ? (
                   <Text
                     size="sm"
-                    className="text-hero-muted"
+                    tone="secondary"
                     data-testid="account-health-zero"
                   >
                     {t("accountDetail.healthZero")}
                   </Text>
                 ) : null}
-              </>
-            }
-          />
+              </div>
+            </div>
+          </Card>
         </MotionReveal>
-        {account.canMutate ? <AccountQuickCapture /> : null}
-        <section className="flex flex-col gap-(--space-3)">
+        {account.canMutate ? (
+          <AccountDetailQuickActions accountId={account.id} />
+        ) : null}
+        <section
+          className="flex flex-col gap-(--space-2)"
+          aria-labelledby="account-recent-activity"
+        >
           <SectionHeader
             title={
-              <AccountSectionTitle>
+              <AccountSectionTitle id="account-recent-activity">
                 {t("accountDetail.recentTitle")}
               </AccountSectionTitle>
             }
             action={
-              <AccountViewActivityAction testId="account-quick-activity" />
+              activityPeriod ? (
+                <Text size="xs" tone="secondary">
+                  {activityPeriod}
+                </Text>
+              ) : undefined
             }
           />
           {activityLoadFailed ? (
@@ -389,6 +454,7 @@ export default async function AccountDetailPage({
                             locale,
                             { maximumFractionDigits: 0 },
                           )}`}
+                          currency=""
                           tone={transactionTone}
                           showChevron
                         />
@@ -399,7 +465,24 @@ export default async function AccountDetailPage({
               </ul>
             </Card>
           )}
+          {!activityLoadFailed && activity.length > 0 ? (
+            <AccountViewActivityAction
+              accountId={account.id}
+              testId="account-quick-activity"
+            />
+          ) : null}
         </section>
+        <AccountDetailManagement
+          accountId={account.id}
+          initialName={account.name}
+          initialType={account.type}
+          initialIconKey={account.iconKey}
+          canMutate={account.canMutate}
+          presentation="settings"
+          financialScope={account.financialScope}
+          isOwnedByMe={account.isOwnedByMe}
+          ownerStatus={account.ownerStatus}
+        />
       </div>
     </div>
   );

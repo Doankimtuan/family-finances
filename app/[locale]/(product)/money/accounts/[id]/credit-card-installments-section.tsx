@@ -66,6 +66,7 @@ type Props = {
   eligiblePurchases: EligiblePurchase[];
   currency: string;
   canMutate?: boolean;
+  presentation?: "section" | "quick-action";
 };
 
 export function CreditCardInstallmentsSection({
@@ -74,6 +75,7 @@ export function CreditCardInstallmentsSection({
   eligiblePurchases,
   currency,
   canMutate = true,
+  presentation = "section",
 }: Props) {
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
@@ -256,134 +258,158 @@ export function CreditCardInstallmentsSection({
   ];
 
   return (
-    <section
-      className="flex flex-col gap-(--space-3)"
-      data-testid="card-installments"
-    >
-      <SectionHeader
-        title={<AccountSectionTitle>{t("emiTitle")}</AccountSectionTitle>}
-        action={
-          canMutate ? (
-            <Button
-              variant="secondary"
-              size="sm"
-              isDisabled={
-                !online || isPending || eligiblePurchases.length === 0
-              }
-              onPress={() => {
-                setError(false);
-                setIsOpen(true);
-              }}
-              data-testid="card-installment-open"
-            >
-              {t("convertTitle")}
-            </Button>
-          ) : undefined
-        }
-      />
-      {viewModels.length === 0 ? (
-        <EmptyState
-          title={t("emiEmpty")}
-          icon={
-            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+    <>
+      {presentation === "quick-action" ? (
+        <Button
+          variant="secondary"
+          className="h-auto min-h-12 w-full flex-col gap-(--space-1) px-(--space-2) py-(--space-1)"
+          isDisabled={
+            !canMutate || !online || isPending || eligiblePurchases.length === 0
           }
-          className="flex-none py-(--space-4)"
-        />
+          onPress={() => {
+            setError(false);
+            setIsOpen(true);
+          }}
+          data-testid="card-installment-open"
+        >
+          <AppIcon icon={FINANCE_ICONS.transfer} size={AppIconSize.SM} />
+          <span className="text-xs">{t("installmentQuickAction")}</span>
+        </Button>
       ) : (
-        <ul className="flex flex-col gap-(--space-3)">
-          {viewModels.map((viewModel) => {
-            const { installment } = viewModel;
-            return (
-              <li key={installment.id}>
-                <Card
-                  tone="elevated"
-                  className="gap-(--space-2) p-(--space-3)"
-                  data-testid={`card-installment-${installment.id}`}
+        <section
+          className="flex flex-col gap-(--space-3)"
+          data-testid="card-installments"
+        >
+          <SectionHeader
+            title={<AccountSectionTitle>{t("emiTitle")}</AccountSectionTitle>}
+            action={
+              canMutate ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  isDisabled={
+                    !online || isPending || eligiblePurchases.length === 0
+                  }
+                  onPress={() => {
+                    setError(false);
+                    setIsOpen(true);
+                  }}
+                  data-testid="card-installment-open"
                 >
-                  <div className="flex items-start justify-between gap-(--space-3)">
-                    <div className="min-w-0">
-                      <Text size="sm" weight="medium">
-                        {installment.description ?? t("convertItemFallback")}
-                      </Text>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <Text size="xs" tone="secondary">
-                        {t("installmentRemainingLabel")}
-                      </Text>
-                      <Text size="sm" className="tabular-nums font-medium">
-                        <FinancialValue>
-                          {formatMoney(viewModel.remainingAmount)}
-                        </FinancialValue>
-                      </Text>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-(--space-3)">
-                    <Progress
-                      value={viewModel.progressPercent}
-                      label={t("installmentProgressLabel", {
-                        percent: viewModel.progressPercent,
-                      })}
-                      showLabel={false}
-                      className="min-w-0 flex-1"
-                    />
-                    <Text size="xs" tone="secondary" className="shrink-0">
-                      {t("installmentProgress", {
-                        current: viewModel.currentTerm,
-                        total: installment.termCount,
-                        percent: viewModel.progressPercent,
-                      })}
-                    </Text>
-                  </div>
-                  {viewModel.nextExpected ? (
-                    <div className="flex items-end justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-2)">
-                      <div>
-                        <Text size="xs" tone="secondary">
-                          {t("installmentNextLabel")}
-                        </Text>
-                        <Text
-                          size="sm"
-                          weight="medium"
-                          className="tabular-nums"
-                        >
-                          <FinancialValue>
-                            {formatMoney(viewModel.nextExpected.totalAmount)}
-                          </FinancialValue>
+                  {t("convertTitle")}
+                </Button>
+              ) : undefined
+            }
+          />
+          {viewModels.length === 0 ? (
+            <EmptyState
+              title={t("emiEmpty")}
+              icon={
+                <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+              }
+              className="flex-none py-(--space-4)"
+            />
+          ) : (
+            <ul className="flex flex-col gap-(--space-3)">
+              {viewModels.map((viewModel) => {
+                const { installment } = viewModel;
+                return (
+                  <li key={installment.id}>
+                    <Card
+                      tone="elevated"
+                      className="gap-(--space-2) p-(--space-3)"
+                      data-testid={`card-installment-${installment.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-(--space-3)">
+                        <div className="min-w-0">
+                          <Text size="sm" weight="medium">
+                            {installment.description ??
+                              t("convertItemFallback")}
+                          </Text>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <Text size="xs" tone="secondary">
+                            {t("installmentRemainingLabel")}
+                          </Text>
+                          <Text size="sm" className="tabular-nums font-medium">
+                            <FinancialValue>
+                              {formatMoney(viewModel.remainingAmount)}
+                            </FinancialValue>
+                          </Text>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-(--space-3)">
+                        <Progress
+                          value={viewModel.progressPercent}
+                          label={t("installmentProgressLabel", {
+                            percent: viewModel.progressPercent,
+                          })}
+                          showLabel={false}
+                          className="min-w-0 flex-1"
+                        />
+                        <Text size="xs" tone="secondary" className="shrink-0">
+                          {t("installmentProgress", {
+                            current: viewModel.currentTerm,
+                            total: installment.termCount,
+                            percent: viewModel.progressPercent,
+                          })}
                         </Text>
                       </div>
-                      <Text
-                        size="sm"
-                        tone="secondary"
-                        className="shrink-0 text-right tabular-nums"
-                      >
-                        {viewModel.nextExpected.expectedDate}
+                      {viewModel.nextExpected ? (
+                        <div className="flex items-end justify-between gap-(--space-3) border-t border-border-subtle/70 pt-(--space-2)">
+                          <div>
+                            <Text size="xs" tone="secondary">
+                              {t("installmentNextLabel")}
+                            </Text>
+                            <Text
+                              size="sm"
+                              weight="medium"
+                              className="tabular-nums"
+                            >
+                              <FinancialValue>
+                                {formatMoney(
+                                  viewModel.nextExpected.totalAmount,
+                                )}
+                              </FinancialValue>
+                            </Text>
+                          </div>
+                          <Text
+                            size="sm"
+                            tone="secondary"
+                            className="shrink-0 text-right tabular-nums"
+                          >
+                            {viewModel.nextExpected.expectedDate}
+                          </Text>
+                        </div>
+                      ) : null}
+                      <Text size="xs" tone="secondary">
+                        {t("totalExtraCost")}:{" "}
+                        <FinancialValue>
+                          {formatMoney(viewModel.totalExtraCost)}
+                        </FinancialValue>
                       </Text>
-                    </div>
-                  ) : null}
-                  <Text size="xs" tone="secondary">
-                    {t("totalExtraCost")}:{" "}
-                    <FinancialValue>
-                      {formatMoney(viewModel.totalExtraCost)}
-                    </FinancialValue>
-                  </Text>
-                  {canMutate &&
-                  installment.status === CreditCardInstallmentStatus.ACTIVE ? (
-                    <div className="flex flex-col gap-(--space-2)">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="self-start px-(--space-2) text-danger"
-                        isDisabled={isPending || !online}
-                        onPress={() => requestStopTracking(installment.id)}
-                      >
-                        {t("stopTracking")}
-                      </Button>
-                    </div>
-                  ) : null}
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
+                      {canMutate &&
+                      installment.status ===
+                        CreditCardInstallmentStatus.ACTIVE ? (
+                        <div className="flex flex-col gap-(--space-2)">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="self-start px-(--space-2) text-danger"
+                            isDisabled={isPending || !online}
+                            onPress={() => requestStopTracking(installment.id)}
+                          >
+                            {t("stopTracking")}
+                          </Button>
+                        </div>
+                      ) : null}
+                    </Card>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       )}
       <Sheet
         isOpen={isOpen}
@@ -701,7 +727,7 @@ export function CreditCardInstallmentsSection({
           />
         </ActionSheetLayout>
       </Sheet>
-    </section>
+    </>
   );
 }
 

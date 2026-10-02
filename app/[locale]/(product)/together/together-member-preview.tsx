@@ -10,6 +10,7 @@ type TogetherMemberPreviewProps = {
   rolePartnerLabel: string;
   roleAdminHint: string;
   rolePartnerHint: string;
+  activeLabel?: string;
 };
 
 export function TogetherMemberPreview({
@@ -20,6 +21,7 @@ export function TogetherMemberPreview({
   rolePartnerLabel,
   roleAdminHint,
   rolePartnerHint,
+  activeLabel,
 }: TogetherMemberPreviewProps) {
   return (
     <Card tone="elevated" className="gap-0 overflow-hidden p-0">
@@ -37,6 +39,8 @@ export function TogetherMemberPreview({
             rolePartnerLabel={rolePartnerLabel}
             roleAdminHint={roleAdminHint}
             rolePartnerHint={rolePartnerHint}
+            activeLabel={activeLabel}
+            compact
           />
         ))}
       </ul>

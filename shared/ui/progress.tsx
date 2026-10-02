@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/shared/utils/cn";
 import {
@@ -22,6 +23,7 @@ const PROGRESS_INDICATOR_TONE_CLASS_NAME: Record<
   [IconContainerTone.TRANSFER]: "bg-transfer/70",
   [IconContainerTone.INVESTMENT]: "bg-investment/70",
   [IconContainerTone.SAVINGS]: "bg-savings/70",
+  [IconContainerTone.WARNING]: "bg-warning/70",
   [IconContainerTone.DEBT]: "bg-debt/70",
   [IconContainerTone.INFO]: "bg-info/70",
   [IconContainerTone.REFUND]: "bg-refund/70",
@@ -36,6 +38,7 @@ export type ProgressProps = {
   className?: string;
   trackClassName?: string;
   indicatorClassName?: string;
+  indicatorStyle?: CSSProperties;
   privacyAware?: boolean;
 };
 
@@ -52,6 +55,7 @@ export function Progress({
   className,
   trackClassName,
   indicatorClassName,
+  indicatorStyle,
   privacyAware = false,
 }: ProgressProps) {
   const policy = useMotionPolicy({ essential: true });
@@ -85,6 +89,7 @@ export function Progress({
             PROGRESS_INDICATOR_TONE_CLASS_NAME[tone],
             indicatorClassName,
           )}
+          style={indicatorStyle}
           initial={false}
           animate={{ scaleX: privacyHidden ? 0 : ratio }}
           transition={{

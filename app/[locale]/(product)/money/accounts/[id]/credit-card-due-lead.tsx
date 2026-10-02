@@ -1,12 +1,15 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { CardBillingMonth } from "@/modules/ledger/application/client";
 import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Text } from "@/shared/ui/text";
-import { Progress } from "@/shared/ui/progress";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { formatDate } from "@/shared/i18n/formatters";
 import { toYearMonth } from "@/shared/utils/iso-date";
 import { AccountSectionTitle } from "./account-section-title";
 
@@ -15,7 +18,7 @@ type CreditCardDueLeadProps = {
   remainingDueLabel: string;
   statementLabel: string;
   paidLabel: string;
-  paymentProgress: number;
+  linkedPaymentAccount?: string;
 };
 
 /**
@@ -27,9 +30,20 @@ export function CreditCardDueLead({
   remainingDueLabel,
   statementLabel,
   paidLabel,
-  paymentProgress,
+  linkedPaymentAccount,
 }: CreditCardDueLeadProps) {
   const t = useTranslations("money.creditCard");
+  const locale = useLocale();
+  const dueDateLabel = formatDate(
+    new Date(`${leadMonth.dueDate}T00:00:00Z`),
+    locale,
+    { day: "numeric", month: "short", year: "numeric" },
+  );
+  const billingMonthLabel = formatDate(
+    new Date(`${toYearMonth(leadMonth.billingMonth)}-01T00:00:00Z`),
+    locale,
+    { month: "long", year: "numeric" },
+  );
 
   return (
     <Card
@@ -44,45 +58,47 @@ export function CreditCardDueLead({
             {t("currentStatementTitle")}
           </AccountSectionTitle>
         }
-        description={toYearMonth(leadMonth.billingMonth)}
+        description={billingMonthLabel}
       />
-      <Amount
-        label={t("due.remainingLabel")}
-        amountLabel={remainingDueLabel}
-        tone={AmountTone.NEUTRAL}
-        size={AmountSize.LG}
-        className="mt-(--space-4)"
-      />
-      <Progress
-        value={paymentProgress}
-        label={t("paymentProgressLabel", { percent: paymentProgress })}
-        showLabel={false}
-        className="mt-(--space-4)"
-        trackClassName="bg-surface-muted"
-        indicatorClassName="bg-accent"
-      />
-      <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
-        <Amount
-          label={t("paidLabel")}
-          amountLabel={paidLabel}
-          size={AmountSize.SM}
-          amountClassName="text-text-primary"
-        />
-        <Amount
-          label={t("statementLabel")}
-          amountLabel={statementLabel}
-          size={AmountSize.SM}
-          className="items-end text-right"
-          amountClassName="text-text-primary"
-        />
+      <div className="mt-(--space-3) flex flex-col gap-(--space-3) rounded-(--radius-control) border border-warning/25 bg-warning-soft/60 p-(--space-3)">
+        <Text size="sm" weight="semibold" className="text-warning">
+          {t("due.dueDate", { date: dueDateLabel })}
+        </Text>
+        <div className="flex items-end justify-between gap-(--space-3)">
+          <Text size="xs" tone="secondary">
+            {t("due.remainingLabel")}
+          </Text>
+          <Amount
+            amountLabel={remainingDueLabel}
+            tone={AmountTone.NEUTRAL}
+            size={AmountSize.MD}
+            className="items-end text-right"
+            amountClassName="text-debt"
+          />
+        </div>
       </div>
-      <div className="mt-(--space-3) flex items-center justify-between gap-(--space-3)">
-        <Text size="sm" tone="secondary">
-          {t("due.dueLabel")}
-        </Text>
-        <Text size="sm" weight="medium" className="shrink-0 tabular-nums">
-          {leadMonth.dueDate}
-        </Text>
+      <div className="flex items-center justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
+        <div className="flex min-w-0 items-center gap-(--space-2)">
+          <IconContainer tone={IconContainerTone.NEUTRAL} size="sm">
+            <AppIcon icon={FINANCE_ICONS.bank} size={AppIconSize.SM} />
+          </IconContainer>
+          <div className="flex min-w-0 flex-col">
+            <Text size="xs" tone="secondary">
+              {t("linkedPaymentAccount")}
+            </Text>
+            <Text size="sm" weight="medium" className="truncate">
+              {linkedPaymentAccount ?? t("unlinkedPaymentAccount")}
+            </Text>
+          </div>
+        </div>
+        <div className="shrink-0 text-right">
+          <Text size="xs" tone="secondary">
+            {t("paidLabel")}: {paidLabel}
+          </Text>
+          <Text size="xs" tone="secondary">
+            {t("statementLabel")}: {statementLabel}
+          </Text>
+        </div>
       </div>
     </Card>
   );

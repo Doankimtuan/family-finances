@@ -5,7 +5,7 @@ Implementation of the Money, Transactions, and Accounts batch is complete only w
 ## IA And Ownership
 
 - Money remains the owner of financial position, accounts, transaction activity, capture, transfer, correction, refund, and money-product entry points.
-- Bottom navigation remains exactly Home, Money, Plan, Inbox, Together.
+- Bottom navigation has Home, Money, Plan, and Inbox tabs plus one centered transaction action; Home's household shortcut opens Together.
 - All new links use `APP_PATH` or route builders from `modules/tenancy/application/app-path.ts`.
 - No visible UI links to retired mental-model routes such as `/money/add` or `/money/cards`.
 - Home launches owner routes only and does not write ledger state.
@@ -103,4 +103,3 @@ Capture evidence for:
 - Correction preview-confirm, success receipt, and failure recovery.
 - Refund preview-confirm, success receipt, and failure recovery.
 - Long Vietnamese copy state without overlap or truncated financial meaning.
-

@@ -13,11 +13,15 @@ import {
 } from "@/modules/investments/application/client";
 import { Sheet } from "@/shared/patterns/sheet";
 
-const { buyMock, replaceMock, rateMock } = vi.hoisted(() => ({
-  buyMock: vi.fn(),
-  replaceMock: vi.fn(),
-  rateMock: vi.fn(),
-}));
+const { buyMock, sellMock, valuationMock, replaceMock, rateMock } = vi.hoisted(
+  () => ({
+    buyMock: vi.fn(),
+    sellMock: vi.fn(),
+    valuationMock: vi.fn(),
+    replaceMock: vi.fn(),
+    rateMock: vi.fn(),
+  }),
+);
 
 vi.mock("next-intl", () => ({
   useLocale: () => "en",
@@ -32,10 +36,10 @@ vi.mock(
   "@/app/[locale]/(product)/money/investments/investment-actions",
   () => ({
     recordInvestmentBuyAction: buyMock,
-    recordInvestmentSellAction: vi.fn(),
+    recordInvestmentSellAction: sellMock,
     recordAssetConversionAction: vi.fn(),
     recordInvestmentIncomeAction: vi.fn(),
-    recordInvestmentValuationAction: vi.fn(),
+    recordInvestmentValuationAction: valuationMock,
   }),
 );
 vi.mock(
@@ -142,6 +146,23 @@ describe("InvestmentOperationForm", () => {
   it("keeps the currency selector out of non-Crypto forms", () => {
     renderBuyForm();
 
+    expect(
+      screen.queryByTestId("investment-operation-input-currency"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not expose crypto currency controls because another portfolio holding is crypto", () => {
+    render(
+      <Sheet isOpen onOpenChange={() => {}}>
+        <InvestmentOperationForm
+          mode={InvestmentFormMode.BUY}
+          title="Buy"
+          holding={holding}
+          holdings={[holding, cryptoHolding]}
+          accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
+        />
+      </Sheet>,
+    );
     expect(
       screen.queryByTestId("investment-operation-input-currency"),
     ).not.toBeInTheDocument();
@@ -257,4 +278,85 @@ describe("InvestmentOperationForm", () => {
     expect(screen.getByTestId("investment-operation-buy")).toBeInTheDocument();
     expect(replaceMock).not.toHaveBeenCalled();
   });
+});
+
+function renderOperation(mode: InvestmentFormMode) {
+  return render(
+    <Sheet isOpen onOpenChange={() => {}}>
+      <InvestmentOperationForm
+        mode={mode}
+        title={mode}
+        holding={holding}
+        holdings={[holding, otherHolding]}
+        accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
+      />
+    </Sheet>,
+  );
+}
+
+it("previews an exact sell quantity and records only after confirmation", async () => {
+  sellMock.mockResolvedValue({
+    ok: true,
+    receipt: { sourceHoldingId: HOLDING_ID, correlationId: "sell-receipt" },
+  });
+  renderOperation(InvestmentFormMode.SELL);
+  fireEvent.click(screen.getByRole("button", { name: "25%", exact: true }));
+  expect(screen.getByLabelText("opening.quantityLabel")).toHaveValue("2.5");
+  fireEvent.change(
+    screen.getByLabelText("ux.assetClasses.stock.disposalPriceLabel"),
+    { target: { value: "100000" } },
+  );
+  expect(
+    screen.getByTestId("investment-disposal-live-preview"),
+  ).toHaveTextContent("₫250,000");
+  fireEvent.click(screen.getByTestId("investment-operation-review"));
+  expect(
+    await screen.findByTestId("investment-operation-preview"),
+  ).toHaveTextContent("2.5");
+  expect(sellMock).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByTestId("investment-operation-confirm"));
+  await waitFor(() =>
+    expect(sellMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        holdingId: HOLDING_ID,
+        soldQuantity: "2.5",
+        unitPriceVnd: 100000,
+        cashAccountId: ACCOUNT_ID,
+      }),
+    ),
+  );
+});
+
+it("previews a manual unit valuation without a cash account and preserves numeric pricing", async () => {
+  valuationMock.mockResolvedValue({
+    ok: true,
+    receipt: {
+      sourceHoldingId: HOLDING_ID,
+      correlationId: "valuation-receipt",
+    },
+  });
+  renderOperation(InvestmentFormMode.VALUATION);
+  expect(document.querySelector("#investment-operation-account")).toBeNull();
+  fireEvent.change(
+    screen.getByLabelText("ux.assetClasses.stock.valuationPriceLabel"),
+    { target: { value: "120000" } },
+  );
+  expect(
+    screen.getByTestId("investment-valuation-live-preview"),
+  ).toHaveTextContent("₫1,200,000");
+  fireEvent.click(screen.getByTestId("investment-operation-review"));
+  expect(
+    await screen.findByTestId("investment-operation-preview"),
+  ).toHaveTextContent("none");
+  expect(valuationMock).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByTestId("investment-operation-confirm"));
+  await waitFor(() =>
+    expect(valuationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        holdingId: HOLDING_ID,
+        unitPriceVnd: 120000,
+        totalValueVnd: null,
+      }),
+    ),
+  );
 });

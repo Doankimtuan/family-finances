@@ -1,6 +1,6 @@
 # Executive Summary
 
-The redesigned IA keeps the existing five-tab foundation and resolves the Phase A risks by making second-level hierarchy explicit. The product remains household-first: users begin at Home, manage financial reality in Money, manage intentions in Plan, resolve work in Inbox, and manage the household in Together.
+The redesigned IA keeps the household-first route hierarchy and makes second-level navigation explicit. Home, Money, Plan, and Inbox remain the bottom route tabs; one centered action opens transaction creation, and the Home household shortcut opens Together. Users begin at Home, manage financial reality in Money, manage intentions in Plan, resolve work in Inbox, and manage the household in Together.
 
 Health remains important but should not become a sixth primary tab. It is a secondary household insight surface reachable from Home and relevant contextual links. Settings also remains secondary and is owned by Together because household identity, preferences, policies, and account lifecycle already live there.
 
@@ -18,7 +18,7 @@ Health remains important but should not become a sixth primary tab. It is a seco
 
 ## Main IA Improvements
 
-- Keep bottom navigation minimal at five tabs.
+- Keep bottom navigation to four route tabs plus the centered transaction action.
 - Treat Money as a predictable financial workspace with Overview, Accounts, Transactions, Products, and Actions.
 - Treat Plan as a predictable intention workspace with Overview, Jars, Goals, Recurring, Calendar, and Ritual.
 - Convert compatibility routes into invisible redirects, not entry points.
@@ -34,4 +34,3 @@ Health remains important but should not become a sixth primary tab. It is a seco
 - Scalability Score: 9/10
 - Maintainability Score: 8/10
 - Developer Experience Score: 8/10
-

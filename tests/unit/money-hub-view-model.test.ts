@@ -61,6 +61,13 @@ describe("createMoneyHubViewModel", () => {
           isArchived: false,
         },
         {
+          id: "wallet-1",
+          name: "Wallet",
+          type: AccountType.EWALLET,
+          balance: 25,
+          isArchived: false,
+        },
+        {
           id: "archived-cash-1",
           name: "Archived cash",
           type: AccountType.CASH,
@@ -85,12 +92,17 @@ describe("createMoneyHubViewModel", () => {
       creditCards: [creditCard()],
     });
 
-    expect(viewModel.totalOwnedBalance).toBe(150);
-    expect(viewModel.activeAccountCount).toBe(2);
+    expect(viewModel.totalOwnedBalance).toBe(175);
+    expect(viewModel.activeAccountCount).toBe(3);
     expect(viewModel.totalCreditOutstanding).toBe(80);
     expect(viewModel.accountGroups.map((group) => group.key)).toEqual([
       MoneyAccountGroupKey.CASH,
       MoneyAccountGroupKey.BANK,
+      MoneyAccountGroupKey.WALLET,
+    ]);
+    expect(viewModel.directoryAccountGroups).toMatchObject([
+      { key: MoneyAccountGroupKey.BANK, totalBalance: 50 },
+      { key: MoneyAccountGroupKey.CASH, totalBalance: 125 },
     ]);
   });
 

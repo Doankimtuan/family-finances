@@ -52,6 +52,8 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     ).toBeVisible();
     await expect(page.getByTestId("money-accounts-scan")).toBeVisible();
 
+    await page.goto(`/en${APP_PATH.MONEY_ACCOUNTS}`);
+    await expect(app.getByTestId("money-accounts-directory")).toBeVisible();
     await page.getByTestId("money-create-account").click();
     await expect(page.getByTestId("account-add-form")).toBeVisible();
     await page.getByTestId("account-type").click();
@@ -80,7 +82,19 @@ test.describe("Money hub + accounts (ST-E04-001)", () => {
     await expect(page.getByTestId("transaction-receipt")).toBeHidden();
 
     await page.goto("/en/money/accounts");
-    await expect(page).toHaveURL(/\/en\/money\/?$/);
-    await expect(app.getByTestId("money-hub")).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/en${APP_PATH.MONEY_ACCOUNTS}$`));
+    await expect(app.getByTestId("money-accounts-directory")).toBeVisible();
+    await page.getByTestId("money-create-account").click();
+    await expect(page.getByTestId("account-add-form")).toBeVisible();
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await page.goto("/vi/money/accounts");
+    await expect(page).toHaveURL(/\/vi\/money\/accounts$/);
+    await expect(
+      app.getByRole("heading", { name: "Tài khoản", exact: true }),
+    ).toBeVisible();
+    await expect(
+      app.getByRole("button", { name: "Thêm tài khoản" }),
+    ).toBeVisible();
   });
 });

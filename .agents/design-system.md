@@ -10,7 +10,7 @@ screens; reuse its system.
 Supporting contracts (do not duplicate as textbooks; link when deeper detail
 is needed):
 
-- `artifacts/information-architecture/CURRENT/` — five-tab IA, screen catalog
+- `artifacts/information-architecture/CURRENT/` — five-slot navigation IA, screen catalog
 - `artifacts/ux-redesign/CURRENT/` — flows, forms, confirmation, states, copy
 - `artifacts/design-system-evolution/CURRENT/` — Phase D visual package
 
@@ -98,8 +98,8 @@ External references must **never** override an existing ViNha contract.
 
 - Reference URLs are inspiration, not implementation templates.
 - The four apps are principle sources, not layouts to clone.
-- No external navigation architecture may be imported blindly (five tabs stay
-  five tabs).
+- No external navigation architecture may be imported blindly (the five-slot
+  Home, Money, Record, Plan, Inbox layout stays intact).
 - No external financial concept may be introduced unless ViNha already supports
   it (no invented net worth, no Hũ-as-cash, no Reports tab, no Health advice).
 
@@ -256,7 +256,7 @@ Answer **yes** to all, or revise before completing:
 - Does it follow Calm Household Finance?
 - Does it use existing ViNha tokens?
 - Does it reuse existing components where appropriate?
-- Does it follow the existing IA (five tabs, 440px shell)?
+- Does it follow the existing IA (five navigation slots, 440px shell)?
 - Does it follow the screen-family recipe?
 - Does it feel consistent with previously redesigned screens?
 - Does it avoid looking like a clone of Monarch, Monzo, Copilot, or YNAB?
@@ -300,7 +300,9 @@ neutral surfaces, semantic color reserved for financial meaning and attention.
 
 Binding product facts (beat any reference-app impulse):
 
-- Five tabs only: Home, Money, Plan, Inbox, Together. Health is secondary.
+- Five bottom-navigation slots: Home, Money, Record transaction, Plan, Inbox.
+  Together remains a primary route reached through Home's household shortcut;
+  Health is secondary.
 - Desktop stays the centered ~440px mobile column (`AppViewport`).
 - **Hũ ≠ Monzo Pots** — intention envelopes; cash lives in Money.
 - Money hub must not invent net worth or “total money”.
@@ -547,7 +549,7 @@ primitive.
 | Button                | Actions                   | One primary per state             | Many equal CTAs                    | `shared/ui/button.tsx`                 | Monzo             |
 | FloatingAction        | High-frequency create     | Home/Money capture, domain create | Form submit                        | `floating-action.tsx`                  | Monzo             |
 | BottomActionBar       | Sticky form/confirm       | Long forms, lifecycle actions     | Navigation chrome                  | `bottom-action-bar.tsx`                | Monzo             |
-| Bottom nav            | Five tabs                 | Product shell                     | Extra tabs                         | `bottom-navigation.tsx`                | Monarch IA        |
+| Bottom nav            | Four route tabs + action  | Product shell                     | Extra destinations                 | `bottom-navigation.tsx`                | Monarch IA        |
 | TopAppBar             | Where / back / one action | All product screens               | Marketing headers                  | `top-app-bar.tsx`                      | Monarch           |
 | Search / filters      | Narrow lists              | Transactions, holdings            | Desktop filter panels              | chips / filter bar                     | Copilot           |
 | EmptyState            | Invite next action        | Empty lists/sections              | Large illustrations by default     | `empty-state.tsx`                      | Monzo             |
@@ -622,9 +624,10 @@ Confirmation levels: none / lightweight / preview-confirm.
 
 ## 25. Navigation
 
-- Bottom tabs (exactly five): Home, Money, Plan, Inbox, Together
-  (`shared/patterns/bottom-navigation-tabs.ts`). Health and Settings are not
-  tabs.
+- Bottom navigation has four route tabs (Home, Money, Plan, Inbox) and a
+  centered Record action. Together remains a top-level route reached through
+  Home's household shortcut; Money, Plan, and Inbox do not show a Together
+  header button. Health and Settings are not tabs.
 - `TopAppBar` answers: Where am I? Can I go back? What is the one primary
   action?
 - Inline / row navigation → trailing chevron (`ACTION_ICONS.forward`).
@@ -835,9 +838,10 @@ flow chart, category analysis, Inbox, or Plan blocks onto Money.
 
 ### Module rows
 
-- Anatomy: `IconContainer` + label + (attention pill **or** one quiet meta
-  signal) + right-aligned tabular value + trailing chevron. Pick 1–2 supporting
-  signals maximum; never icon+amount+badge+description+CTU stacks.
+- Anatomy: `IconContainer` + label + optional status pill + one quiet meta
+  line + right-aligned tabular value + trailing chevron. A row may show both a
+  factual status and concise context when the data exists; keep two supporting
+  signals maximum and avoid repeating a value already shown on the right.
 - Values are current-state magnitudes (savings principal, remaining loan
   principal, borrowed remaining) in neutral `text-text-primary`. Debt amounts
   are **never** auto-red. Investments show a holdings count, not a total —
@@ -878,13 +882,13 @@ Money hub UX contract for agents.
 Accounts are the reference "Money resource flow" (list → create → detail →
 edit → archive). Savings/loans/debts child screens should reuse these rules.
 
-### List (owned by the Money hub)
+### List (owned by the Money module)
 
-The accounts scan lives on the Money hub (`/money/accounts` is a redirect);
-never rebuild a standalone accounts index. Rows are the shared `AccountCard`
-(identity icon + name/type + right tabular balance + compact ownership), with
-credit cards structurally separate and initial rows capped behind a show-all
-toggle. One create entry (section header action) opens the create sheet.
+The Money hub shows a compact account scan that links to the complete account
+directory at `/money/accounts`. The directory reuses the shared account rows,
+keeps credit liabilities in a separate section, and always exposes the existing
+create-account sheet. The hub may cap its preview behind a show-all toggle; the
+directory always shows the full active inventory.
 
 ### Detail screen
 
@@ -1169,6 +1173,11 @@ semantics (§ discovery report §3) are binding; restyling never recalculates.
   with `TextField`/`SelectField`, the HeroUI icon-picker dropdown, and archive
   behind an explicit inline confirm state (warning card + cancel / archive
   danger pair) — never `window.confirm`.
+- Provider creation uses `/money/savings/providers/new`, reached from the
+  directory's single Add action. Follow the canonical Stitch light/dark form:
+  provider identity, segmented family, four icon tiles, optional first package,
+  household data notice, and one bottom Create action. Editing retains its sheet.
+  Cancel discards the form; package retries retain the already saved provider.
 
 ## S8. Transactions flows
 

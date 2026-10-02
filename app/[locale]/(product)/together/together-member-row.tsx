@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import type { HouseholdMemberRow } from "@/modules/tenancy/application/list-household-members";
+import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
+import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
 import { memberDisplayName, memberInitials } from "./together-member-identity";
+import { cn } from "@/shared/utils/cn";
 import {
   householdRoleHint,
   householdRoleLabel,
@@ -20,6 +24,7 @@ type TogetherMemberRowProps = {
   roleAdminHint: string;
   rolePartnerHint: string;
   activeLabel?: string;
+  compact?: boolean;
   testId?: string;
   roleTestId?: string;
   children?: ReactNode;
@@ -34,6 +39,7 @@ export function TogetherMemberRow({
   roleAdminHint,
   rolePartnerHint,
   activeLabel,
+  compact = false,
   testId,
   roleTestId,
   children,
@@ -47,10 +53,13 @@ export function TogetherMemberRow({
     admin: roleAdminHint,
     partner: rolePartnerHint,
   });
-  const meta = activeLabel ? `${activeLabel} · ${roleHint}` : roleHint;
   const roleBadgeTone = isHouseholdAdmin(member.role)
     ? StatusBadgeTone.INFO
     : StatusBadgeTone.NEUTRAL;
+
+  const avatarToneClassName = isHouseholdAdmin(member.role)
+    ? "bg-info/10 text-info"
+    : "bg-primary-soft text-primary";
   const roleIconTone = isHouseholdAdmin(member.role)
     ? IconContainerTone.PRIMARY
     : IconContainerTone.NEUTRAL;
@@ -58,51 +67,125 @@ export function TogetherMemberRow({
   return (
     <li
       data-testid={testId}
-      className="flex min-h-14 flex-col gap-(--space-3) px-(--space-3) py-(--space-3)"
+      className={cn(
+        "flex min-h-14 flex-col gap-(--space-3)",
+        compact ? "p-(--space-3)" : "px-(--space-3) py-(--space-3)",
+      )}
       aria-label={memberRowAriaLabel({
         name,
         isSelf: member.isSelf,
         youLabel,
         roleLabel,
+        activeLabel,
       })}
     >
-      <div className="flex min-h-11 items-start gap-(--space-3)">
-        <IconContainer tone={roleIconTone} size="sm">
-          <span className="text-xs font-semibold" aria-hidden>
-            {memberInitials(member.email, member.displayName)}
-          </span>
-        </IconContainer>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-(--space-2) gap-y-1">
-            <Text
-              size="sm"
-              className="min-w-0 truncate font-semibold text-text-primary"
+      <div
+        className={cn(
+          "flex min-h-11 gap-(--space-3)",
+          compact ? "items-start justify-between" : "items-start",
+        )}
+      >
+        {compact ? (
+          <Avatar className="size-9 shrink-0" aria-hidden="true">
+            <AvatarFallback
+              className={cn(
+                "size-full rounded-full text-xs font-semibold",
+                avatarToneClassName,
+              )}
             >
-              {name}
-            </Text>
-            {member.isSelf ? (
-              <Text size="xs" tone="secondary" className="shrink-0">
-                ({youLabel})
+              {memberInitials(member.email, member.displayName)}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          <IconContainer tone={roleIconTone} size="sm">
+            <span className="text-xs font-semibold" aria-hidden>
+              {memberInitials(member.email, member.displayName)}
+            </span>
+          </IconContainer>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+            {compact ? (
+              <span className="min-w-0 break-words text-sm font-semibold text-text-primary">
+                {name}
+              </span>
+            ) : (
+              <Text
+                size="sm"
+                className="min-w-0 truncate font-semibold text-text-primary"
+              >
+                {name}
               </Text>
+            )}
+            {member.isSelf ? (
+              compact ? (
+                <span className="shrink-0 text-xs text-text-muted">
+                  ({youLabel})
+                </span>
+              ) : (
+                <Text size="xs" tone="secondary" className="shrink-0">
+                  ({youLabel})
+                </Text>
+              )
+            ) : null}
+            {compact ? (
+              <StatusBadge
+                tone={roleBadgeTone}
+                className="shrink-0"
+                data-testid={roleTestId}
+              >
+                {roleLabel}
+              </StatusBadge>
             ) : null}
           </div>
           {member.email && member.displayName ? (
-            <Text size="xs" tone="secondary" className="mt-0.5 truncate">
-              {member.email}
-            </Text>
+            compact ? (
+              <p className="mt-(--space-1) break-all text-xs font-normal text-text-muted">
+                {member.email}
+              </p>
+            ) : (
+              <Text size="xs" tone="secondary" className="mt-0.5 truncate">
+                {member.email}
+              </Text>
+            )
           ) : null}
-          <Text size="xs" tone="secondary" className="mt-0.5 text-pretty">
-            {meta}
-          </Text>
         </div>
-        <StatusBadge
-          tone={roleBadgeTone}
-          className="shrink-0 whitespace-nowrap"
-          data-testid={roleTestId}
-        >
-          {roleLabel}
-        </StatusBadge>
+        {!compact ? (
+          <div className="flex shrink-0 items-center gap-(--space-2)">
+            {activeLabel ? (
+              <span className="inline-block size-2 rounded-full bg-success">
+                <span className="sr-only">{activeLabel}</span>
+              </span>
+            ) : null}
+            <StatusBadge
+              tone={roleBadgeTone}
+              className="shrink-0 whitespace-nowrap"
+              data-testid={roleTestId}
+            >
+              {roleLabel}
+            </StatusBadge>
+          </div>
+        ) : null}
+        {compact && activeLabel ? (
+          <span className="flex shrink-0 items-center gap-(--space-1) pt-(--space-1) text-xs text-success">
+            <span
+              className="inline-block size-2 rounded-full bg-success"
+              aria-hidden="true"
+            />
+            <span>{activeLabel}</span>
+          </span>
+        ) : null}
       </div>
+      {!compact ? (
+        <div className="mt-(--space-1) flex items-center gap-(--space-2) rounded-(--radius-control) border border-border-subtle bg-surface-raised/40 p-(--space-2) text-xs text-text-secondary">
+          <AppIcon
+            icon={UTILITY_ICONS.info}
+            size="xs"
+            className="shrink-0 text-primary"
+          />
+          <span className="line-clamp-1">{roleHint}</span>
+        </div>
+      ) : null}
       {children}
     </li>
   );

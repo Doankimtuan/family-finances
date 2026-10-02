@@ -15,6 +15,7 @@ export type TextFieldProps = Omit<
   id: string;
   label: ReactNode;
   description?: ReactNode;
+  labelAccessory?: ReactNode;
   required?: boolean;
   error?: FieldError | string;
   registration?: UseFormRegisterReturn;
@@ -34,6 +35,7 @@ export function TextField({
   id,
   label,
   description,
+  labelAccessory,
   required,
   error,
   registration,
@@ -108,6 +110,7 @@ export function TextField({
     <FormField
       id={id}
       label={label}
+      labelAccessory={labelAccessory}
       description={description}
       required={required}
       error={errorMessage}

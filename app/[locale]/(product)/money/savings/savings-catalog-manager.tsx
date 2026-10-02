@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { motionTokens, useMotionPolicy } from "@/shared/motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import type { SavingCatalogProvider } from "@/modules/savings/application/savings-provider-registry";
 import type { SavingPackage } from "@/modules/savings/application/savings-types";
 import {
@@ -46,12 +47,16 @@ import {
   archiveSavingsProductAction,
   archiveSavingsProviderAction,
   createSavingsProductAction,
-  createSavingsProviderAction,
   updateSavingsProductAction,
   updateSavingsProviderAction,
 } from "./provider-actions";
+import type { SavingsProviderDirectoryModel } from "@/modules/savings/application/savings-provider-directory";
+import { SavingsProviderDirectory } from "./savings-provider-directory";
 
-type Props = { catalog: SavingCatalogProvider[] };
+type Props = {
+  catalog: SavingCatalogProvider[];
+  directory: SavingsProviderDirectoryModel;
+};
 
 type ArchiveTarget =
   | { kind: "provider"; id: string; name: string }
@@ -339,7 +344,7 @@ function CompactActions({
   );
 }
 
-export function SavingsCatalogManager({ catalog }: Props) {
+export function SavingsCatalogManager({ catalog, directory }: Props) {
   const t = useTranslations("money.savingsCatalog");
   const tErr = useTranslations("money.products.errors");
   const locale = useLocale();
@@ -421,11 +426,11 @@ export function SavingsCatalogManager({ catalog }: Props) {
   };
 
   const submitProvider = providerForm.handleSubmit((input) => {
+    if (!providerEditor?.id) return;
+    const providerId = providerEditor.id;
     setError(null);
     startTransition(async () => {
-      const result = providerEditor?.id
-        ? await updateSavingsProviderAction(providerEditor.id, input)
-        : await createSavingsProviderAction(input);
+      const result = await updateSavingsProviderAction(providerId, input);
       if (result.status === "success") {
         closeEditors();
         toast.success(t("saved"));
@@ -524,26 +529,9 @@ export function SavingsCatalogManager({ catalog }: Props) {
 
   return (
     <div
-      className="flex flex-col gap-(--space-5)"
+      className="flex flex-1 flex-col gap-(--space-5)"
       data-testid="savings-catalog-manager"
     >
-      <div className="flex items-center justify-between gap-(--space-3)">
-        <Text size="sm" tone="secondary">
-          {t("pageHint")}
-        </Text>
-        <Button
-          type="button"
-          variant="primary"
-          data-testid="savings-create-provider"
-          onPress={() => {
-            setError(null);
-            providerForm.reset(providerFormFrom());
-            setProviderEditor(providerFormFrom());
-          }}
-        >
-          {t("createProvider")}
-        </Button>
-      </div>
       {error ? <StatusAlert variant="danger" title={tErr(error)} /> : null}
       {archiveTarget ? (
         <Card
@@ -581,66 +569,19 @@ export function SavingsCatalogManager({ catalog }: Props) {
           </div>
         </Card>
       ) : null}
-      {catalog.length === 0 ? (
-        <Card tone="soft" className="gap-(--space-1) p-(--space-4)">
-          <Text size="sm" weight="semibold">
-            {t("empty")}
-          </Text>
-          <Text size="sm" tone="secondary">
-            {t("emptyHint")}
-          </Text>
-        </Card>
-      ) : null}
-      <div className="flex flex-col gap-(--space-5)">
-        {catalog.map((provider) => (
-          <section
-            key={provider.id}
-            className="flex flex-col gap-(--space-3)"
-            data-testid={`savings-provider-card-${provider.id}`}
-          >
-            <div className="flex items-start gap-(--space-3)">
-              <IconContainer tone={IconContainerTone.SAVINGS}>
-                <AppIcon
-                  icon={SAVINGS_PROVIDER_ICONS[iconKeyFor(provider.iconKey)]}
-                  size={AppIconSize.MD}
-                  label={iconLabels[iconKeyFor(provider.iconKey)]}
-                />
-              </IconContainer>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-(--space-2)">
-                  <div className="min-w-0">
-                    <Text size="sm" weight="semibold" className="break-words">
-                      {provider.displayName}
-                    </Text>
-                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
-                      {provider.family === SavingsFamily.BANK
-                        ? t("bank")
-                        : t("platform")}{" "}
-                      · {provider.packages.length} {t("packageCount")}
-                    </Text>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-(--space-1)">
-                    {!provider.isSystem ? (
-                      <CompactActions
-                        label={t("moreActions")}
-                        editLabel={t("edit")}
-                        archiveLabel={t("archive")}
-                        onEdit={() => {
-                          const editor = providerFormFrom(provider);
-                          providerForm.reset(editor);
-                          setProviderEditor(editor);
-                        }}
-                        onArchive={() => archiveProvider(provider)}
-                      />
-                    ) : (
-                      <Text size="xs" tone="secondary">
-                        {t("system")}
-                      </Text>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+      <SavingsProviderDirectory
+        model={directory}
+        iconKeyFor={iconKeyFor}
+        onCreate={() => router.push(APP_PATH.MONEY_SAVINGS_PROVIDERS_NEW)}
+        onEdit={(provider) => {
+          setError(null);
+          const editor = providerFormFrom(provider);
+          providerForm.reset(editor);
+          setProviderEditor(editor);
+        }}
+        onArchive={archiveProvider}
+        renderProducts={(provider) => (
+          <div className="flex flex-col gap-(--space-3)">
             <div className="flex items-center justify-between gap-(--space-3)">
               <Text size="sm" weight="medium">
                 {t("productsHeading")}
@@ -743,9 +684,9 @@ export function SavingsCatalogManager({ catalog }: Props) {
                 </Text>
               )}
             </Card>
-          </section>
-        ))}
-      </div>
+          </div>
+        )}
+      />
 
       <Sheet
         isOpen={providerEditor !== null}
@@ -757,9 +698,7 @@ export function SavingsCatalogManager({ catalog }: Props) {
           {providerEditor ? (
             <>
               <ActionSheetLayout.Header>
-                <Sheet.Heading>
-                  {providerEditor.id ? t("editProvider") : t("createProvider")}
-                </Sheet.Heading>
+                <Sheet.Heading>{t("editProvider")}</Sheet.Heading>
               </ActionSheetLayout.Header>
               <ActionSheetLayout.Body className="flex max-h-[76dvh] flex-col gap-(--space-4)">
                 <SectionLabel>{t("providerBasics")}</SectionLabel>

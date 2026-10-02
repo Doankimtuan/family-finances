@@ -13,7 +13,9 @@ import {
   RenewalPolicy,
   SavingType,
   SettlementRule,
+  SAVINGS_PRINCIPAL_QUICK_ADD_VALUES,
 } from "@/modules/savings/application/client";
+import { formatAmountInput } from "@/shared/i18n/amount-input";
 import { PRODUCT_ACTION_ERROR_CODE } from "@/modules/tenancy/application/product-action-error";
 
 const { createSavingMock, replaceMock } = vi.hoisted(() => ({
@@ -51,6 +53,8 @@ const OTHER_PROVIDER_ID = "00000000-0000-4000-8000-000000000004";
 const PACKAGE_ID = "00000000-0000-4000-8000-000000000005";
 const OTHER_PACKAGE_ID = "00000000-0000-4000-8000-000000000006";
 const REPLACEMENT_ACCOUNT_ID = "00000000-0000-4000-8000-000000000007";
+const MANUAL_PROVIDER_ID = "00000000-0000-4000-8000-000000000008";
+const MANUAL_PACKAGE_ID = "00000000-0000-4000-8000-000000000009";
 
 const accounts = [
   { id: ACCOUNT_ID, name: "Wallet", type: "cash", balance: 10_000_000 },
@@ -66,6 +70,11 @@ const providers = [
     id: OTHER_PROVIDER_ID,
     displayName: "Digital Bank",
     savingType: SavingType.DIGITAL_SAVING,
+  },
+  {
+    id: MANUAL_PROVIDER_ID,
+    displayName: "Manual Saving",
+    savingType: SavingType.MANUAL_SAVING,
   },
 ];
 const packagesByProvider = {
@@ -89,6 +98,16 @@ const packagesByProvider = {
       maxAmount: 30_000_000,
     },
   ],
+  [MANUAL_PROVIDER_ID]: [
+    {
+      id: MANUAL_PACKAGE_ID,
+      packageName: "Manual 90",
+      durationDays: 90,
+      annualInterestRate: 6,
+      minAmount: 1_000_000,
+      maxAmount: 20_000_000,
+    },
+  ],
 };
 
 function renderWizard() {
@@ -102,8 +121,8 @@ function renderWizard() {
 }
 
 function reachReview() {
+  fireEvent.click(screen.getByTestId("savings-type-platform"));
   fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
-  fireEvent.click(screen.getByTestId("savings-wizard-next"));
   fireEvent.change(screen.getByTestId("savings-wizard-principal"), {
     target: { value: "3000000" },
   });
@@ -115,31 +134,39 @@ describe("CreateSavingWizard", () => {
     vi.clearAllMocks();
   });
 
-  it("initializes from the first provider and resets the package when the provider changes", () => {
+  it("starts with manual savings and updates the package when the provider changes", () => {
     renderWizard();
 
-    expect(
-      screen
-        .getByTestId("savings-provider")
-        .querySelector("[data-slot='select-value']")?.textContent,
-    ).toBe("Main Bank");
+    expect(screen.getByTestId("savings-type-manual")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByTestId("savings-type-platform")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-provider")).toBeInTheDocument();
+    fireEvent.change(screen.getByDisplayValue("Manual Saving"), {
+      target: { value: "Family nest egg" },
+    });
+
+    fireEvent.click(screen.getByTestId("savings-type-platform"));
     expect(
       screen.getByTestId(`savings-package-${PACKAGE_ID}`),
     ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`savings-provider-${PROVIDER_ID}`),
+    ).toHaveAttribute("aria-checked", "true");
     fireEvent.click(
-      within(screen.getByTestId("savings-provider")).getByRole("button"),
+      screen.getByTestId(`savings-provider-${OTHER_PROVIDER_ID}`),
     );
-    fireEvent.click(screen.getByRole("option", { name: "Digital Bank" }));
-
     expect(
       screen.getByTestId(`savings-package-${OTHER_PACKAGE_ID}`),
     ).toBeInTheDocument();
     expect(
       screen.queryByTestId(`savings-package-${PACKAGE_ID}`),
     ).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Family nest egg")).toBeInTheDocument();
   });
 
-  it("shows the creation mode before continuing and controls the source account", () => {
+  it("omits the source account for historical savings", () => {
     renderWizard();
     expect(screen.getByTestId("savings-create-mode-live")).toBeInTheDocument();
     expect(
@@ -147,8 +174,7 @@ describe("CreateSavingWizard", () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("savings-create-mode-historical"));
-    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
-    fireEvent.click(screen.getByTestId("savings-wizard-next"));
+    fireEvent.click(screen.getByTestId(`savings-package-${MANUAL_PACKAGE_ID}`));
 
     expect(screen.queryByTestId("savings-source")).not.toBeInTheDocument();
     expect(screen.getByText("historicalNoSource")).toBeInTheDocument();
@@ -174,6 +200,7 @@ describe("CreateSavingWizard", () => {
     createSavingMock.mockResolvedValue({ status: "success", id: "saving-1" });
     renderWizard();
     reachReview();
+    fireEvent.click(screen.getByTestId("savings-wizard-back"));
 
     fireEvent.click(
       screen.getByTestId(
@@ -186,6 +213,7 @@ describe("CreateSavingWizard", () => {
       within(screen.getByTestId("savings-payout-account")).getByRole("button"),
     );
     fireEvent.click(screen.getByRole("option", { name: /Bank/ }));
+    fireEvent.click(screen.getByTestId("savings-wizard-next"));
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
 
     await waitFor(() => expect(createSavingMock).toHaveBeenCalledTimes(1));
@@ -322,16 +350,17 @@ describe("CreateSavingWizard", () => {
     expect(createSavingMock).not.toHaveBeenCalled();
   });
 
-  it("disables confirmation when payout and source accounts are the same", () => {
+  it("blocks review when payout and source accounts are the same", () => {
     renderWizard();
     reachReview();
+    fireEvent.click(screen.getByTestId("savings-wizard-back"));
 
     fireEvent.click(
       within(screen.getByTestId("savings-payout-account")).getByRole("button"),
     );
     fireEvent.click(screen.getByRole("option", { name: /Wallet/ }));
 
-    expect(screen.getByTestId("savings-wizard-confirm")).toBeDisabled();
+    expect(screen.getByTestId("savings-wizard-next")).toBeDisabled();
     expect(createSavingMock).not.toHaveBeenCalled();
   });
 });
@@ -341,26 +370,38 @@ describe("CreateSavingWizard hierarchy", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the canonical wizard shell with the product step first", () => {
+  it("renders the canonical wizard shell with a combined setup step", () => {
     renderWizard();
 
     expect(screen.getByTestId("savings-create-wizard")).toBeInTheDocument();
     expect(screen.getByTestId("savings-step-indicator")).toBeInTheDocument();
+    const stepLabels = within(screen.getByRole("list", { name: "stepOf" }));
+    expect(stepLabels.getByText("stepSetup")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    expect(stepLabels.getByText("stepReview")).toBeInTheDocument();
+    expect(stepLabels.queryByText("stepProvider")).not.toBeInTheDocument();
+    expect(stepLabels.queryByText("stepFunding")).not.toBeInTheDocument();
     expect(screen.getByTestId("savings-create-mode-live")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-type-manual")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-type-platform")).toBeInTheDocument();
     expect(screen.getByTestId("savings-provider")).toBeInTheDocument();
-    expect(screen.getByTestId("savings-wizard-next")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-principal")).toBeInTheDocument();
+    expect(screen.getByTestId("savings-wizard-next")).toBeDisabled();
     expect(screen.queryByTestId("savings-wizard-back")).not.toBeInTheDocument();
     expect(
       screen.queryByTestId("savings-wizard-confirm"),
     ).not.toBeInTheDocument();
   });
 
-  it("advances through product, deposit, and review in order", () => {
+  it("shows setup details together and advances directly to review", () => {
     renderWizard();
 
+    fireEvent.click(screen.getByTestId("savings-type-platform"));
+    expect(screen.getByTestId(`savings-package-${PACKAGE_ID}`)).toBeVisible();
+    expect(screen.getByTestId("savings-wizard-principal")).toBeVisible();
     fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
-    fireEvent.click(screen.getByTestId("savings-wizard-next"));
-    expect(screen.getByTestId("savings-wizard-principal")).toBeInTheDocument();
 
     fireEvent.change(screen.getByTestId("savings-wizard-principal"), {
       target: { value: "3000000" },
@@ -373,15 +414,25 @@ describe("CreateSavingWizard hierarchy", () => {
     expect(screen.queryByTestId("savings-wizard-next")).not.toBeInTheDocument();
   });
 
-  it("keeps shared field composition on the deposit step", () => {
+  it("keeps shared field composition on the combined setup step", () => {
     renderWizard();
 
-    fireEvent.click(screen.getByTestId(`savings-package-${PACKAGE_ID}`));
-    fireEvent.click(screen.getByTestId("savings-wizard-next"));
-
+    expect(screen.getByTestId("savings-provider")).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`savings-package-${MANUAL_PACKAGE_ID}`),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("savings-wizard-principal")).toBeInTheDocument();
     expect(screen.getByTestId("savings-source")).toBeInTheDocument();
     expect(screen.getByTestId("savings-wizard-start-date")).toBeInTheDocument();
     expect(screen.getByTestId("savings-estimate")).toBeInTheDocument();
+
+    fireEvent.click(
+      within(
+        screen.getByRole("group", { name: "quickAddAmountLabel" }),
+      ).getAllByRole("button")[0],
+    );
+    expect(screen.getByTestId("savings-wizard-principal")).toHaveValue(
+      formatAmountInput(SAVINGS_PRINCIPAL_QUICK_ADD_VALUES[0], "en"),
+    );
   });
 });

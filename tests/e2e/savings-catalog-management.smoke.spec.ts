@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { SavingsFamily } from "@/modules/savings/application/savings-constants";
 
 test.describe("Savings catalog management", () => {
   test.setTimeout(120_000);
@@ -33,18 +34,30 @@ test.describe("Savings catalog management", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: "Thêm nhà cung cấp" }).click();
     await page.locator("#savings-provider-name").fill(providerName);
-    await page.getByRole("button", { name: "Lưu" }).last().click();
-    await expect(page.getByTestId("savings-provider-save")).toHaveCount(0, {
-      timeout: 30_000,
-    });
+    await page
+      .getByTestId(`savings-provider-family-${SavingsFamily.PLATFORM}`)
+      .click();
+    await page
+      .locator("#savings-provider-package-name")
+      .fill(`${productName} initial`);
+    await page.locator("#savings-provider-package-rate").fill("6,5");
+    await page.locator("#savings-provider-package-rate").press("Tab");
+    await page.getByTestId("savings-provider-create-save").click();
+    await expect(page.getByTestId("savings-provider-create-page")).toHaveCount(
+      0,
+      {
+        timeout: 30_000,
+      },
+    );
     await expect(page.getByText(providerName, { exact: true })).toBeVisible();
 
     let card = page
       .locator(`[data-testid^="savings-provider-card-"]`)
       .filter({ hasText: providerName })
       .first();
-    await card.getByTestId("savings-more-actions").last().click();
-    await page.getByRole("menuitem", { name: "Chỉnh sửa" }).click();
+    await card
+      .getByRole("button", { name: `Chỉnh sửa ${providerName}`, exact: true })
+      .click();
     await page.locator("#savings-provider-name").fill(editedProviderName);
     await page.getByRole("button", { name: "Lưu" }).last().click();
     await expect(page.getByTestId("savings-provider-save")).toHaveCount(0, {
@@ -58,6 +71,13 @@ test.describe("Savings catalog management", () => {
       .locator(`[data-testid^="savings-provider-card-"]`)
       .filter({ hasText: editedProviderName })
       .first();
+    await card.locator("[data-testid^=savings-provider-open-]").click();
+    await expect(
+      card.locator("[data-testid^=savings-product-card-]"),
+    ).toHaveCount(1);
+    await expect(
+      card.locator("[data-testid^=savings-product-card-]"),
+    ).toContainText("12 tháng");
     await card.getByRole("button", { name: "Thêm gói" }).click();
     await expect(page.getByTestId("savings-product-save")).toBeVisible();
     await page.locator("#savings-product-name").fill(productName);
@@ -71,6 +91,7 @@ test.describe("Savings catalog management", () => {
     ).toContainText("90 ngày");
 
     await page.goto("/vi/money/savings/new");
+    await page.getByTestId("savings-type-platform").click();
     await expect(
       page.getByText(editedProviderName, { exact: true }).last(),
     ).toBeVisible();
@@ -91,6 +112,7 @@ test.describe("Savings catalog management", () => {
       .locator(`[data-testid^="savings-provider-card-"]`)
       .filter({ hasText: editedProviderName })
       .first();
+    await card.locator("[data-testid^=savings-provider-open-]").click();
     const productCard = card
       .locator(`[data-testid^="savings-product-card-"]`)
       .last();
@@ -104,8 +126,12 @@ test.describe("Savings catalog management", () => {
         .filter({ hasText: "90 ngày" }),
     ).toHaveCount(0, { timeout: 30_000 });
 
-    await card.getByTestId("savings-more-actions").last().click();
-    await page.getByRole("menuitem", { name: "Lưu trữ" }).click();
+    await card
+      .getByRole("button", {
+        name: `Lưu trữ ${editedProviderName}`,
+        exact: true,
+      })
+      .click();
     await page.getByTestId("savings-archive-confirm-action").click();
     await expect(
       page.getByText(editedProviderName, { exact: true }),

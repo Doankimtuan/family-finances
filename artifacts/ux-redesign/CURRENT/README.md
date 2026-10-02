@@ -10,7 +10,7 @@ Inputs used:
 - `artifacts/current/product/`
 - `artifacts/current/specification/`
 
-This phase does not change business behavior, financial invariants, domain ownership, five-tab navigation, route ownership, or visual design.
+This phase does not change business behavior, financial invariants, domain ownership, route ownership, or visual design. The navigation contract uses four bottom route tabs, a centered transaction action, and a Home household shortcut to Together.
 
 ## Deliverables
 

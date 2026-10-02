@@ -4,8 +4,12 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { Button, ButtonVariant } from "@/shared/ui/button";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { accountTransactionsHref } from "../../transactions/transactions-list-presentations";
 
 type AccountViewActivityActionProps = {
+  accountId?: string;
   testId?: string;
 };
 
@@ -14,6 +18,7 @@ type AccountViewActivityActionProps = {
  * control so it is not styled as an accent text link.
  */
 export function AccountViewActivityAction({
+  accountId,
   testId,
 }: AccountViewActivityActionProps) {
   const t = useTranslations("money.accountDetail");
@@ -21,14 +26,20 @@ export function AccountViewActivityAction({
 
   return (
     <Button
-      variant={ButtonVariant.SECONDARY}
+      variant={ButtonVariant.GHOST}
       size="sm"
+      className="w-full justify-center text-accent"
       data-testid={testId}
       onPress={() => {
-        router.push(APP_PATH.MONEY_TRANSACTIONS);
+        router.push(
+          accountId
+            ? accountTransactionsHref(accountId)
+            : APP_PATH.MONEY_TRANSACTIONS,
+        );
       }}
     >
-      {t("viewActivity")}
+      {t("allActivity")}
+      <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.SM} />
     </Button>
   );
 }

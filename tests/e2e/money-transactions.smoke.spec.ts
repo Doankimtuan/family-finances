@@ -36,7 +36,7 @@ test.describe("Money transactions list/detail/edit (ST-E04-003)", () => {
     const appViewport = page.locator("#app-viewport-root");
     await expect(appViewport.getByTestId("money-transactions")).toBeVisible();
     await expect(appViewport.getByTestId("transactions-filter")).toBeVisible();
-    await expect(appViewport.getByTestId("transactions-add")).toBeVisible();
+    await expect(appViewport.getByTestId("money-capture")).toBeVisible();
 
     for (const colorScheme of TRANSACTION_LIST_COLOR_SCHEMES) {
       await page.emulateMedia({ colorScheme });

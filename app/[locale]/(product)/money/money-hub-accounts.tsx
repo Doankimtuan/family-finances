@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button, ButtonVariant } from "@/shared/ui/button";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { QuickAction } from "@/shared/patterns/quick-action";
 import { AddAccountForm } from "./accounts/add-account-form";
 import {
@@ -18,10 +17,9 @@ type LiquidOption = { id: string; name: string };
 
 type Props = {
   labels: MoneyAccountsScanLabels;
-  accountGroups: MoneyHubAccountGroup[];
-  initialAccountGroups: MoneyHubAccountGroup[];
-  accountPresentation: "flat" | "grouped";
-  hasMoreAccounts: boolean;
+  accounts: MoneyHubAccountGroup[];
+  allAccounts: MoneyHubAccountGroup[];
+  initiallyExpanded?: boolean;
   creditCards: MoneyHubCardRow[];
   accountsUnavailable?: boolean;
   creditCardsUnavailable?: boolean;
@@ -34,10 +32,9 @@ type Props = {
 /** Money hub accounts: a grouped scan with the existing create-account sheet. */
 export function MoneyHubAccounts({
   labels,
-  accountGroups,
-  initialAccountGroups,
-  accountPresentation,
-  hasMoreAccounts,
+  accounts,
+  allAccounts,
+  initiallyExpanded,
   creditCards,
   accountsUnavailable,
   creditCardsUnavailable,
@@ -57,28 +54,14 @@ export function MoneyHubAccounts({
   return (
     <div className="flex flex-col gap-(--space-3)">
       <MoneyAccountsScan
+        key={initiallyExpanded ? 1 : 0}
         labels={labels}
-        accountGroups={accountGroups}
-        initialAccountGroups={initialAccountGroups}
-        accountPresentation={accountPresentation}
-        hasMoreAccounts={hasMoreAccounts}
+        accounts={accounts}
+        allAccounts={allAccounts}
+        initiallyExpanded={initiallyExpanded}
         creditCards={creditCards}
         accountsUnavailable={accountsUnavailable}
         creditCardsUnavailable={creditCardsUnavailable}
-        createAction={
-          <Button
-            variant={ButtonVariant.GHOST}
-            className="px-(--space-2) text-sm font-medium text-accent"
-            data-testid="money-create-account"
-            isDisabled={!online}
-            onPress={openCreate}
-          >
-            <span className="inline-flex items-center gap-(--space-1)">
-              <AppIcon icon={ACTION_ICONS.add} size="xs" />
-              {actionLabel}
-            </span>
-          </Button>
-        }
         emptyAction={
           <QuickAction
             label={actionLabel}

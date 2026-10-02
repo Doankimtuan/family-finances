@@ -16,7 +16,6 @@ function AccountDetailSkeleton() {
         <Skeleton className="mt-(--space-3) h-9 w-44" />
         <Skeleton className="mt-(--space-4) h-4 w-36" />
       </Card>
-      <Skeleton className="h-12 w-full rounded-(--radius-control)" />
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex items-start justify-between gap-(--space-3)">
           <Skeleton className="h-5 w-32" />
@@ -44,8 +43,8 @@ function AccountDetailSkeleton() {
 
 /**
  * Loading shell for account detail mirrors the loaded composition: identity
- * hero, primary capture, and a short activity preview. Credit-card modules
- * hydrate in after the account type is known.
+ * hero and a short activity preview. Credit-card modules hydrate after the
+ * account type is known.
  */
 export default function AccountDetailLoading() {
   return (

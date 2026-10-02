@@ -36,11 +36,14 @@ export type SavingsProductRowProps = {
   subtitle: string;
   principalLabel: string;
   principalCaption: string;
+  expectedInterestLabel?: string;
+  expectedInterestCaption?: string;
   maturityState: SavingsMaturityState;
   maturityLabel: string;
   maturityMeta?: string;
   ownership?: OwnershipView;
   history?: boolean;
+  grouped?: boolean;
 };
 
 function familyIcon(family: SavingsFamily) {
@@ -61,19 +64,25 @@ export function SavingsProductRow({
   subtitle,
   principalLabel,
   principalCaption,
+  expectedInterestLabel,
+  expectedInterestCaption,
   maturityState,
   maturityLabel,
   maturityMeta,
   ownership,
   history = false,
+  grouped = false,
 }: SavingsProductRowProps) {
   const personalOwnership =
     ownership?.financialScope === FINANCIAL_SCOPE.PERSONAL ? ownership : null;
 
   return (
     <Card
-      tone={history ? "soft" : "interactive"}
-      className="gap-0 overflow-hidden p-0"
+      tone={history || grouped ? "soft" : "interactive"}
+      className={cn(
+        "gap-0 overflow-hidden p-0",
+        grouped && "rounded-none border-0 bg-transparent shadow-none",
+      )}
       data-financial-object="savings"
     >
       <Link
@@ -81,11 +90,17 @@ export function SavingsProductRow({
         prefetch={PRODUCT_LINK_PREFETCH}
         className={cn(
           "flex min-h-14 flex-col",
+          grouped && "min-h-0",
           "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring",
         )}
         data-testid={testId}
       >
-        <div className="flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)">
+        <div
+          className={cn(
+            "flex items-start gap-(--space-3) px-(--space-4) py-(--space-3)",
+            grouped && "w-full items-center py-(--space-3)",
+          )}
+        >
           <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
             <AppIcon
               icon={familyIcon(family)}
@@ -94,13 +109,17 @@ export function SavingsProductRow({
             />
           </IconContainer>
           <div className="min-w-0 flex-1">
-            <Text
-              size="sm"
-              weight="semibold"
-              className="truncate text-text-primary"
+            <div
+              className={cn(grouped && "flex flex-wrap items-center gap-x-1")}
             >
-              {title}
-            </Text>
+              <Text
+                size="sm"
+                weight="semibold"
+                className="truncate text-text-primary"
+              >
+                {title}
+              </Text>
+            </div>
             <Text
               size="xs"
               tone="secondary"
@@ -129,9 +148,26 @@ export function SavingsProductRow({
               >
                 <FinancialValue>{principalLabel}</FinancialValue>
               </Text>
-              <Text size="xs" tone="muted" className="mt-(--space-1)">
+              <Text
+                size="xs"
+                tone="muted"
+                className={grouped ? "sr-only" : "mt-(--space-1)"}
+              >
                 {principalCaption}
               </Text>
+              {expectedInterestLabel ? (
+                <Text
+                  size="xs"
+                  weight="medium"
+                  tone="success"
+                  tabular
+                  className="mt-(--space-1) truncate"
+                >
+                  <span aria-hidden>+</span>
+                  <span className="sr-only">{expectedInterestCaption}: </span>
+                  <FinancialValue>{expectedInterestLabel}</FinancialValue>
+                </Text>
+              ) : null}
             </div>
             <AppIcon
               icon={ACTION_ICONS.forward}

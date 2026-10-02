@@ -16,8 +16,16 @@ export const StitchInboxIcon: IconSvgElement = [["path",{"d":"M4 13.5L5.75 5.5C5
 /** together · Stitch sheet 01 */
 export const StitchTogetherIcon: IconSvgElement = [["circle",{"cx":"8.5","cy":"8","r":"3.25"}],["path",{"d":"M3.75 18.5C3.75 15.5 6 13.75 8.5 13.75C11 13.75 13.25 15.5 13.25 18.5"}],["circle",{"cx":"15.75","cy":"9.25","r":"2.75"}],["path",{"d":"M14.5 14.5C15.6 14.05 16.9 14.05 18 14.75C19.5 15.65 20.25 17 20.25 18.5"}]];
 
+/** Bottom-navigation artwork copied from the canonical Stitch Money Overview. */
+export const StitchNavigationHomeIcon: IconSvgElement = [["path",{"d":"M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"}]];
+export const StitchNavigationMoneyIcon: IconSvgElement = [["path",{"d":"M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"}]];
+export const StitchNavigationPlanIcon: IconSvgElement = [["path",{"d":"M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"}]];
+export const StitchNavigationInboxIcon: IconSvgElement = [["path",{"d":"M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"}]];
+export const StitchNavigationTogetherIcon: IconSvgElement = [["path",{"d":"M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"}]];
+
 /** account · Stitch sheet 02 */
 export const StitchAccountIcon: IconSvgElement = [["rect",{"x":"3","y":"4","width":"18","height":"16","rx":"2.5"}],["path",{"d":"M7 8h10"}],["path",{"d":"M7 12h6"}],["circle",{"cx":"16","cy":"14","r":"1.5"}]];
+export const StitchLedgerIcon: IconSvgElement = [["path",{"d":"M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"}]];
 
 /** bank · Stitch sheet 02 */
 export const StitchBankIcon: IconSvgElement = [["path",{"d":"M3 9.5L12 4l9 5.5"}],["path",{"d":"M5 9.5v8.5"}],["path",{"d":"M9.5 9.5v8.5"}],["path",{"d":"M14.5 9.5v8.5"}],["path",{"d":"M19 9.5v8.5"}],["path",{"d":"M2.5 19.5h19"}]];
@@ -222,6 +230,12 @@ export const StitchHomeLoanIcon: IconSvgElement = [["path",{"d":"M3 10 L12 3 L21
 
 /** debt · Stitch sheet 05 */
 export const StitchDebtIcon: IconSvgElement = [["path",{"d":"M12 3v4"}],["rect",{"x":"5","y":"7","width":"14","height":"13","rx":"3"}],["path",{"d":"M8.5 13.5h7"}],["path",{"d":"M12 10.5v6"}],["circle",{"cx":"12","cy":"13.5","r":"2.5"}]];
+
+/** Product summary icons · Stitch dark canonical Home dashboard */
+export const StitchHomeSavingsIcon: IconSvgElement = [["path",{"d":"M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h6v2h4v-4.5c1-.8 2-1.8 2-3.5 0-3.5-2.2-6-4-7z"}],["path",{"d":"M16 11h.01"}],["path",{"d":"M10 7h4"}]];
+export const StitchHomeInvestmentIcon: IconSvgElement = [["polyline",{"points":"23 6 13.5 15.5 8.5 10.5 1 18"}],["polyline",{"points":"17 6 23 6 23 12"}]];
+export const StitchHomeSummaryLoanIcon: IconSvgElement = [["path",{"d":"M3 21h18"}],["path",{"d":"M3 10h18"}],["path",{"d":"M5 10v11"}],["path",{"d":"M19 10v11"}],["path",{"d":"M9 10v11"}],["path",{"d":"M15 10v11"}],["path",{"d":"M12 2L2 7h20L12 2z"}]];
+export const StitchHomePersonalDebtIcon: IconSvgElement = [["path",{"d":"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"}],["circle",{"cx":"9","cy":"7","r":"4"}],["path",{"d":"M23 21v-2a4 4 0 0 0-3-3.87"}],["path",{"d":"M16 3.13a4 4 0 0 1 0 7.75"}]];
 
 /** repayment · Stitch sheet 05 */
 export const StitchRepaymentIcon: IconSvgElement = [["rect",{"x":"3","y":"15","width":"18","height":"6","rx":"2"}],["path",{"d":"M12 12V3"}],["path",{"d":"m8 7 4-4 4 4"}],["path",{"d":"M8 18h8"}]];

@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { CheckmarkCircle02Icon } from "@/shared/ui/stitch-icon-compat";
 import {
   MaturityFallbackPolicy,
   MaturityTargetMode,
@@ -14,6 +13,7 @@ import {
 } from "@/modules/savings/application/savings-constants";
 import type { RenewalConfig } from "@/modules/savings/application/savings-types";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -37,6 +37,7 @@ type Props = {
   renewalConfig: RenewalConfig;
   packages: PackageOption[];
   accounts: AccountOption[];
+  compact?: boolean;
 };
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -61,13 +62,6 @@ function SelectionTile({
       className="justify-between"
     >
       {children}
-      {selected ? (
-        <AppIcon
-          icon={CheckmarkCircle02Icon}
-          size="sm"
-          className="shrink-0 text-accent"
-        />
-      ) : null}
     </ChoiceTile>
   );
 }
@@ -114,6 +108,7 @@ export function RenewalPolicyEditor({
   renewalConfig: initialConfig,
   packages,
   accounts,
+  compact = false,
 }: Props) {
   const t = useTranslations("money.savingsDetail");
   const tErr = useTranslations("money.products.errors");
@@ -223,10 +218,21 @@ export function RenewalPolicyEditor({
     >
       <Button
         variant="secondary"
-        className="min-h-11 w-full"
-        data-testid="savings-edit-maturity"
+        className={
+          compact
+            ? "h-full min-h-20 min-w-0 w-full flex-col gap-(--space-1) whitespace-normal border border-border-subtle bg-surface p-(--space-2) text-center text-xs"
+            : "min-h-11 w-full"
+        }
+        data-testid={
+          compact ? "savings-edit-maturity-compact" : "savings-edit-maturity"
+        }
         onPress={() => setIsOpen(true)}
       >
+        <AppIcon
+          icon={compact ? UTILITY_ICONS.settings : ACTION_ICONS.edit}
+          size="md"
+          className="shrink-0 text-primary"
+        />
         {t("editMaturity")}
       </Button>
       <ActionSheetLayout>

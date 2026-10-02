@@ -20,6 +20,8 @@ import { FinancialValue } from "./financial-value";
 
 const JAR_INTENTION_ROW_CLASS =
   "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
+const JAR_COMPACT_ROW_CLASS =
+  "flex min-h-11 items-center gap-(--space-3) px-(--space-4) pt-(--space-4) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
 
 function financialLeaf(value: ReactNode) {
   return isValidElement(value) ? (
@@ -43,6 +45,9 @@ export type JarCardProps = {
   planLabel?: ReactNode;
   remainingLabel?: ReactNode;
   usageLabel?: ReactNode;
+  amountLabel?: ReactNode;
+  secondaryLabel?: ReactNode;
+  compact?: boolean;
   usagePercent?: number;
   budgetState?: JarBudgetStateValue;
   iconTone?: IconContainerTone;
@@ -59,8 +64,11 @@ function JarCardBody({
   planLabel,
   remainingLabel,
   usageLabel,
+  amountLabel,
+  secondaryLabel,
   usagePercent,
   budgetState,
+  compact = false,
   iconTone = IconContainerTone.SAVINGS,
 }: Omit<JarCardProps, "href" | "className" | "data-testid">) {
   const value = remainingLabel ?? planLabel;
@@ -70,57 +78,118 @@ function JarCardBody({
 
   return (
     <>
-      <div className={JAR_INTENTION_ROW_CLASS}>
-        <IconContainer tone={iconTone} size="sm">
+      <div
+        className={compact ? JAR_COMPACT_ROW_CLASS : JAR_INTENTION_ROW_CLASS}
+      >
+        <IconContainer tone={iconTone} size={compact ? "md" : "sm"}>
           <AppIcon icon={PLAN_ICONS.jar} size={AppIconSize.SM} />
         </IconContainer>
         <div className="min-w-0 flex-1">
-          <Text
-            size="sm"
-            weight="semibold"
-            className="truncate text-text-primary"
-          >
-            {name}
-          </Text>
-          <Text
-            size="xs"
-            tone="muted"
-            className="mt-(--space-1) truncate text-pretty"
-          >
-            {kindLabel}
-          </Text>
-        </div>
-        <div className="flex shrink-0 items-center gap-(--space-2)">
-          <div className="min-w-[var(--financial-number-column-width)] text-right">
-            {value ? (
+          {compact ? (
+            <>
+              <div className="flex min-w-0 items-center gap-(--space-2)">
+                <Text
+                  size="sm"
+                  weight="semibold"
+                  className="min-w-0 flex-1 truncate text-text-primary"
+                >
+                  {name}
+                </Text>
+                <StatusBadge
+                  tone={StatusBadgeTone.NEUTRAL}
+                  className="shrink-0"
+                >
+                  {kindLabel}
+                </StatusBadge>
+                {amountLabel ? (
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    tone={overspent ? "danger" : "primary"}
+                    tabular
+                    className="shrink-0 tracking-tight"
+                    data-financial-kind={FinancialNumberKind.INTENTION}
+                  >
+                    {amountLabel}
+                  </Text>
+                ) : null}
+              </div>
+              <div className="mt-(--space-1) flex min-w-0 items-center justify-between gap-(--space-2)">
+                {usageLabel ? (
+                  <Text size="xs" tone="muted" className="min-w-0">
+                    <FinancialValue>{usageLabel}</FinancialValue>
+                  </Text>
+                ) : null}
+                {secondaryLabel ? (
+                  <Text
+                    size="xs"
+                    tone={overspent ? "danger" : "muted"}
+                    className="shrink-0 text-right"
+                  >
+                    {secondaryLabel}
+                  </Text>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <>
               <Text
                 size="sm"
                 weight="semibold"
-                tone={overspent ? "danger" : "primary"}
-                tabular
-                className="tracking-tight"
-                data-financial-kind={FinancialNumberKind.INTENTION}
+                className="truncate text-text-primary"
               >
-                {financialLeaf(value)}
+                {name}
               </Text>
-            ) : null}
-            <div className="mt-(--space-1) flex justify-end">
-              <StatusBadge tone={stateTone(state)}>{stateLabel}</StatusBadge>
-            </div>
-          </div>
-          <AppIcon
-            icon={ACTION_ICONS.forward}
-            size={AppIconSize.SM}
-            className="shrink-0 text-text-tertiary"
-          />
+              <Text
+                size="xs"
+                tone="muted"
+                className="mt-(--space-1) truncate text-pretty"
+              >
+                {kindLabel}
+              </Text>
+            </>
+          )}
         </div>
+        {!compact ? (
+          <div className="flex shrink-0 items-center gap-(--space-2)">
+            <div className="min-w-[var(--financial-number-column-width)] text-right">
+              {value ? (
+                <Text
+                  size="sm"
+                  weight="semibold"
+                  tone={overspent ? "danger" : "primary"}
+                  tabular
+                  className="tracking-tight"
+                  data-financial-kind={FinancialNumberKind.INTENTION}
+                >
+                  {financialLeaf(value)}
+                </Text>
+              ) : null}
+              <div className="mt-(--space-1) flex justify-end">
+                <StatusBadge tone={stateTone(state)}>{stateLabel}</StatusBadge>
+              </div>
+            </div>
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size={AppIconSize.SM}
+              className="shrink-0 text-text-tertiary"
+            />
+          </div>
+        ) : null}
       </div>
       {showProgress ? (
-        <div className="px-(--space-4) pb-(--space-3)">
+        <div
+          className={
+            compact
+              ? "px-(--space-4) pt-(--space-3) pb-(--space-4)"
+              : "px-(--space-4) pb-(--space-3)"
+          }
+        >
           <Progress
             value={usagePercent}
             max={100}
             label={usageLabel != null ? String(usageLabel) : undefined}
+            showLabel={!compact}
             privacyAware
             indicatorClassName={overspent ? "bg-danger" : undefined}
           />
@@ -139,6 +208,7 @@ export function JarCard({
 }: JarCardProps) {
   const shared = {
     className: cn("flex flex-col", className),
+    title: typeof body.name === "string" ? body.name : undefined,
     "data-testid": testId,
     "data-jar-state": body.state,
     "data-budget-state": body.budgetState,

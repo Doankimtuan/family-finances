@@ -123,6 +123,7 @@ describe("Phase 10 Hũ and Goals presentation", () => {
 
     const row = screen.getByTestId(`jar-card-${jarId}`);
     expect(row).toHaveAttribute("href", planJarPath(jarId));
+    expect(row).toHaveAttribute("title", "Groceries");
     expect(row).toHaveAttribute("data-financial-object", "jar");
     expect(row).toHaveAttribute("data-jar-state", JarState.ACTIVE);
     expect(
@@ -169,6 +170,58 @@ describe("Phase 10 Hũ and Goals presentation", () => {
         incomeSource: QualifyingIncomeSource.NONE,
       }),
     ).toBeUndefined();
+  });
+
+  it("caps progress fill while preserving actual 0–100% and overspent labels", () => {
+    const jarId = "00000000-0000-4000-8000-000000000010";
+    const usageValues = [0, 25, 50, 100, 140];
+    const view = renderUi(
+      <JarCard
+        href={planJarPath(jarId)}
+        name="Groceries"
+        kindLabel={enPlan.jars.kinds.spending}
+        stateLabel={enPlan.jars.stateActive}
+        state={JarState.ACTIVE}
+        remainingLabel="₫200,000 remaining"
+        usagePercent={0}
+        usageLabel="0% used"
+        budgetState={JarBudgetState.HEALTHY}
+        data-testid={`jar-card-${jarId}`}
+      />,
+    );
+
+    for (const usagePercent of usageValues) {
+      const overspent = usagePercent > 100;
+      view.rerender(
+        <NextIntlClientProvider locale="en" messages={{ plan: enPlan }}>
+          <FinancialPrivacyProvider>
+            <JarCard
+              href={planJarPath(jarId)}
+              name="Groceries"
+              kindLabel={enPlan.jars.kinds.spending}
+              stateLabel={enPlan.jars.stateActive}
+              state={JarState.ACTIVE}
+              remainingLabel={
+                overspent ? "Over by ₫80,000" : "₫200,000 remaining"
+              }
+              usagePercent={usagePercent}
+              usageLabel={`${usagePercent}% used`}
+              budgetState={
+                overspent ? JarBudgetState.OVERSPENT : JarBudgetState.HEALTHY
+              }
+              data-testid={`jar-card-${jarId}`}
+            />
+          </FinancialPrivacyProvider>
+        </NextIntlClientProvider>,
+      );
+
+      const progress = screen.getByRole("progressbar");
+      expect(progress).toHaveAttribute(
+        "aria-valuenow",
+        String(Math.min(usagePercent, 100)),
+      );
+      expect(progress).toHaveAccessibleName(`${usagePercent}% used`);
+    }
   });
 
   it("keeps Goal list scan-first with existing progress and linked-source copy", () => {
@@ -305,7 +358,7 @@ describe("Phase 10 Hũ and Goals presentation", () => {
     expect(APP_PATH.PLAN_GOALS).toBe("/plan/goals");
     expect(planJarPath("abc")).toBe("/plan/jars/abc");
     expect(planGoalPath("abc")).toBe("/plan/goals/abc");
-    expect(TABS).toHaveLength(5);
+    expect(TABS).toHaveLength(4);
 
     const reallocate = readProjectFile(
       "app/[locale]/(product)/plan/jars/reallocate-jar-form.tsx",

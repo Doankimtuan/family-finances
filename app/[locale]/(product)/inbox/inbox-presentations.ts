@@ -6,7 +6,9 @@ import {
 } from "@/modules/inbox/application/inbox-constants";
 import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import { formatCurrency } from "@/shared/i18n/formatters";
+import type { InboxAccent } from "@/shared/patterns/inbox-row";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
+import { FinancialAmountTone } from "@/shared/ui/financial-amount";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
@@ -15,6 +17,7 @@ export type InboxItemVisual = {
   icon: IconSvgElement;
   tone: IconContainerTone;
   statusTone: StatusBadgeTone;
+  accent: InboxAccent;
 };
 
 export type InboxKindFilterId = typeof InboxKindFilter.ALL | InboxItemKind;
@@ -24,41 +27,49 @@ const ITEM_VISUALS: Record<InboxItemKind, InboxItemVisual> = {
     icon: FINANCE_ICONS.expense,
     tone: IconContainerTone.EXPENSE,
     statusTone: StatusBadgeTone.WARNING,
+    accent: "rose",
   },
   [InboxItemKind.INCOME_SUGGEST]: {
     icon: FINANCE_ICONS.income,
     tone: IconContainerTone.INCOME,
     statusTone: StatusBadgeTone.INFO,
+    accent: "teal",
   },
   [InboxItemKind.SAVINGS_MATURITY]: {
     icon: FINANCE_ICONS.savings,
     tone: IconContainerTone.SAVINGS,
     statusTone: StatusBadgeTone.WARNING,
+    accent: "amber",
   },
   [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]: {
     icon: FINANCE_ICONS.savings,
     tone: IconContainerTone.SAVINGS,
     statusTone: StatusBadgeTone.WARNING,
+    accent: "amber",
   },
   [InboxItemKind.EMI_COMPLETE]: {
     icon: FINANCE_ICONS.loan,
     tone: IconContainerTone.INFO,
     statusTone: StatusBadgeTone.SUCCESS,
+    accent: "teal",
   },
   [InboxItemKind.EMERGENCY_DECLARATION]: {
     icon: FINANCE_ICONS.transfer,
     tone: IconContainerTone.TRANSFER,
     statusTone: StatusBadgeTone.ATTENTION,
+    accent: "rose",
   },
   [InboxItemKind.LOAN_PAYMENT_ATTENTION]: {
     icon: FINANCE_ICONS.loan,
     tone: IconContainerTone.INFO,
     statusTone: StatusBadgeTone.WARNING,
+    accent: "amber",
   },
   [InboxItemKind.DEBT_PAYMENT_ATTENTION]: {
     icon: FINANCE_ICONS.loan,
     tone: IconContainerTone.EXPENSE,
     statusTone: StatusBadgeTone.WARNING,
+    accent: "rose",
   },
 };
 
@@ -122,52 +133,37 @@ export function inboxQueueRowSubtitle(input: {
   ownershipHint: string | null;
   detailParts: readonly string[];
 }): string | null {
-  if (input.lifecycleLabel) {
-    return inboxRowSupportingText([input.lifecycleLabel, ...input.detailParts]);
-  }
-  return inboxRowSupportingText([...input.detailParts, input.ownershipHint]);
-}
-
-/**
- * Queue rows already lead with the maturity countdown/state in the title.
- * Keep the absolute maturity date on detail; omit it from the compact scan line.
- */
-export function inboxQueueLifecycleLabel(input: {
-  context: InboxLifecycleContext | null;
-  label: string | null;
-}): string | null {
-  if (input.context === InboxLifecycleContext.MATURITY) return null;
-  return input.label;
+  return inboxRowSupportingText([
+    input.lifecycleLabel,
+    ...input.detailParts,
+    input.ownershipHint,
+  ]);
 }
 
 const INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR = " — ";
 
 /**
- * Savings-maturity stored titles are `{product} — {countdown/state}`.
- * Keep the countdown as the dominant queue title and move the product into
- * compact secondary context so the scan row stays one title line.
+ * Keep the savings product and its maturity state together in the scan title.
+ * Stitch places the product first; accountName fills it when stored titles are
+ * only a generic state such as “Matured”.
  */
 export function inboxQueueDominantTitle(input: {
   kind: InboxItemKind | null;
   displayTitle: string;
-}): { title: string; context: string | null } {
+  accountName: string | null;
+}): { title: string } {
   if (input.kind !== InboxItemKind.SAVINGS_MATURITY) {
-    return { title: input.displayTitle, context: null };
+    return { title: input.displayTitle };
   }
-  const separatorIndex = input.displayTitle.lastIndexOf(
-    INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR,
-  );
-  if (separatorIndex <= 0) {
-    return { title: input.displayTitle, context: null };
+
+  const accountName = input.accountName?.trim();
+  if (!accountName || input.displayTitle.startsWith(accountName)) {
+    return { title: input.displayTitle };
   }
-  const context = input.displayTitle.slice(0, separatorIndex).trim();
-  const title = input.displayTitle
-    .slice(separatorIndex + INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR.length)
-    .trim();
-  if (!context || !title) {
-    return { title: input.displayTitle, context: null };
-  }
-  return { title, context };
+
+  return {
+    title: `${accountName}${INBOX_QUEUE_TITLE_CONTEXT_SEPARATOR}${input.displayTitle}`,
+  };
 }
 
 const INBOX_AMOUNT_KIND: Record<InboxItemKind, FinancialNumberKind> = {
@@ -182,11 +178,29 @@ const INBOX_AMOUNT_KIND: Record<InboxItemKind, FinancialNumberKind> = {
   [InboxItemKind.DEBT_PAYMENT_ATTENTION]: FinancialNumberKind.CURRENT_STATE,
 };
 
+const INBOX_AMOUNT_TONE: Record<InboxItemKind, FinancialAmountTone> = {
+  [InboxItemKind.UNMAPPED_EXPENSE]: FinancialAmountTone.EXPENSE,
+  [InboxItemKind.INCOME_SUGGEST]: FinancialAmountTone.INCOME,
+  [InboxItemKind.SAVINGS_MATURITY]: FinancialAmountTone.NEUTRAL,
+  [InboxItemKind.EARLY_WITHDRAWAL_CONFIRMATION]: FinancialAmountTone.NEUTRAL,
+  [InboxItemKind.EMI_COMPLETE]: FinancialAmountTone.NEUTRAL,
+  [InboxItemKind.EMERGENCY_DECLARATION]: FinancialAmountTone.NEUTRAL,
+  [InboxItemKind.LOAN_PAYMENT_ATTENTION]: FinancialAmountTone.DEBT,
+  [InboxItemKind.DEBT_PAYMENT_ATTENTION]: FinancialAmountTone.DEBT,
+};
+
 export function inboxAmountKind(
   kind: InboxItemKind | null,
 ): FinancialNumberKind {
   if (kind == null) return FinancialNumberKind.CURRENT_STATE;
   return INBOX_AMOUNT_KIND[kind];
+}
+
+export function inboxAmountTone(
+  kind: InboxItemKind | null,
+): FinancialAmountTone {
+  if (kind == null) return FinancialAmountTone.NEUTRAL;
+  return INBOX_AMOUNT_TONE[kind];
 }
 
 export function inboxAmountLabel(
@@ -200,38 +214,6 @@ export function inboxAmountLabel(
   return formatCurrency(amount, currency, locale, {
     maximumFractionDigits: 0,
   });
-}
-
-export type InboxKindGroup<T extends { kind: InboxItemKind | null }> = {
-  kind: InboxItemKind;
-  items: T[];
-};
-
-/**
- * Presentation grouping by existing kind. Groups appear in first-seen order
- * from the current list; items inside a group keep that list's order.
- */
-export function groupInboxItemsByKind<T extends { kind: InboxItemKind | null }>(
-  items: readonly T[],
-): InboxKindGroup<T>[] {
-  const groups = new Map<InboxItemKind, T[]>();
-  const order: InboxItemKind[] = [];
-
-  for (const item of items) {
-    if (item.kind == null) continue;
-    const existing = groups.get(item.kind);
-    if (existing) {
-      existing.push(item);
-      continue;
-    }
-    groups.set(item.kind, [item]);
-    order.push(item.kind);
-  }
-
-  return order.map((kind) => ({
-    kind,
-    items: groups.get(kind) ?? [],
-  }));
 }
 
 export function isInboxFilterActive(

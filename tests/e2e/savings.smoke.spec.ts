@@ -73,6 +73,7 @@ test.describe("Savings overview and creation", () => {
       await expect(
         surface(page).getByTestId("savings-step-indicator"),
       ).toBeVisible();
+      await surface(page).getByTestId("savings-type-platform").click();
       await expect(
         surface(page).getByTestId(
           "savings-provider-" +
@@ -90,10 +91,9 @@ test.describe("Savings overview and creation", () => {
       if ((await firstPackage.count()) > 0) {
         await firstPackage.click();
         await page.screenshot({
-          path: test.info().outputPath("savings-product.png"),
+          path: test.info().outputPath("savings-setup.png"),
           fullPage: true,
         });
-        await surface(page).getByTestId("savings-wizard-next").click();
         await expect(
           surface(page).getByTestId("savings-estimate"),
         ).toBeVisible();
@@ -102,7 +102,7 @@ test.describe("Savings overview and creation", () => {
           surface(page).getByTestId("savings-estimate"),
         ).toContainText("1,000,000");
         await page.screenshot({
-          path: test.info().outputPath("savings-deposit.png"),
+          path: test.info().outputPath("savings-setup-amount.png"),
           fullPage: true,
         });
         await surface(page).getByTestId("savings-wizard-next").click();

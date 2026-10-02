@@ -4,8 +4,11 @@ export { getPlanPulse, listActiveJars } from "./queries/get-plan-pulse";
 export {
   getCurrentJarBudgets,
   getJarBudgetsForPeriod,
+  listPlanBudgetHistoryMonths,
+  getPlanBudgetHistory,
   collectCurrentPeriodSnapshotInserts,
   jarBudgetPeriodBounds,
+  type PlanBudgetHistory,
   type CurrentJarBudgetSummary,
   type CurrentPeriodSnapshotInserts,
   type JarBudgetPeriod,
@@ -18,7 +21,9 @@ export {
 } from "./allocation-health";
 export {
   calculateJarBudgetMetrics,
+  summarizeJarBudgets,
   type JarBudgetMetrics,
+  type JarBudgetSummary,
   JarBudgetState,
   QualifyingIncomeSource,
 } from "./jar-budget";
@@ -275,6 +280,8 @@ export {
   MISCELLANEOUS_JAR_NAME,
   GOAL_FUNDING_LINKABLE_STATUS_VALUES,
   PlanAssistMode,
+  PlanHubJarFilter,
+  PLAN_HUB_JAR_FILTER_VALUES,
   PLAN_ASSIST_MODE_VALUES,
   ALLOCATION_HEALTH_STATUS_VALUES,
   JAR_BUDGET_STATE_VALUES,
@@ -292,6 +299,8 @@ export {
   CASH_FLOW_DEFICIT_THRESHOLD,
   PLAN_HUB_UPCOMING_DAYS,
   PLAN_HUB_UPCOMING_EVENT_LIMIT,
+  JAR_BUDGET_PERCENT_SCALE,
+  PLAN_PERIOD_MONTH_PATTERN,
 } from "./plan-constants";
 export {
   projectRecurringEvents,

@@ -111,7 +111,7 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
     const app = page.locator("#app-viewport-root");
     await page.goto(route(APP_PATH.MONEY_TRANSACTIONS));
     await expect(app.getByTestId("money-transactions")).toHaveCount(1);
-    await app.getByTestId("transactions-add").click();
+    await app.getByTestId("money-capture").click();
     await expect(app.getByTestId("money-transaction-add")).toBeVisible();
 
     await selectReleaseCashAccount(page);
@@ -194,7 +194,6 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
       page.locator("[data-testid^='savings-package-']").first(),
     ).toBeVisible();
     await page.locator("[data-testid^='savings-package-']").first().click();
-    await page.getByTestId("savings-wizard-next").click();
     await page
       .locator("[data-testid^='savings-source-']")
       .filter({ hasText: "Ownership release cash" })
@@ -224,9 +223,9 @@ test.describe("V1 deterministic critical-flow release smoke", () => {
     page,
   }) => {
     await page.goto(route(APP_PATH.MONEY_INVESTMENTS));
-    await expect(page.getByTestId("investment-overview-client")).toBeVisible();
+    await expect(page.getByTestId("investment-stitch-overview")).toBeVisible();
     const holding = page
-      .locator("[data-testid^='investment-position-']")
+      .locator("[data-testid^='investment-overview-position-']")
       .first();
     await expect(holding).toBeVisible();
     await holding.click();

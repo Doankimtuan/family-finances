@@ -4,7 +4,7 @@ Phase D Design System Evolution should support these behavior contracts without 
 
 ## Required Design-System Capabilities
 
-- Mobile app shell with five bottom tabs.
+- Mobile app shell with Home, Money, Plan, and Inbox bottom tabs, a centered transaction action, and a Home household shortcut to Together.
 - Screen header with one primary action.
 - Sticky mobile action bar.
 - Financial confirmation dialog/sheet.
@@ -37,4 +37,3 @@ Phase D Design System Evolution should support these behavior contracts without 
 - New product scope.
 - New primary tabs.
 - Visual style before behavior patterns are mapped.
-

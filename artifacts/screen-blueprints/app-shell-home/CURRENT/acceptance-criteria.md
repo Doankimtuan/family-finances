@@ -3,7 +3,7 @@
 ## Rendering And Shell
 
 - Authenticated Home renders the approved hierarchy inside the product shell.
-- Bottom navigation remains exactly five tabs: Home, Money, Plan, Inbox, Together.
+- Bottom navigation has Home, Money, Plan, and Inbox tabs plus one centered transaction action; Home's household shortcut opens Together.
 - Health and Settings remain secondary surfaces and do not appear as bottom tabs.
 - Active tab state is correct for `/home`, `/money/*`, `/plan/*`, `/inbox/*`, and `/together/*`.
 - Desktop renders the constrained 440px app viewport, not a desktop dashboard layout.

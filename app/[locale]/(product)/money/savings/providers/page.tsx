@@ -7,6 +7,8 @@ import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import { listProviderCatalog } from "@/modules/savings/application/savings-provider-registry";
+import { listSavings } from "@/modules/savings/application/queries/list-savings";
+import { buildSavingsProviderDirectory } from "@/modules/savings/application/savings-provider-directory";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { EmptyState } from "@/shared/patterns/empty-state";
@@ -23,9 +25,10 @@ export default async function SavingsProvidersPage({ params }: Props) {
   if (!(await resolveActiveMembership(user.id))) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
-  const [t, catalog] = await Promise.all([
+  const [t, catalog, savings] = await Promise.all([
     getTranslations("money.savingsCatalog"),
     listProviderCatalog(),
+    listSavings(),
   ]);
   return (
     <Page
@@ -35,14 +38,16 @@ export default async function SavingsProvidersPage({ params }: Props) {
           variant="detail"
           backHref={APP_PATH.MONEY_SAVINGS}
           title={t("title")}
-          subtitle={t("subtitle")}
         />
       }
     >
       {catalog == null ? (
         <EmptyState title={t("title")} description={t("saveError")} />
       ) : (
-        <SavingsCatalogManager catalog={catalog} />
+        <SavingsCatalogManager
+          catalog={catalog}
+          directory={buildSavingsProviderDirectory(catalog, savings)}
+        />
       )}
     </Page>
   );

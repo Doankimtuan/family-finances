@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
-import { InboxQueueHeaderState } from "@/modules/inbox/application/inbox-constants";
 import { Card } from "@/shared/patterns/card";
 import { Text } from "@/shared/ui/text";
-import { InboxPrivacyToggle } from "./inbox-privacy-toggle";
+import { INBOX_TEST_ID } from "@/modules/inbox/application/inbox-constants";
 
 export type InboxSummaryFact = {
   label: string;
@@ -10,81 +9,61 @@ export type InboxSummaryFact = {
 };
 
 type InboxSummaryProps = {
-  state: InboxQueueHeaderState;
   headline: string;
   supporting: string;
   facts: readonly InboxSummaryFact[];
 };
 
-function summaryTone(state: InboxQueueHeaderState): "warning" | "soft" {
-  return state === InboxQueueHeaderState.OPEN ? "warning" : "soft";
-}
-
-/**
- * Attention-center summary. Pending work uses the shared warning surface;
- * a clear or archived queue stays quiet. Not a money hero.
- */
+/** Compact attention summary with queue state inside the same surface. */
 export function InboxSummary({
-  state,
   headline,
   supporting,
   facts,
 }: InboxSummaryProps) {
-  const tone = summaryTone(state);
-
   return (
-    <div className="flex flex-col gap-(--space-3)">
-      <Card
-        tone={tone}
-        className="gap-(--space-3) p-(--space-4)"
-        data-testid="inbox-summary"
-      >
-        <div className="flex items-start justify-between gap-(--space-3)">
-          <div className="min-w-0">
-            <Text className="text-lg font-semibold tracking-tight text-text-primary text-balance">
-              {headline}
-            </Text>
-            <Text
-              size="sm"
-              tone="secondary"
-              className="mt-(--space-1) max-w-[32rem] text-pretty leading-relaxed"
-            >
-              {supporting}
-            </Text>
-          </div>
-          <InboxPrivacyToggle testId="inbox-financial-privacy-toggle" />
-        </div>
-      </Card>
+    <Card
+      tone="elevated"
+      className="gap-(--space-2) rounded-(--radius-card) p-(--space-4)"
+      data-testid={INBOX_TEST_ID.SUMMARY}
+    >
+      <div className="min-w-0">
+        <Text className="text-lg font-semibold tracking-tight text-text-primary text-balance">
+          {headline}
+        </Text>
+        <Text
+          size="sm"
+          tone="secondary"
+          className="mt-(--space-1) text-pretty leading-snug"
+        >
+          {supporting}
+        </Text>
+      </div>
+
       {facts.length > 0 ? (
-        <Card
-          tone="elevated"
-          className="gap-0 p-(--space-4)"
+        <dl
+          className="flex flex-wrap gap-(--space-2)"
           data-testid="inbox-summary-facts"
         >
-          <dl
-            className={
-              facts.length === 1
-                ? "grid grid-cols-1"
-                : "grid grid-cols-2 gap-(--space-3)"
-            }
-          >
-            {facts.map((fact) => (
-              <div key={fact.label} className="min-w-0">
-                <Text size="xs" tone="muted" className="text-pretty">
-                  {fact.label}
-                </Text>
-                <Text
-                  size="sm"
-                  weight="semibold"
-                  className="mt-(--space-1) tracking-tight"
-                >
-                  {fact.value}
-                </Text>
-              </div>
-            ))}
-          </dl>
-        </Card>
+          {facts.map((fact) => (
+            <div
+              key={fact.label}
+              className="inline-flex min-h-7 items-center gap-(--space-1) rounded-full bg-primary-soft px-(--space-2)"
+            >
+              <Text as="dt" size="xs" tone="secondary" className="text-pretty">
+                {fact.label}
+              </Text>
+              <Text
+                as="dd"
+                size="sm"
+                weight="semibold"
+                className="tracking-tight"
+              >
+                {fact.value}
+              </Text>
+            </div>
+          ))}
+        </dl>
       ) : null}
-    </div>
+    </Card>
   );
 }

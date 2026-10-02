@@ -22,11 +22,15 @@ import { IconContainerTone } from "@/shared/ui/icon-container";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  Link: (linkProps: ComponentProps<"a"> & { prefetch?: boolean }) => {
+    const { href, children, ...anchorProps } = linkProps;
+    delete anchorProps.prefetch;
+    return (
+      <a href={href} {...anchorProps}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("next-intl", () => ({
@@ -35,24 +39,17 @@ vi.mock("next-intl", () => ({
 
 const labels = {
   sectionTitle: "Accounts",
-  groupTitles: {
-    cash: "Cash",
-    bank: "Bank",
-    wallet: "E-wallet",
-    savings: "Savings",
-    investment: "Investments",
-    other: "Other",
-  },
-  creditCardsTitle: "Credit cards",
+  sectionDescription: "4 accounts · 1 credit card",
+  totalBalanceLabel: "₫1,200,000",
   creditCardType: "Credit card",
-  creditCardsHint: "Credit values stay separate.",
   outstanding: "Outstanding",
-  availableCredit: "Available credit",
-  creditLimit: "Credit limit",
+  accountsUnavailable: "Accounts unavailable",
+  creditCardsUnavailable: "Credit cards unavailable",
   emptyTitle: "No accounts",
   emptyDescription: "Add an account.",
-  showAll: "See all accounts",
-  showLess: "Show fewer accounts",
+  viewAccounts: "View accounts",
+  showAllAccounts: "Show all accounts",
+  showFewerAccounts: "Show fewer accounts",
   attentionLabels: {
     overdue: "Overdue",
     due_soon: "Due soon",
@@ -271,53 +268,40 @@ describe("Money IA and financial privacy", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={[
+        accounts={[
           {
             key: MoneyAccountGroupKey.CASH,
-            accounts: [account("Cash object", "1,200,000 ₫")],
+            accounts: [
+              {
+                id: "cash-object",
+                title: "Cash object",
+                balanceLabel: "1,200,000 ₫",
+                icon: FINANCE_ICONS.cash,
+                iconTone: IconContainerTone.INCOME,
+              },
+            ],
           },
         ]}
-        initialAccountGroups={[
-          {
-            key: MoneyAccountGroupKey.CASH,
-            accounts: [account("Cash object", "1,200,000 ₫")],
-          },
-        ]}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
         creditCards={[
           {
             id: "card-object",
             title: "Daily card",
             outstandingLabel: "800,000 ₫",
-            availableLabel: "200,000 ₫",
-            limitLabel: "1,000,000 ₫",
-            utilizationPct: 80,
             utilizationLabel: "80% used",
-            utilizationAriaLabel: "80% of the card credit limit used",
           },
         ]}
-        createAction={<button type="button">Add account</button>}
       />,
     );
 
     expect(
       screen.getByTestId("money-account-object-collection"),
     ).toHaveAttribute("data-slot", "card");
-    expect(screen.getByTestId("account-card")).toHaveAttribute(
-      "data-financial-object",
-      "account",
-    );
-    expect(screen.getByTestId("credit-card-card")).toHaveAttribute(
-      "data-financial-object",
-      "credit-card",
-    );
-    expect(screen.getByTestId("credit-card-card")).toHaveTextContent(
+    expect(screen.getByTestId("money-hub-credit-card-row")).toHaveTextContent(
       "Credit card",
     );
     expect(screen.getByTestId("money-hub-account-row")).toHaveAttribute(
       "href",
-      "/money/accounts/Cash object",
+      "/money/accounts/cash-object",
     );
   });
 
@@ -381,11 +365,11 @@ describe("Money IA and financial privacy", () => {
     expect(screen.getByText(longCardName)).toHaveClass("break-words");
   });
 
-  it("keeps domain-backed group headings above account objects", () => {
+  it("renders compact domain rows with the full account route available", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={[
+        accounts={[
           {
             key: MoneyAccountGroupKey.CASH,
             accounts: [account("Cash group", "1 ₫")],
@@ -395,25 +379,14 @@ describe("Money IA and financial privacy", () => {
             accounts: [account("Bank group", "2 ₫")],
           },
         ]}
-        initialAccountGroups={[
-          {
-            key: MoneyAccountGroupKey.CASH,
-            accounts: [account("Cash group", "1 ₫")],
-          },
-          {
-            key: MoneyAccountGroupKey.BANK,
-            accounts: [account("Bank group", "2 ₫")],
-          },
-        ]}
-        accountPresentation="grouped"
-        hasMoreAccounts={false}
         creditCards={[]}
-        createAction={<button type="button">Add account</button>}
       />,
     );
 
-    expect(screen.getAllByTestId("money-account-group-title")).toHaveLength(2);
-    expect(screen.getAllByTestId("account-card")).toHaveLength(2);
+    expect(screen.getAllByTestId("money-hub-account-row")).toHaveLength(2);
+    expect(
+      screen.queryByTestId("money-accounts-manage"),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps account and card failures visible as independent states", () => {
@@ -424,14 +397,10 @@ describe("Money IA and financial privacy", () => {
           accountsUnavailable: "Accounts unavailable",
           creditCardsUnavailable: "Credit cards unavailable",
         }}
-        accountGroups={[]}
-        initialAccountGroups={[]}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
+        accounts={[]}
         creditCards={[]}
         accountsUnavailable
         creditCardsUnavailable
-        createAction={<button type="button">Add account</button>}
       />,
     );
 
@@ -443,35 +412,57 @@ describe("Money IA and financial privacy", () => {
     ).toHaveTextContent("Credit cards unavailable");
   });
 
-  it("puts the create action in the empty card and hides the header action", () => {
+  it("keeps empty account creation available beside the Accounts entry point", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={[]}
-        initialAccountGroups={[]}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
+        accounts={[]}
         creditCards={[]}
-        createAction={<button type="button">Header create</button>}
         emptyAction={<button type="button">Empty create</button>}
       />,
     );
 
     expect(screen.getByTestId("money-accounts-empty")).toBeInTheDocument();
     expect(screen.getByText("Empty create")).toBeInTheDocument();
-    expect(screen.queryByText("Header create")).not.toBeInTheDocument();
+    expect(screen.getByTestId("money-accounts-route-link")).toHaveAttribute(
+      "href",
+      APP_PATH.MONEY_ACCOUNTS,
+    );
   });
 
-  it("expands the full account dataset inline and collapses it in place", () => {
-    const groups = [
+  it("expands the account preview to the full inventory and can collapse it", () => {
+    const accounts = [
       {
         key: MoneyAccountGroupKey.CASH,
         accounts: [
-          account("Cash 1", "1 ₫"),
-          account("Cash 2", "2 ₫"),
-          account("Cash 3", "3 ₫"),
-          account("Cash 4", "4 ₫"),
-          account("Cash 5", "5 ₫"),
+          {
+            id: "cash-1",
+            title: "Cash 1",
+            balanceLabel: "1 ₫",
+            icon: FINANCE_ICONS.cash,
+            iconTone: IconContainerTone.INCOME,
+          },
+          {
+            id: "cash-2",
+            title: "Cash 2",
+            balanceLabel: "2 ₫",
+            icon: FINANCE_ICONS.cash,
+            iconTone: IconContainerTone.INCOME,
+          },
+          {
+            id: "cash-3",
+            title: "Cash 3",
+            balanceLabel: "3 ₫",
+            icon: FINANCE_ICONS.cash,
+            iconTone: IconContainerTone.INCOME,
+          },
+          {
+            id: "cash-4",
+            title: "Cash 4",
+            balanceLabel: "4 ₫",
+            icon: FINANCE_ICONS.cash,
+            iconTone: IconContainerTone.INCOME,
+          },
         ],
       },
     ];
@@ -479,26 +470,56 @@ describe("Money IA and financial privacy", () => {
     render(
       <MoneyAccountsScan
         labels={labels}
-        accountGroups={groups}
-        initialAccountGroups={[
-          { ...groups[0], accounts: groups[0].accounts.slice(0, 4) },
+        accounts={accounts}
+        allAccounts={[
+          {
+            ...accounts[0],
+            accounts: [
+              ...accounts[0].accounts,
+              {
+                id: "cash-5",
+                title: "Cash 5",
+                balanceLabel: "5 ₫",
+                icon: FINANCE_ICONS.cash,
+                iconTone: IconContainerTone.INCOME,
+              },
+            ],
+          },
         ]}
-        accountPresentation="flat"
-        hasMoreAccounts
-        creditCards={[]}
-        createAction={<button type="button">Add account</button>}
+        creditCards={[
+          {
+            id: "card-1",
+            title: "Card 1",
+            outstandingLabel: "1 ₫",
+            utilizationLabel: "10% used",
+          },
+          {
+            id: "card-2",
+            title: "Card 2",
+            outstandingLabel: "2 ₫",
+            utilizationLabel: "20% used",
+          },
+        ]}
       />,
     );
 
+    expect(screen.getAllByTestId("money-hub-account-row")).toHaveLength(4);
     expect(screen.queryByText("Cash 5")).not.toBeInTheDocument();
-    const expand = screen.getByTestId("money-accounts-show-all");
-    expect(expand).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(expand);
+    expect(screen.getAllByTestId("money-hub-credit-card-row")).toHaveLength(1);
+    const toggle = screen.getByRole("button", { name: "Show all accounts" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(toggle);
     expect(screen.getByText("Cash 5")).toBeInTheDocument();
-    expect(expand).toHaveTextContent("Show fewer accounts");
-    expect(expand).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(expand);
-    expect(screen.queryByText("Cash 5")).not.toBeInTheDocument();
-    expect(expand).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getAllByTestId("money-hub-account-row")).toHaveLength(5);
+    expect(screen.getAllByTestId("money-hub-credit-card-row")).toHaveLength(2);
+    const collapse = screen.getByRole("button", {
+      name: "Show fewer accounts",
+    });
+    expect(collapse).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(collapse);
+    expect(screen.getAllByTestId("money-hub-account-row")).toHaveLength(4);
+    expect(screen.getAllByTestId("money-hub-credit-card-row")).toHaveLength(1);
   });
 });

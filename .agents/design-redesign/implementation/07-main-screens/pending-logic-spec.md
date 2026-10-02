@@ -1,0 +1,36 @@
+# Main Screen Pending Logic Spec
+
+## Scope
+
+Audit the implemented Home, Money Overview, and Plan Overview against their Stitch reviews and the current domain contracts. Stitch sample values are references only; production UI may show financial values only when an existing read model or an approved deterministic derivation supplies them.
+
+The screen reviews contain no rendered mock financial values. Their remaining items are omitted sample metrics or behaviors that lack an approved data contract; the existing Together, Inbox, and account comparisons likewise describe live records.
+
+## Requirements and decisions
+
+| Screen | Capability                                | Acceptance / data contract                                                                                                                                                                                                                                                                                                                                    | Status                                       |
+| ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Home   | Month-over-month asset change             | Read from dated household asset snapshots with comparable asset coverage and currency. Do not infer history from current balances.                                                                                                                                                                                                                            | Pending source model                         |
+| Home   | Asset last-updated label                  | Use the actual valuation or balance refresh timestamp for the displayed sources. Do not use page render time or a generic row `updated_at`.                                                                                                                                                                                                                   | Pending source metadata                      |
+| Home   | Recent activity total                     | If product still needs a total, count projected user-level activities using the same transfer/payment grouping semantics as the list. A ledger row count is not equivalent.                                                                                                                                                                                   | Omitted until product requires it            |
+| Money  | Savings average rate and monthly earnings | Define whether each value is expected, accrued, or posted; derive only from active product terms and the Savings interest rules; expose missing-rate coverage instead of treating it as zero. Keep expected interest separate from cash. The existing Health average is an unweighted mean that includes matured cycles, so it is not a drop-in Money metric. | Pending Money-compatible read-model contract |
+| Money  | Investment YTD return                     | Require an approved date-aware, cash-flow-aware performance definition and complete valuation history. Advanced analytics are deferred by the Investments contract.                                                                                                                                                                                           | Deferred by domain contract                  |
+| Money  | Ledger count and provider examples        | The duplicate ledger card remains omitted. Any future count must be an exact activity count; provider/account labels must come from household records.                                                                                                                                                                                                        | Intentionally omitted; no mock values        |
+| Plan   | Period selection                          | Keep the selected month in the shared `PLAN_MONTH_QUERY`; read period budgets only from complete historical snapshots; show unavailable history explicitly; use historical Jar identity; make historical rows and period-specific actions read-only. Upcoming events remain labeled as future events.                                                         | Implemented in Plan Overview                 |
+| Plan   | Jar category artwork                      | A Jar may own multiple categories, so the current category `icon_key` alone does not define one canonical Jar icon. Add an explicit Jar artwork choice or approved deterministic mapping before using category artwork on the Jar card.                                                                                                                       | Pending product mapping                      |
+| Plan   | Allocation tag                            | Add only after Planning defines and persists the tag semantics; do not derive a user-facing label from Jar kind or plan formula.                                                                                                                                                                                                                              | Pending domain field and migration           |
+| Plan   | Saved Jar sort preference                 | Current sort toggle works for the loaded list. Persistence is not required by the screen contract; add only after deciding whether the preference belongs to a device, member, or household.                                                                                                                                                                  | Not required                                 |
+
+## Implemented in this pass
+
+- The Plan period control selects the current month or a month with saved budget snapshots through the shared `PLAN_MONTH_QUERY`.
+- Historical totals and Jar rows use frozen period rules, the snapshot Jar name, and period transactions. Incomplete snapshot sets show an unavailable state.
+- Historical views are read-only; allocation, Jar-edit, transaction-capture, current-event, and current shortcut actions are hidden.
+- No financial sample values, migrations, or remote database writes were added.
+
+## Verification criteria for deferred work
+
+- Home: verify snapshot completeness, comparable assets, valuation timestamps, and locale-safe signed change formatting.
+- Money: approve the Savings interest meaning and Investments return formula before adding fields to their overview read models.
+- Plan: support historical Jar names and archived state from period snapshots; reject malformed or future overview months; suppress mutation links for historical periods; cover missing and partial snapshot states.
+- Any new display copy or field must be translated in English and Vietnamese and use shared financial formatters and semantic tokens.

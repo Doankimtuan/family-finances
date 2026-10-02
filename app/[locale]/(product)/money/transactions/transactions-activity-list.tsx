@@ -36,6 +36,7 @@ import {
 } from "./transactions-list-presentations";
 
 type Props = {
+  accountId?: string;
   initialActivities: TransactionActivity[];
   initialNextCursor: string | null;
   initialHasMore: boolean;
@@ -68,6 +69,7 @@ function appendUniqueActivities(
 }
 
 export function TransactionsActivityList({
+  accountId,
   initialActivities,
   initialNextCursor,
   initialHasMore,
@@ -127,6 +129,7 @@ export function TransactionsActivityList({
           q: query || undefined,
           categoryIds,
           jarIds,
+          accountId,
         }),
         { signal: controller.signal },
       );
@@ -156,7 +159,7 @@ export function TransactionsActivityList({
       busyRef.current = false;
       setIsLoading(false);
     }
-  }, [categoryIds, jarIds, query, selectedTagIds, t, type]);
+  }, [accountId, categoryIds, jarIds, query, selectedTagIds, t, type]);
 
   useEffect(() => {
     const root = document.querySelector<HTMLElement>(

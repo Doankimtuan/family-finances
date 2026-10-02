@@ -4,6 +4,7 @@ import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { cn } from "@/shared/utils/cn";
 
 export const BaseRowMinHeight = {
+  COMPACT: "compact", // 44px
   STANDARD: "standard", // 52px
   INSTRUMENT: "instrument", // 64px
 } as const;
@@ -28,6 +29,7 @@ export type BaseRowProps = {
   selected?: boolean;
   as?: ElementType;
   className?: string;
+  interactiveClassName?: string;
   contentClassName?: string;
   titleClassName?: string;
   subtitleClassName?: string;
@@ -56,6 +58,7 @@ export function BaseRow({
   selected = false,
   as: Component = "div",
   className,
+  interactiveClassName,
   contentClassName,
   titleClassName,
   subtitleClassName,
@@ -68,7 +71,11 @@ export function BaseRow({
   const handleAction = onClick ?? onPress;
 
   const minHeightClass =
-    minHeight === BaseRowMinHeight.INSTRUMENT ? "min-h-16" : "min-h-[52px]";
+    minHeight === BaseRowMinHeight.INSTRUMENT
+      ? "min-h-16"
+      : minHeight === BaseRowMinHeight.COMPACT
+        ? "min-h-11"
+        : "min-h-[52px]";
 
   const dividerElement =
     divider !== "none" ? (
@@ -141,16 +148,17 @@ export function BaseRow({
 
   if (isLink && href) {
     return (
-      <Wrapper
-        className={cn("relative list-none", className)}
-        data-testid={testId}
-      >
+      <Wrapper className={cn("relative list-none", className)}>
         <div className={containerClasses}>
           <Link
             href={href}
             prefetch={PRODUCT_LINK_PREFETCH}
             aria-label={ariaLabel}
-            className="flex min-w-0 flex-1 items-center gap-(--space-3) outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring rounded-[var(--radius-control)] transition-[background-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100"
+            data-testid={testId}
+            className={cn(
+              "-my-(--space-2) flex min-w-0 flex-1 items-center gap-(--space-3) py-(--space-2) outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring rounded-[var(--radius-control)] transition-[background-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+              interactiveClassName,
+            )}
           >
             {rowContent}
           </Link>
@@ -163,17 +171,18 @@ export function BaseRow({
 
   if (isInteractive && handleAction) {
     return (
-      <Wrapper
-        className={cn("relative list-none", className)}
-        data-testid={testId}
-      >
+      <Wrapper className={cn("relative list-none", className)}>
         <div className={containerClasses}>
           <button
             type="button"
             onClick={handleAction}
             disabled={disabled}
             aria-label={ariaLabel}
-            className="flex min-w-0 flex-1 items-center gap-(--space-3) text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring rounded-[var(--radius-control)] transition-[background-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100"
+            data-testid={testId}
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-(--space-3) text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring rounded-[var(--radius-control)] transition-[background-color,transform] duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:bg-surface-hover active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100",
+              interactiveClassName,
+            )}
           >
             {rowContent}
           </button>

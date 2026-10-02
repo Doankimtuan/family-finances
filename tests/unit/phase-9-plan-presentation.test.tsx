@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -14,10 +14,7 @@ import {
 } from "@/app/[locale]/(product)/plan/plan-hub-work-row";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
-import {
-  PlanHomeExceptionKind,
-  PlanHomeHealthStatus,
-} from "@/modules/plan/application/plan-home-health";
+import { PlanHomeExceptionKind } from "@/modules/plan/application/plan-home-health";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import {
   FINANCIAL_PRIVACY_MASK,
@@ -27,6 +24,7 @@ import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { PLAN_ICONS } from "@/shared/ui/icon-registry";
+import { StatusBadgeTone } from "@/shared/ui/status-badge";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({
@@ -68,7 +66,7 @@ describe("Phase 9 Plan hub presentation", () => {
 
     expect(page).toContain("<PlanHubHero");
     expect(page).not.toContain("<Balance");
-    expect(page).not.toContain("FloatingAction");
+    expect(page).not.toContain("<FloatingAction>");
     expect(page).not.toContain("Net Worth");
     expect(page).not.toContain("Free to Spend");
     expect(page).not.toContain("Ready to Assign");
@@ -77,33 +75,40 @@ describe("Phase 9 Plan hub presentation", () => {
     expect(page).not.toContain("getMonthlyReview");
     expect(page).not.toContain("getHouseholdCalendar");
     expect(page).not.toContain("listRecurring(");
-    expect(page).toContain("planRecurringPath");
-    expect(enPlan.subtitle).toMatch(/intend/i);
-    expect(viPlan.subtitle).toMatch(/định dùng tiền/i);
+    expect(page).toContain("APP_PATH.PLAN_RECURRING");
+    expect(enPlan.home.subtitle).toMatch(/intentions/i);
+    expect(viPlan.home.subtitle).toMatch(/định hướng chi tiêu/i);
     expect(enPlan.home.factIncome).toMatch(/plan/i);
     expect(enPlan.home.factIncome).not.toMatch(/qualifying/i);
 
     renderPlan(
       <PlanHubHero
-        periodCaption={enPlan.period.label}
-        periodLabel="September 2026"
-        assistLabel={enPlan.home.assistAssisted}
-        health={PlanHomeHealthStatus.HEALTHY}
-        healthTitle={enPlan.home.healthHealthy}
-        healthBody={enPlan.home.healthHealthyBody}
-        contextMeta="1 jar · 100%"
+        attentionLabel={enPlan.home.planOnTrack}
+        attentionTone={StatusBadgeTone.POSITIVE}
+        dayProgressLabel="Day 15/30 · 50%"
+        dayProgressPercent={50}
+        todayLabel={enPlan.home.today}
+        activeJarSummary={enPlan.home.activeJarSummary.replace("{count}", "1")}
         incomeLabel={enPlan.home.factIncome}
         incomeValue={enPlan.home.factIncomeEmpty}
+        usagePercent={null}
+        overBudgetSpendShare={null}
+        plannedLabel={enPlan.home.metricPlanned}
+        plannedValue="₫100,000"
+        spentLabel={enPlan.home.metricSpent}
+        spentValue="₫20,000"
+        remainingLabel={enPlan.home.metricRemaining}
+        remainingValue="₫80,000"
       />,
     );
 
     expect(screen.getByTestId("plan-period-pulse")).toBeInTheDocument();
-    expect(screen.getByText(enPlan.home.healthHealthy)).toBeInTheDocument();
-    expect(screen.getByTestId("plan-hub-income-base")).toHaveAttribute(
+    expect(screen.getByTestId("plan-summary-planned")).toHaveAttribute(
       "data-financial-kind",
       FinancialNumberKind.INTENTION,
     );
-    expect(screen.queryByText(/₫/)).not.toBeInTheDocument();
+    expect(screen.getByText(enPlan.home.metricRemaining)).toBeInTheDocument();
+    expect(screen.getByText(enPlan.home.planOnTrack)).toBeInTheDocument();
   });
 
   it("keeps Hũ and Goal values as intention on compact planning rows", () => {
@@ -153,14 +158,13 @@ describe("Phase 9 Plan hub presentation", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("keeps Plan inside the five-tab IA", () => {
-    expect(TABS).toHaveLength(5);
+  it("keeps Plan inside the four-route navigation IA", () => {
+    expect(TABS).toHaveLength(4);
     expect(TABS.map((tab) => tab.href)).toEqual([
       APP_PATH.HOME,
       APP_PATH.MONEY,
       APP_PATH.PLAN,
       APP_PATH.INBOX,
-      APP_PATH.TOGETHER,
     ]);
   });
 
@@ -189,33 +193,31 @@ describe("Phase 9 Plan hub presentation", () => {
   it("renders EN and VI planning copy on the context surface", () => {
     renderPlan(
       <PlanHubHero
-        periodCaption={viPlan.period.label}
-        periodLabel="Tháng 9 2026"
-        assistLabel={viPlan.home.assistAssisted}
-        health={PlanHomeHealthStatus.ATTENTION}
-        healthTitle={viPlan.home.healthAttention}
-        healthBody={viPlan.home.healthAttentionBody.replace(
-          "{issue}",
-          "một hũ",
-        )}
-        contextMeta="2 hũ · 80%"
+        attentionLabel={viPlan.home.planOnTrack}
+        attentionTone={StatusBadgeTone.POSITIVE}
+        dayProgressLabel="Ngày 15/30 · Tiến độ 50%"
+        dayProgressPercent={50}
+        todayLabel={viPlan.home.today}
+        activeJarSummary={viPlan.home.activeJarSummary.replace("{count}", "2")}
         incomeLabel={viPlan.home.factIncome}
         incomeValue={viPlan.home.factIncomeEmpty}
+        usagePercent={50}
+        usageLabel="Đã dùng 50% kế hoạch"
+        overBudgetSpendShare={null}
+        plannedLabel={viPlan.home.metricPlanned}
+        plannedValue="₫1.000.000"
+        spentLabel={viPlan.home.metricSpent}
+        spentValue="₫800.000"
+        remainingLabel={viPlan.home.metricRemaining}
+        remainingValue="₫200.000"
       />,
       "vi",
     );
 
-    expect(screen.getByText(viPlan.home.healthAttention)).toBeInTheDocument();
-    expect(screen.getByText(viPlan.home.factIncome)).toBeInTheDocument();
-    expect(screen.getByTestId("plan-financial-privacy-toggle")).toHaveAttribute(
-      "aria-label",
-      viPlan.financialPrivacy.hide,
-    );
-    fireEvent.click(screen.getByTestId("plan-financial-privacy-toggle"));
-    expect(screen.getByTestId("plan-financial-privacy-toggle")).toHaveAttribute(
-      "aria-label",
-      viPlan.financialPrivacy.show,
-    );
+    expect(screen.getByText(/2 hũ đang hoạt động/)).toBeInTheDocument();
+    expect(screen.getByText(/Thu nhập kế hoạch/)).toBeInTheDocument();
+    expect(screen.getByText(viPlan.home.today)).toBeInTheDocument();
+    expect(screen.getByTestId("plan-summary-planned")).toBeInTheDocument();
   });
 
   it("keeps exception row actions as 44px targets without putting amounts in aria-label", () => {

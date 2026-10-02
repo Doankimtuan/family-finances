@@ -25,8 +25,9 @@ import {
 } from "@/shared/patterns";
 import { HeaderPill } from "@/shared/patterns/top-app-bar";
 import { MotionReveal } from "@/shared/motion";
+import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { IconContainer } from "@/shared/ui/icon-container";
 import {
   ACTION_ICONS,
   FINANCE_ICONS,
@@ -35,6 +36,7 @@ import {
 } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
+import { TogetherHeaderTab } from "@/shared/patterns/together-header-tab";
 import { TogetherInvitationPreview } from "./together-invitation-preview";
 import { TogetherMemberPreview } from "./together-member-preview";
 import { memberInitials } from "./together-member-identity";
@@ -50,8 +52,9 @@ export default async function Page({ params }: Props) {
     localeParam,
     nextPath: TOGETHER_PATH.ROOT,
   });
-  const [t, result, pendingInvitations] = await Promise.all([
+  const [t, tNavigation, result, pendingInvitations] = await Promise.all([
     getTranslations("together"),
+    getTranslations("navigation"),
     listHouseholdMembers(),
     listPendingInvitations(),
   ]);
@@ -72,30 +75,25 @@ export default async function Page({ params }: Props) {
       testId="together-overview-page"
       topBar={
         <TopAppBar
-          variant="contextual"
-          eyebrow={t("header.eyebrow")}
-          title={t("title")}
+          variant="primary"
+          title={t("header.headline")}
           subtitle={t("header.supporting")}
-          icon={NAVIGATION_ICONS.together}
+          meta={<TogetherHeaderTab label={tNavigation("together")} active />}
           status={<HeaderPill tone="info">{roleLabel}</HeaderPill>}
-          meta={householdName}
         />
       }
     >
       <MotionReveal>
-        <Card tone="hero" className="gap-(--space-4) p-(--space-4)">
-          <div className="flex items-start gap-(--space-3)">
+        <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
+          <div className="flex items-center gap-(--space-3)">
             <TogetherHeroAvatars members={result.members} />
             <div className="min-w-0 flex-1">
-              <Text size="xs" className="text-hero-muted">
-                {t("header.headline")}
-              </Text>
-              <Text className="truncate text-xl font-semibold tracking-tight text-pretty text-hero-fg">
+              <Text className="break-words text-lg font-semibold tracking-tight text-pretty text-text-primary">
                 {householdName}
               </Text>
               <Text
-                size="sm"
-                className="mt-(--space-1) text-hero-muted text-pretty"
+                size="xs"
+                className="mt-(--space-1) text-text-secondary text-pretty"
                 data-testid="together-member-count"
               >
                 {t("header.meta", { count: result.members.length })}
@@ -103,8 +101,8 @@ export default async function Page({ params }: Props) {
             </div>
           </div>
           <Text
-            size="sm"
-            className="border-t border-white/15 pt-(--space-3) text-hero-muted text-pretty"
+            size="xs"
+            className="border-t border-divider pt-(--space-3) text-text-secondary text-pretty"
           >
             {t("roleContext", { role: roleLabel })}
           </Text>
@@ -144,6 +142,7 @@ export default async function Page({ params }: Props) {
             rolePartnerLabel={t("rolePartner")}
             roleAdminHint={t("members.roleAdminHint")}
             rolePartnerHint={t("members.rolePartnerHint")}
+            activeLabel={t("members.active")}
           />
         ) : (
           <EmptyState
@@ -157,6 +156,7 @@ export default async function Page({ params }: Props) {
         <TogetherPrimaryLink
           href={TOGETHER_PATH.INVITATIONS_NEW}
           testId="together-invite-cta"
+          tonal
         >
           <AppIcon icon={ACTION_ICONS.add} size="sm" />
           {t("inviteCta")}
@@ -170,7 +170,7 @@ export default async function Page({ params }: Props) {
             description={t("invitedDescription")}
             action={
               <Link href={TOGETHER_PATH.INVITATIONS}>
-                {t("invitationsLink")}
+                {t("viewInvitationsWithCount", { count: pendingCount })}
               </Link>
             }
           />
@@ -189,15 +189,16 @@ export default async function Page({ params }: Props) {
           description={t("collaborationDescription")}
         />
         <TogetherNavGroup>
-          <TogetherNavRow
-            href={TOGETHER_PATH.INVITATIONS}
-            appearance={TogetherNavAppearance.GROUPED}
-            icon={UTILITY_ICONS.notification}
-            title={t("invitationsLink")}
-            description={t("manageInvitationsDescription")}
-            badge={pendingCount > 0 ? String(pendingCount) : undefined}
-            testId="together-invitations-link"
-          />
+          {pendingCount === 0 ? (
+            <TogetherNavRow
+              href={TOGETHER_PATH.INVITATIONS}
+              appearance={TogetherNavAppearance.GROUPED}
+              icon={UTILITY_ICONS.notification}
+              title={t("invitationsLink")}
+              description={t("manageInvitationsDescription")}
+              testId="together-invitations-link"
+            />
+          ) : null}
           <TogetherNavRow
             href={TOGETHER_PATH.POLICIES}
             appearance={TogetherNavAppearance.GROUPED}
@@ -206,21 +207,15 @@ export default async function Page({ params }: Props) {
             description={t("managePoliciesDescription")}
             testId="together-policies-link"
           />
+          <TogetherNavRow
+            href={TOGETHER_PATH.PREFERENCES}
+            appearance={TogetherNavAppearance.GROUPED}
+            icon={UTILITY_ICONS.settings}
+            title={t("preferences.title")}
+            description={t("managePreferencesDescription")}
+            testId="together-preferences-link"
+          />
         </TogetherNavGroup>
-      </section>
-
-      <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader
-          title={t("settingsSectionTitle")}
-          description={t("settingsSectionDescription")}
-        />
-        <TogetherNavRow
-          href={TOGETHER_PATH.SETTINGS}
-          icon={UTILITY_ICONS.settings}
-          title={t("settingsLink")}
-          description={t("manageSettingsDescription")}
-          testId="together-settings-link"
-        />
       </section>
     </ProductPage>
   );
@@ -243,19 +238,22 @@ function TogetherHeroAvatars({ members }: { members: HouseholdMemberRow[] }) {
         <span
           key={member.id}
           className={cn(
-            "inline-flex rounded-[var(--radius-control)] ring-2 ring-white/20",
-            index > 0 && "-ml-2",
+            "inline-flex rounded-full ring-2 ring-surface",
+            index > 0 && "-ml-(--space-2)",
           )}
         >
-          <IconContainer
-            tone={IconContainerTone.NEUTRAL}
-            size="sm"
-            className="bg-white/15 text-hero-fg"
-          >
-            <span className="text-xs font-semibold">
+          <Avatar className="size-9">
+            <AvatarFallback
+              className={cn(
+                "size-full rounded-full text-xs font-semibold",
+                isHouseholdAdmin(member.role)
+                  ? "bg-info/10 text-info"
+                  : "bg-primary-soft text-primary",
+              )}
+            >
               {memberInitials(member.email, member.displayName)}
-            </span>
-          </IconContainer>
+            </AvatarFallback>
+          </Avatar>
         </span>
       ))}
     </div>

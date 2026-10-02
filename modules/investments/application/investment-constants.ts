@@ -396,6 +396,27 @@ export type OpeningPositionStep =
   (typeof OpeningPositionStep)[keyof typeof OpeningPositionStep];
 export const OPENING_POSITION_STEP_VALUES = Object.values(OpeningPositionStep);
 
+export const INVESTMENT_OPENING_PRICE_INCREMENTS = [
+  1_000, 5_000, 10_000,
+] as const;
+export const INVESTMENT_OPENING_QUANTITY_STEP = "1";
+export const INVESTMENT_SELL_QUANTITY_PERCENTAGES = [25, 50, 100] as const;
+export const InvestmentValuationMetaVariant = {
+  BADGE: "badge",
+  INLINE: "inline",
+  ROW: "row",
+} as const;
+export type InvestmentValuationMetaVariant =
+  (typeof InvestmentValuationMetaVariant)[keyof typeof InvestmentValuationMetaVariant];
+export const INVESTMENT_BUY_QUANTITY_INCREMENTS = [
+  "100",
+  "500",
+  "1000",
+] as const;
+export const INVESTMENT_VALUATION_PRICE_INCREMENTS = [
+  500, 1_000, 2_000,
+] as const;
+
 export const InvestmentOverviewFilter = {
   ALL: "all",
   STOCK: InvestmentAssetClass.STOCK,

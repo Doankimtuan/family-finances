@@ -1,5 +1,6 @@
 import {
   FinancialEventCategory,
+  TRANSACTION_ACCOUNT_QUERY_PARAM,
   TRANSACTION_CURSOR_QUERY_PARAM,
   TRANSACTION_SEARCH_QUERY_PARAM,
   TRANSACTION_CATEGORY_QUERY_PARAM,
@@ -186,7 +187,12 @@ export function groupActivities(activities: TransactionActivity[]) {
 export function transactionsListHref(
   type: TransactionFilterType,
   tagIds: string[],
-  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] } = {},
+  filters: {
+    q?: string;
+    categoryIds?: string[];
+    jarIds?: string[];
+    accountId?: string;
+  } = {},
 ) {
   const params = transactionFilterParams(type, tagIds, filters);
   const query = params.toString();
@@ -199,7 +205,12 @@ export function transactionsEventsHref(
   type: TransactionFilterType,
   tagIds: string[],
   cursor: string,
-  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] } = {},
+  filters: {
+    q?: string;
+    categoryIds?: string[];
+    jarIds?: string[];
+    accountId?: string;
+  } = {},
 ) {
   const params = transactionFilterParams(type, tagIds, filters);
   params.set(TRANSACTION_CURSOR_QUERY_PARAM, cursor);
@@ -209,7 +220,12 @@ export function transactionsEventsHref(
 function transactionFilterParams(
   type: TransactionFilterType,
   tagIds: string[],
-  filters: { q?: string; categoryIds?: string[]; jarIds?: string[] },
+  filters: {
+    q?: string;
+    categoryIds?: string[];
+    jarIds?: string[];
+    accountId?: string;
+  },
 ) {
   const params = new URLSearchParams();
   if (type !== TransactionFilterType.ALL)
@@ -221,7 +237,16 @@ function transactionFilterParams(
     params.set(TRANSACTION_CATEGORY_QUERY_PARAM, filters.categoryIds.join(","));
   if (filters.jarIds?.length)
     params.set(TRANSACTION_JAR_QUERY_PARAM, filters.jarIds.join(","));
+  if (filters.accountId)
+    params.set(TRANSACTION_ACCOUNT_QUERY_PARAM, filters.accountId);
   return params;
+}
+
+export function accountTransactionsHref(accountId: string) {
+  const params = new URLSearchParams({
+    [TRANSACTION_ACCOUNT_QUERY_PARAM]: accountId,
+  });
+  return `${APP_PATH.MONEY_TRANSACTIONS}?${params.toString()}`;
 }
 
 export function amountAriaToneKey(tone: TransactionActivityTone) {

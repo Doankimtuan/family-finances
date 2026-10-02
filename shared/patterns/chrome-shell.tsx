@@ -4,7 +4,7 @@ import { AppViewport } from "@/shared/patterns/app-viewport";
 import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
 
 export type ChromeShellProps = {
-  /** auth/system — no bottom nav; product — five-tab chrome. */
+  /** auth/system — no product nav; product — four route tabs and a center capture action. */
   chrome: "auth" | "system" | "product";
   children: ReactNode;
   footer?: ReactNode;

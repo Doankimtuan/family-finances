@@ -30,7 +30,7 @@ Only:
 - Database schema.
 - Backend contracts.
 - Routes.
-- Five-tab IA.
+- Four route tabs with one centered transaction action; Home's household shortcut opens Together.
 - Unrelated modules.
 - Money, Plan, Inbox, Together, Health, or Settings redesign.
 - Package dependencies unless explicitly unavoidable.

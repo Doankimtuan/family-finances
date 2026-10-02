@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { authenticateE2EUser } from "./support/auth";
 
 const scenarios = [
@@ -32,8 +33,13 @@ function selectTrigger(scope: ReturnType<Page["getByTestId"]>, testId: string) {
 }
 
 async function openAccountSheet(page: Page, useKeyboard: boolean) {
-  await page.goto("/en/money");
-  await expect(page).toHaveURL(/\/en\/money$/, { timeout: 20_000 });
+  await page.goto(`/en${APP_PATH.MONEY_ACCOUNTS}`);
+  await expect(page).toHaveURL(new RegExp(`/en${APP_PATH.MONEY_ACCOUNTS}$`), {
+    timeout: 20_000,
+  });
+  await expect(
+    page.locator("#app-viewport-root").getByTestId("money-accounts-directory"),
+  ).toBeVisible();
   const create = page.locator('[data-testid="money-create-account"]:visible');
   await expect(create).toBeVisible({ timeout: 20_000 });
   const form = page.getByTestId("account-add-form");
@@ -109,7 +115,14 @@ test.describe("Canonical credit-card forms and installment tracker", () => {
     await signIn(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/en/money/accounts");
-    await expect(page).toHaveURL(/\/en\/money$/, { timeout: 20_000 });
+    await expect(page).toHaveURL(new RegExp(`/en${APP_PATH.MONEY_ACCOUNTS}$`), {
+      timeout: 20_000,
+    });
+    await expect(
+      page
+        .locator("#app-viewport-root")
+        .getByTestId("money-accounts-directory"),
+    ).toBeVisible();
     const hrefs = await accountHrefs(page);
     test.skip(
       hrefs.length === 0,

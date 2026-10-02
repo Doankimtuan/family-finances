@@ -102,6 +102,9 @@ export const InboxKindFilter = {
 
 export type InboxQueueTab = (typeof InboxQueueTab)[keyof typeof InboxQueueTab];
 
+/** Maximum numeric Inbox count shown before the navigation badge uses `99+`. */
+export const INBOX_BADGE_MAX_DISPLAY_COUNT = 99;
+
 export const INBOX_QUEUE_TAB_VALUES = [
   InboxQueueTab.OPEN,
   InboxQueueTab.ARCHIVED,
@@ -130,6 +133,8 @@ export const INBOX_ACK_TEST_ID_PREFIX = "inbox-ack-";
 export const INBOX_TEST_ID = {
   QUEUE: "inbox-queue",
   QUEUE_LIST: "inbox-queue-list",
+  SUMMARY: "inbox-summary",
+  FINANCIAL_PRIVACY_TOGGLE: "inbox-financial-privacy-toggle",
   QUEUE_TABS: "inbox-queue-tabs",
   TAB_OPEN: "inbox-tab-open",
   TAB_ARCHIVED: "inbox-tab-archived",
@@ -140,14 +145,12 @@ export const INBOX_TEST_ID = {
   KIND_FILTER: "inbox-kind-filter",
   FILTER: "inbox-filter",
   FILTER_CLEAR: "inbox-filter-clear",
-  GROUP: "inbox-group",
   LOAD_MORE: "inbox-load-more",
   PARTNER_NOTE: "inbox-partner-note",
   LOADING: "inbox-loading",
   LOADING_SUMMARY: "inbox-loading-summary",
   LOADING_TABS: "inbox-loading-tabs",
   LOADING_FILTERS: "inbox-loading-filters",
-  LOADING_GROUP: "inbox-loading-group",
   LOADING_ROW: "inbox-loading-row",
   DETAIL: "inbox-detail",
   DETAIL_MISSING: "inbox-detail-missing",
@@ -179,14 +182,14 @@ export function inboxAckTestId(action: InboxAckAction): string {
   return `${INBOX_ACK_TEST_ID_PREFIX}${action}`;
 }
 
-export function inboxGroupTestId(kind: InboxItemKind): string {
-  return `${INBOX_TEST_ID.GROUP}-${kind}`;
-}
-
 export function inboxFilterTestId(
   filterId: typeof InboxKindFilter.ALL | InboxItemKind,
 ): string {
   return `${INBOX_TEST_ID.FILTER}-${filterId}`;
+}
+
+export function inboxItemTestId(itemId: string): string {
+  return `inbox-item-${itemId}`;
 }
 
 export const InboxSourceType = {

@@ -22,6 +22,7 @@ export type SelectFieldProps = {
   placeholder?: string;
   description?: ReactNode;
   error?: ReactNode;
+  labelClassName?: string;
   required?: boolean;
   isDisabled?: boolean;
   className?: string;
@@ -47,6 +48,7 @@ export function SelectField({
   placeholder,
   description,
   error,
+  labelClassName,
   required,
   isDisabled,
   className,
@@ -59,6 +61,7 @@ export function SelectField({
     <FormField
       id={id}
       label={label}
+      labelClassName={labelClassName}
       description={description}
       error={error}
       required={required}

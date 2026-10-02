@@ -27,6 +27,7 @@ import { transactionTagVisualFor } from "./transaction-tag-visuals";
 import { transactionsListHref } from "./transactions-list-presentations";
 
 type Props = {
+  accountId?: string;
   type: TransactionFilterType;
   query: string;
   categoryIds: string[];
@@ -38,6 +39,7 @@ type Props = {
 };
 
 export function TransactionsFilterBar({
+  accountId,
   type,
   query,
   categoryIds,
@@ -78,6 +80,7 @@ export function TransactionsFilterBar({
         q: nextQuery || undefined,
         categoryIds: nextCategoryIds,
         jarIds: nextJarIds,
+        accountId,
       }),
     );
   };
@@ -98,6 +101,7 @@ export function TransactionsFilterBar({
   };
 
   const hasActiveFilter =
+    Boolean(accountId) ||
     type !== TransactionFilterType.ALL ||
     Boolean(
       query || categoryIds.length || jarIds.length || selectedTagIds.length,

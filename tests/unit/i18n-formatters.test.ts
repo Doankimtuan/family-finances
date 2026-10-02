@@ -44,4 +44,17 @@ describe("i18n formatters", () => {
       }),
     ).toBe("14/08/2026");
   });
+
+  it("preserves every digit when formatting the supported large VND range", () => {
+    const values = [
+      0, 50_000, 5_000_000, 999_999_999, 2_036_547_748, 12_000_000_000,
+    ];
+
+    for (const amount of values) {
+      const formatted = formatCurrency(amount, "VND", "vi", {
+        maximumFractionDigits: 0,
+      });
+      expect(formatted.replace(/\D/g, "")).toBe(String(amount));
+    }
+  });
 });

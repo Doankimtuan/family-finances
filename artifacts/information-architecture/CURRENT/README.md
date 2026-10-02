@@ -23,7 +23,7 @@ or specifications.
 
 ## Canonical IA Statement
 
-The product uses a five-tab household-first shell:
+The product uses a household-first shell with four bottom route tabs and one centered transaction action. Together stays a top-level destination opened by the Home household shortcut:
 
 1. Home
 2. Money

@@ -32,7 +32,7 @@ const TAB_KEY = {
  * Open vs Archived inbox tabs (BR-15 / ST-E03-003 / F4).
  * Selection paints immediately; the list fetch continues in a transition.
  */
-export function InboxQueueTabs() {
+export function InboxQueueTabs({ count }: { count: number }) {
   const t = useTranslations("inbox");
   const { isSwitching, optimisticTab, selectTab } = useInboxQueueTransition();
   const tabRefs = useRef<
@@ -75,7 +75,7 @@ export function InboxQueueTabs() {
 
   return (
     <div
-      className="flex gap-(--space-1) rounded-full bg-surface-muted p-(--space-1)"
+      className="flex gap-(--space-1) rounded-full bg-surface-muted"
       role="tablist"
       aria-label={t("tabListLabel")}
       aria-busy={isSwitching}
@@ -100,7 +100,7 @@ export function InboxQueueTabs() {
             data-testid={tab.testId}
             onClick={() => selectTab(tab.id)}
             className={cn(
-              "inline-flex min-h-11 flex-1 items-center justify-center rounded-full px-(--space-3) text-sm transition-[background-color,color,transform,box-shadow] duration-(--duration-fast) active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+              "inline-flex min-h-11 flex-1 items-center justify-center gap-(--space-1) rounded-full px-(--space-3) text-sm transition-[background-color,color,transform,box-shadow] duration-(--duration-fast) active:scale-[var(--press-scale)] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
               selected
                 ? "bg-surface font-semibold text-text-primary shadow-(--elevation-1)"
                 : "font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary",
@@ -108,6 +108,11 @@ export function InboxQueueTabs() {
             )}
           >
             {t(tab.labelKey)}
+            {selected && !isSwitching ? (
+              <span className="rounded-full bg-primary-soft px-(--space-1) text-xs tabular-nums text-primary">
+                {count}
+              </span>
+            ) : null}
           </button>
         );
       })}

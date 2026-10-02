@@ -10,15 +10,17 @@ import { Text } from "@/shared/ui/text";
 import { Progress } from "@/shared/ui/progress";
 import { Amount, AmountSize, AmountTone } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { InlineAlert } from "@/shared/ui/inline-alert";
+import { InlineAlertVariant } from "@/shared/ui/inline-alert-constants";
 import { cn } from "@/shared/utils/cn";
 
 export type CreditCardHeroProps = {
-  /** Kept for standalone/privacy rendering; account identity lives in TopAppBar. */
-  title?: string;
-  /** Kept for standalone/privacy rendering; account type lives in TopAppBar. */
-  typeLabel?: string;
+  title: string;
+  typeLabel: string;
   outstandingLabel: string;
   outstandingCaption: string;
+  debtWarning: string;
   outstandingAriaLabel?: string;
   utilizationPct: number | null;
   utilizationLabel: string;
@@ -29,17 +31,16 @@ export type CreditCardHeroProps = {
   limitCaption: string;
   /** False when the domain has no positive credit limit — do not format ₫0. */
   creditFacilityComplete?: boolean;
-  dueLabel?: string;
   context?: ReactNode;
   /** Trailing control on the caption row (privacy toggle). */
   trailing?: ReactNode;
 };
 
 function utilizationFillClass(utilizationPct: number | null): string {
-  if (utilizationPct == null) return "bg-liability-fg";
+  if (utilizationPct == null) return "bg-debt";
   if (utilizationPct >= CARD_UTILIZATION_DANGER_PCT) return "bg-danger";
   if (utilizationPct >= CARD_UTILIZATION_WARN_PCT) return "bg-warning";
-  return "bg-liability-fg";
+  return "bg-debt";
 }
 
 function HeroSupportingFact({
@@ -62,13 +63,13 @@ function HeroSupportingFact({
         )}
         data-testid="credit-card-supporting-unavailable"
       >
-        <Text size="sm" className="text-pretty text-liability-muted">
+        <Text size="sm" className="text-pretty text-text-secondary">
           {caption}
         </Text>
         <Text
           size="sm"
           weight="medium"
-          className="text-pretty text-liability-muted"
+          className="text-pretty text-text-secondary"
         >
           {value}
         </Text>
@@ -82,15 +83,15 @@ function HeroSupportingFact({
       amountLabel={value}
       size={AmountSize.SM}
       className={cn("min-w-0", alignEnd && "items-end text-right")}
-      labelClassName="text-liability-muted"
-      amountClassName="break-words text-base text-liability-fg"
+      labelClassName="text-text-secondary"
+      amountClassName="break-words text-base text-text-primary"
     />
   );
 }
 
 /**
  * Liability-first credit-card hero. Outstanding debt is the dominant fact;
- * available credit, limit, utilization, due date, and ownership stay grouped
+ * available credit, limit, utilization, and ownership stay grouped
  * as supporting context without treating debt as spendable cash.
  */
 export function CreditCardHero({
@@ -98,6 +99,7 @@ export function CreditCardHero({
   typeLabel,
   outstandingLabel,
   outstandingCaption,
+  debtWarning,
   outstandingAriaLabel,
   utilizationPct,
   utilizationLabel,
@@ -107,7 +109,6 @@ export function CreditCardHero({
   limitLabel,
   limitCaption,
   creditFacilityComplete = true,
-  dueLabel,
   context,
   trailing,
 }: CreditCardHeroProps) {
@@ -116,7 +117,7 @@ export function CreditCardHero({
 
   return (
     <Card
-      tone="liability"
+      tone="elevated"
       className="gap-0 p-(--space-4)"
       data-financial-object="credit-card"
       data-testid="credit-card-hero"
@@ -126,34 +127,48 @@ export function CreditCardHero({
       )}
       aria-label={outstandingAriaLabel ?? outstandingCaption}
     >
-      {/* Account identity remains in TopAppBar; these preserve the standalone component contract. */}
-      {title ? <span className="sr-only break-words">{title}</span> : null}
-      {typeLabel ? <span className="sr-only">{typeLabel}</span> : null}
       <div className="flex items-center gap-(--space-3)">
         <div className="flex min-w-0 flex-1 items-center gap-(--space-3)">
-          <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-(--radius-control) border border-white/25 bg-white/10 text-liability-fg">
-            <AppIcon
-              icon={FINANCE_ICONS.card}
-              size={AppIconSize.MD}
-              emphasized
-            />
-          </span>
-          <Text
-            size="sm"
-            weight="medium"
-            className="text-pretty text-liability-muted"
-          >
-            {outstandingCaption}
-          </Text>
+          <IconContainer tone={IconContainerTone.DEBT} size="md">
+            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.MD} />
+          </IconContainer>
+          <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+            <Text size="sm" weight="semibold" className="truncate">
+              {title}
+            </Text>
+            <Text size="xs" tone="secondary" className="truncate">
+              {typeLabel} · {limitCaption}: {limitLabel}
+            </Text>
+          </div>
         </div>
         {trailing}
+      </div>
+      {context ? <div className="mt-(--space-3)">{context}</div> : null}
+      <div className="mt-(--space-3) flex items-center justify-between gap-(--space-2)">
+        <Text size="xs" tone="secondary">
+          {outstandingCaption}
+        </Text>
+        {utilizationValue != null ? (
+          <Text
+            size="xs"
+            weight="medium"
+            className="shrink-0 tabular-nums text-debt"
+          >
+            {utilizationLabel}
+          </Text>
+        ) : null}
       </div>
       <Amount
         amountLabel={outstandingLabel}
         tone={AmountTone.NEUTRAL}
         size={AmountSize.HERO}
+        className="mt-(--space-1)"
+        amountClassName="text-debt"
+      />
+      <InlineAlert
+        variant={InlineAlertVariant.ERROR}
+        description={debtWarning}
         className="mt-(--space-3)"
-        amountClassName="text-liability-fg"
       />
       {utilizationValue != null ? (
         <div className="mt-(--space-4) flex items-center gap-(--space-3)">
@@ -162,27 +177,20 @@ export function CreditCardHero({
             label={utilizationAriaLabel}
             showLabel={false}
             className="min-w-0 flex-1"
-            trackClassName="bg-white/15 ring-white/15"
+            trackClassName="bg-surface-muted"
             indicatorClassName={utilizationFillClass(utilizationPct)}
           />
-          <Text
-            size="sm"
-            weight="semibold"
-            className="shrink-0 tabular-nums text-liability-fg"
-          >
-            {utilizationLabel}
-          </Text>
         </div>
       ) : (
         <Text
           size="sm"
           weight="medium"
-          className="mt-(--space-3) text-pretty text-liability-muted"
+          className="mt-(--space-3) text-pretty text-text-secondary"
         >
           {utilizationLabel}
         </Text>
       )}
-      <div className="mt-(--space-4) grid grid-cols-2 gap-(--space-3) border-t border-white/15 pt-(--space-3)">
+      <div className="mt-(--space-3) flex flex-wrap items-center justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
         <HeroSupportingFact
           caption={availableCaption}
           value={availableLabel}
@@ -195,16 +203,6 @@ export function CreditCardHero({
           alignEnd
         />
       </div>
-      {dueLabel || context ? (
-        <div className="mt-(--space-4) flex flex-col gap-(--space-2) border-t border-white/15 pt-(--space-3)">
-          {dueLabel ? (
-            <Text size="sm" weight="medium" className="text-liability-fg">
-              {dueLabel}
-            </Text>
-          ) : null}
-          {context}
-        </div>
-      ) : null}
     </Card>
   );
 }

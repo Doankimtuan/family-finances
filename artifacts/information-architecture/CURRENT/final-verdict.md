@@ -14,13 +14,13 @@
 
 Proceed to Phase C UX Redesign using this IA as the canonical foundation.
 
-The new IA preserves the current app's strongest architectural baseline: a five-tab household product shell, bounded-context modules, and centralized routing. It resolves Phase A's main risks by defining second-level navigation, route taxonomy, ownership rules, compatibility route handling, and canonical screen responsibility.
+The IA preserves the household product shell, bounded-context modules, and centralized routing. Its bottom navigation uses four route tabs with a centered transaction action; Together remains a top-level destination reached through Home's household shortcut. It resolves Phase A's main risks by defining second-level navigation, route taxonomy, ownership rules, compatibility route handling, and canonical screen responsibility.
 
 ## Top 20 Architectural Improvements Introduced
 
 | # | Improvement |
 |---:|---|
-| 1 | Keeps bottom navigation fixed at five tabs: Home, Money, Plan, Inbox, Together. |
+| 1 | Keeps Home, Money, Plan, and Inbox in bottom navigation, centers transaction creation, and provides the Home household shortcut to Together. |
 | 2 | Positions Health as a secondary insight surface instead of a sixth bottom tab. |
 | 3 | Positions Settings under Together to reinforce household-first identity. |
 | 4 | Defines Money as Overview, Accounts, Transactions, Products, and Actions. |
@@ -51,4 +51,3 @@ Phase C should use:
 - `module-ownership.md` for owner boundaries.
 - `screen-catalog.md` for UX redesign scope.
 - `component-ownership.md` for design-system and implementation boundaries.
-

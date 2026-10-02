@@ -159,11 +159,7 @@ export function Button({
           {leadingIcon ? (
             <span className="inline-flex shrink-0">{leadingIcon}</span>
           ) : null}
-          {typeof children === "function" ? (
-            children
-          ) : children != null ? (
-            <span>{children}</span>
-          ) : null}
+          {children}
           {trailingIcon ? (
             <span className="inline-flex shrink-0">{trailingIcon}</span>
           ) : null}

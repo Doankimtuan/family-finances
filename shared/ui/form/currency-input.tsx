@@ -14,7 +14,6 @@ export type CurrencyInputProps = Omit<
   id?: string;
   value: number | null;
   onValueChange: (value: number | null) => void;
-  isHero?: boolean;
   showWordsPreview?: boolean;
   quickChips?: readonly number[];
   disabled?: boolean;
@@ -27,9 +26,9 @@ export function CurrencyInput({
   value,
   onValueChange,
   locale: localeProp,
-  isHero = false,
   showWordsPreview = true,
   quickChips,
+  labelAccessory,
   disabled,
   readOnly,
   isReadOnly,
@@ -43,6 +42,14 @@ export function CurrencyInput({
   const isVietnamese = locale.toLowerCase().startsWith("vi");
   const shouldShowVietnameseWords =
     showWordsPreview && isVietnamese && value != null && value > 0;
+  const currencySymbol = (
+    <span
+      aria-hidden="true"
+      className="text-numeric-lg font-semibold text-text-secondary"
+    >
+      ₫
+    </span>
+  );
 
   return (
     <div className="flex w-full flex-col gap-(--space-2)">
@@ -54,25 +61,10 @@ export function CurrencyInput({
         locale={locale}
         disabled={disabled}
         isReadOnly={Boolean(readOnly || isReadOnly)}
-        leadingIcon={
-          !isVietnamese ? (
-            <span aria-hidden="true" className="font-semibold">
-              ₫
-            </span>
-          ) : undefined
-        }
-        trailingElement={
-          isVietnamese ? (
-            <span aria-hidden="true" className="font-semibold">
-              ₫
-            </span>
-          ) : undefined
-        }
-        className={cn(
-          "text-base md:text-sm",
-          isHero && "h-16 min-h-16 text-numeric-hero",
-          className,
-        )}
+        labelAccessory={labelAccessory}
+        leadingIcon={!isVietnamese ? currencySymbol : undefined}
+        trailingElement={isVietnamese ? currencySymbol : undefined}
+        className={cn("text-base md:text-sm", className)}
       />
 
       {shouldShowVietnameseWords && !disabled ? (
@@ -85,13 +77,16 @@ export function CurrencyInput({
       ) : null}
 
       {quickChips?.length && !disabled && !readOnly && !isReadOnly ? (
-        <div className="flex flex-wrap gap-(--space-1.5) pt-(--space-1)">
+        <div className="flex flex-wrap gap-(--space-1) pt-(--space-1)">
           {quickChips.map((chipAmount) => (
             <button
               key={chipAmount}
               type="button"
               onClick={() => onValueChange((value ?? 0) + chipAmount)}
-              className="inline-flex min-h-11 items-center rounded-full border border-border-subtle bg-surface-subtle px-(--space-3) text-label-sm font-medium text-text-secondary hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
+              className={cn(
+                "inline-flex min-h-11 min-w-0 items-center border text-label-sm font-medium tabular-nums hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-focus-ring",
+                "rounded-full border-border-subtle bg-surface-subtle px-(--space-3) text-text-secondary",
+              )}
             >
               +{formatNumber(chipAmount, locale, { notation: "compact" })}
             </button>

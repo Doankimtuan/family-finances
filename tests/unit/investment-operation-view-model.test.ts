@@ -6,6 +6,7 @@ import {
   buildPurchasePreview,
   buildUnitPricePreview,
   normalizeAvailableQuantity,
+  quantityAtPercentage,
 } from "@/modules/investments/application/investment-operation-view-model";
 
 describe("investment operation view model", () => {
@@ -113,5 +114,26 @@ describe("investment operation view model", () => {
     });
     expect(result.totalValue).toBe(2_000_000);
     expect(result.pnl).toBe(500_000);
+  });
+});
+
+it("keeps sell percentage shortcuts exact for fractional assets", () => {
+  expect(quantityAtPercentage("0.12345678", 25)).toBe("0.030864195");
+  expect(quantityAtPercentage("0.12345678", 50)).toBe("0.06172839");
+  expect(quantityAtPercentage("0.12345678", 100)).toBe("0.12345678");
+  expect(quantityAtPercentage("0.000000000000000001", 25)).toBe("0");
+});
+
+it("projects a cash-funded purchase with the existing acquisition accounting", () => {
+  const preview = buildPurchasePreview({
+    quantity: "1000",
+    executionPricePerUnit: 30000,
+    totalValue: null,
+    position: { quantity: "4000", remainingCostBasis: 100000000 },
+  });
+  expect(preview.positionAfterPurchase).toEqual({
+    quantity: "5000",
+    remainingCostBasis: 130000000,
+    averageCost: 26000,
   });
 });

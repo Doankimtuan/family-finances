@@ -77,10 +77,7 @@ test.describe("Home product summaries", () => {
       await expect(
         surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
       ).toContainText(/valued investments|định giá/);
-      await expect(
-        surface.getByTestId(HOME_TEST_ID.CAPTURE_ACTION),
-      ).toBeVisible();
-      await expect(surface.getByTestId(HOME_TEST_ID.PLAN_PULSE)).toBeVisible();
+      await expect(surface.getByTestId("money-capture")).toBeVisible();
       await expect(
         page.evaluate(
           () =>
@@ -107,9 +104,7 @@ test.describe("Home product summaries", () => {
     await expect(
       surface.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE),
     ).toContainText("Total assets are temporarily unavailable");
-    await expect(
-      surface.getByTestId(HOME_TEST_ID.CAPTURE_ACTION),
-    ).toBeVisible();
+    await expect(surface.getByTestId("money-capture")).toBeVisible();
   });
 
   test("privacy masks product money without hiding attention context", async ({

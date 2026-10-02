@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Avatar } from "@/shared/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import {
   IconContainer,
   type IconContainerTone,
@@ -76,8 +76,8 @@ export function PersonIdentity({
       <div className="relative flex shrink-0 items-center justify-center">
         {avatarUrl ? (
           <Avatar className={containerSize}>
-            <Avatar.Image src={avatarUrl} alt={nameString ?? "Avatar"} />
-            <Avatar.Fallback>{derivedInitials}</Avatar.Fallback>
+            <AvatarImage src={avatarUrl} alt={nameString ?? "Avatar"} />
+            <AvatarFallback>{derivedInitials}</AvatarFallback>
           </Avatar>
         ) : (
           <IconContainer tone={tone} size={size === "sm" ? "sm" : "md"}>

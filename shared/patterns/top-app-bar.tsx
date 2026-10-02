@@ -59,6 +59,7 @@ export type TopAppBarProps = {
   backHref?: string;
   trailing?: ReactNode;
   className?: string;
+  eyebrowClassName?: string;
   backLabel?: string;
   showBrandMark?: boolean;
 };
@@ -150,6 +151,7 @@ export function TopAppBar({
   backHref,
   trailing,
   className,
+  eyebrowClassName,
   backLabel,
   showBrandMark = false,
 }: TopAppBarProps) {
@@ -196,12 +198,24 @@ export function TopAppBar({
         ) : null}
         <div className="min-w-0 flex-1">
           {showBrandMark ? (
-            <div className="mb-(--space-1) flex min-h-10 items-center gap-(--space-2) text-sm font-medium leading-snug text-text-secondary">
+            <div
+              className={cn(
+                "mb-(--space-1) flex min-h-10 items-center gap-(--space-2) text-sm font-medium leading-snug text-text-secondary",
+                eyebrowClassName,
+              )}
+              data-slot="header-eyebrow"
+            >
               <BrandMark variant="mark" size="sm" />
               {eyebrow}
             </div>
           ) : eyebrow ? (
-            <div className="mb-(--space-1) text-sm font-medium leading-snug text-text-secondary">
+            <div
+              className={cn(
+                "mb-(--space-1) text-sm font-medium leading-snug text-text-secondary",
+                eyebrowClassName,
+              )}
+              data-slot="header-eyebrow"
+            >
               {eyebrow}
             </div>
           ) : null}

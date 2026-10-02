@@ -15,22 +15,32 @@ export default async function SavingsProvidersLoading() {
           variant="detail"
           backHref={APP_PATH.MONEY_SAVINGS}
           title={t("title")}
-          subtitle={t("subtitle")}
         />
       }
     >
       <div className="flex flex-col gap-(--space-5)">
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Skeleton className="h-4 w-40 rounded" />
-          <Skeleton className="h-10 w-28 rounded-(--radius-control)" />
-        </div>
-        <div className="flex flex-col gap-(--space-3)">
-          <div className="flex items-center gap-(--space-3)">
-            <Skeleton className="size-10 rounded-(--radius-control)" />
-            <Skeleton className="h-4 w-36 rounded" />
+        <Skeleton className="h-40 w-full rounded-(--radius-card)" />
+        {[0, 1, 2].map((group) => (
+          <div key={group} className="flex flex-col gap-(--space-2)">
+            <Skeleton className="h-3 w-40 rounded-(--radius-sm)" />
+            <div className="overflow-hidden rounded-(--radius-card) border border-border-subtle bg-surface">
+              {[0, 1].map((row) => (
+                <div
+                  key={row}
+                  className="flex items-center gap-(--space-3) border-b border-divider p-(--space-3)"
+                >
+                  <Skeleton className="size-8 rounded-(--radius-control)" />
+                  <div className="flex flex-1 flex-col gap-(--space-2)">
+                    <Skeleton className="h-3 w-32 rounded-(--radius-sm)" />
+                    <Skeleton className="h-3 w-24 rounded-(--radius-sm)" />
+                  </div>
+                  <Skeleton className="h-3 w-16 rounded-(--radius-sm)" />
+                </div>
+              ))}
+            </div>
           </div>
-          <Skeleton className="h-32 w-full rounded-(--radius-card)" />
-        </div>
+        ))}
+        <Skeleton className="h-11 w-full rounded-(--radius-control)" />
       </div>
     </Page>
   );

@@ -18,6 +18,12 @@ export const JarKind = {
   INCOME: "income",
 } as const;
 
+/** A budget usage ratio is displayed on a 0–100 percent scale. */
+export const JAR_BUDGET_PERCENT_SCALE = 100;
+
+/** Canonical first day for a selectable Plan month. */
+export const PLAN_PERIOD_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-01$/;
+
 export type JarKind = (typeof JarKind)[keyof typeof JarKind];
 
 export const JAR_KIND_VALUES = [
@@ -379,6 +385,21 @@ export const PLAN_ASSIST_MODE_VALUES = [
   PlanAssistMode.MANUAL,
 ] as const;
 
+export const PlanHubJarFilter = {
+  ALL: "all",
+  OVERSPENT: "overspent",
+  REMAINING: "remaining",
+} as const;
+
+export type PlanHubJarFilter =
+  (typeof PlanHubJarFilter)[keyof typeof PlanHubJarFilter];
+
+export const PLAN_HUB_JAR_FILTER_VALUES = [
+  PlanHubJarFilter.ALL,
+  PlanHubJarFilter.OVERSPENT,
+  PlanHubJarFilter.REMAINING,
+] as const;
+
 /**
  * Spec "Miscellaneous Jar" fallback for BR-15 month-lock triage.
  * Seeded household name remains `General` (Sprint 1).
@@ -443,6 +464,7 @@ export const PLAN_OPERATION = {
   LIST_PAYOFF_INBOX_ITEMS: "listPayoffInboxItems",
   GET_MONTH_RITUAL: "getMonthRitual",
   GET_JAR_BUDGETS: "getJarBudgetsForPeriod",
+  GET_PLAN_BUDGET_HISTORY: "getPlanBudgetHistory",
   LIST_PLAN_HUB_UPCOMING: "listPlanHubUpcomingEvents",
 } as const;
 

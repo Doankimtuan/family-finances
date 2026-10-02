@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 import enInbox from "@/messages/en/inbox.json";
 import { InboxSummary } from "@/app/[locale]/(product)/inbox/inbox-summary";
+import { InboxPrivacyToggle } from "@/app/[locale]/(product)/inbox/inbox-privacy-toggle";
 import {
   InboxFactRow,
   InboxFactsCard,
@@ -38,7 +39,6 @@ import {
 import {
   InboxItemKind,
   InboxLifecycleContext,
-  InboxQueueHeaderState,
   InboxQueueTab,
   INBOX_ACK_TEST_ID_PREFIX,
   INBOX_TAB_QUERY,
@@ -78,24 +78,33 @@ function renderInbox(ui: ReactElement) {
 }
 
 describe("Inbox UI polish", () => {
-  it("keeps the privacy control on the summary and lists real facts", () => {
+  it("keeps the summary focused on its facts", () => {
     renderInbox(
       <InboxSummary
-        state={InboxQueueHeaderState.OPEN}
         headline="A few things are ready for you"
         supporting="A quick look now can keep the household moving."
         facts={[{ label: "Waiting", value: "2 items to review" }]}
       />,
     );
 
-    expect(screen.getByTestId("inbox-summary")).toBeInTheDocument();
+    expect(screen.getByTestId(INBOX_TEST_ID.SUMMARY)).toBeInTheDocument();
     expect(
       screen.getByText("A few things are ready for you"),
     ).toBeInTheDocument();
     expect(screen.getByText("Waiting")).toBeInTheDocument();
     expect(screen.getByText("2 items to review")).toBeInTheDocument();
     expect(
-      screen.getByTestId("inbox-financial-privacy-toggle"),
+      screen.queryByTestId(INBOX_TEST_ID.FINANCIAL_PRIVACY_TOGGLE),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps financial privacy controls available on the Inbox", () => {
+    renderInbox(
+      <InboxPrivacyToggle testId={INBOX_TEST_ID.FINANCIAL_PRIVACY_TOGGLE} />,
+    );
+
+    expect(
+      screen.getByTestId(INBOX_TEST_ID.FINANCIAL_PRIVACY_TOGGLE),
     ).toBeInTheDocument();
   });
 
@@ -192,7 +201,7 @@ describe("Inbox UI polish", () => {
   it("selects the archived tab immediately while the queue fetch starts", () => {
     renderInbox(
       <InboxQueueTransition tab={InboxQueueTab.OPEN}>
-        <InboxQueueTabs />
+        <InboxQueueTabs count={0} />
         <InboxQueueBodyPending>
           <p>Open queue</p>
         </InboxQueueBodyPending>

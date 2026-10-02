@@ -2,9 +2,9 @@
 
 ## Source Alignment
 
-Phase D aligns with Phase B by preserving:
+Phase D aligns with the current navigation contract by preserving:
 
-- Five bottom tabs: Home, Money, Plan, Inbox, Together.
+- Four bottom route tabs: Home, Money, Plan, Inbox; transaction creation stays in the centered action and Together is reached through Home's household shortcut.
 - Health and Settings as secondary surfaces.
 - Screen-local top navigation.
 - One primary action per screen state.
@@ -53,4 +53,3 @@ Phase D uses existing:
 ## Result
 
 The package is internally consistent and implementation-ready with conditions.
-

@@ -70,7 +70,7 @@ describe("Investment opening wizard chrome", () => {
     expect(screen.getByTestId("intention-amount")).toHaveClass(
       "text-4xl",
       "leading-none",
-      "text-hero-fg",
+      "text-text-primary",
     );
   });
 });

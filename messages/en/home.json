@@ -25,6 +25,8 @@
     "dashboardHeadline": "Your household money overview",
     "dashboardSupporting": "How household money is doing, and what needs attention.",
     "householdContext": "Household overview",
+    "sharedWallet": "Shared wallet",
+    "householdMembers": "Household members",
     "cashFlowStory": {
       "positive": "Income matches or exceeds spending this period",
       "attention": "Spending exceeds income this period",
@@ -66,10 +68,12 @@
     "loading": "Loading selected period"
   },
   "financialPulse": {
-    "title": "Total assets",
+    "title": "Current assets",
     "accessibleLabel": "Total assets across accounts, savings, and investments",
-    "hint": "Accounts, savings, and valued investments.",
+    "hint": "Across liquid accounts, savings, and valued investments.",
+    "viewStatement": "View statement",
     "partial": "Includes {included} of {total} valued investments.",
+    "stale": "Some investment valuations are outdated.",
     "unavailable": "Total assets are temporarily unavailable.",
     "netLabel": {
       "month": "Net cash flow this month",
@@ -89,41 +93,46 @@
   "cashFlow": {
     "title": "Cash flow",
     "summaryLabel": "Income vs expense",
-    "trendLabel": "Trend",
-    "infoLabel": "What’s included",
     "legend": {
-      "label": "Chart legend"
+      "label": "Chart legend",
+      "income": "Income (actual)",
+      "expense": "Spending (actual)"
     },
-    "summaryHint": "Cash flow from income and spending in this period.",
-    "hint": "Internal transfers, refunds, and other transactions not classified as income or spending do not change cash flow for this period.",
+    "summaryHint": "Compare income and spending for each period.",
     "income": "Income",
     "expense": "Expense",
     "net": "Net",
     "chartSummary": {
-      "day": "Daily income and expense trend.",
-      "week": "Weekly income and expense trend."
+      "day": "Income and spending recorded each day.",
+      "week": "Income and spending recorded each week."
     },
     "chartAria": {
-      "day": "Daily income and expense chart.",
-      "week": "Weekly income and expense chart."
+      "day": "Daily income and spending chart.",
+      "week": "Weekly income and spending chart."
     },
-    "dataTableTitle": "Cash-flow data",
+    "dataTableTitle": "Cash-flow amounts by period",
     "dataTable": {
       "period": "Period"
     },
-    "lowData": "Activity is concentrated on one day; quiet days are confirmed as zero."
+    "lowData": "Activity is concentrated in one period; values appear only where income or spending was recorded."
   },
   "periodStory": {
     "title": "This period",
     "viewTransactions": "View transactions",
     "empty": "No income or spending recorded this period."
   },
+  "recentActivity": {
+    "title": "Recent activity",
+    "hint": "The latest financial activity across your household.",
+    "viewAll": "View all",
+    "empty": "No recent activity yet.",
+    "unavailable": "Recent activity is temporarily unavailable."
+  },
   "spending": {
-    "title": "Spending breakdown",
+    "title": "Spending composition",
     "hint": "Categories with the highest spending.",
     "uncategorized": "Uncategorized",
-    "review": "Review in Inbox",
-    "reviewAria": "Review {category} items in Inbox",
+    "other": "Other categories",
     "insight": {
       "higher": "Spending is {amount} higher than the prior period.",
       "lower": "Spending is {amount} lower than the prior period."
@@ -134,20 +143,10 @@
     "title": "Total across accounts",
     "hint": "Total balance across active accounts, excluding credit cards."
   },
-  "planPulse": {
-    "title": "Plan",
-    "hint": "Jars are a plan for money, not cash in an account.",
-    "jarsCount": "{count, plural, =0 {No active jars yet} one {# active jar} other {# active jars}}",
-    "allocate": {
-      "off": "Income allocation: Off",
-      "suggest": "Income allocation: Suggestions",
-      "auto": "Income allocation: Automatic"
-    },
-    "openPlan": "Open Plan"
-  },
   "productSummary": {
-    "title": "Also in Money",
-    "hint": "Savings, investments, loans, and debts. Money has the full picture.",
+    "title": "Financial structure",
+    "hint": "Four areas: savings, investments, loans, and debt.",
+    "openMoney": "Go to Money",
     "unavailable": "This product summary is temporarily unavailable.",
     "savings": {
       "label": "Savings",
@@ -179,8 +178,9 @@
   "inbox": {
     "title": "Needs attention",
     "clear": "No decisions needed.",
-    "pending": "{count, plural, one {# item needs a decision} other {# items need a decision}}",
-    "open": "Review in Inbox"
+    "pending": "Action needed ({count})",
+    "pendingDetail": "Transactions and household financial items are waiting for your review.",
+    "open": "Take action"
   },
   "health": {
     "title": "Setup status",
@@ -195,7 +195,6 @@
       "strong": "An account and jars are set up; check Inbox if items are waiting."
     }
   },
-  "capture": "Add transaction",
   "addAccount": "Add an account",
   "dayZero": {
     "title": "Start tracking your money",

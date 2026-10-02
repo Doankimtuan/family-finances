@@ -5,6 +5,7 @@ import { InvestmentSectionTitle } from "./investment-section-title";
 
 type InvestmentFactsCardProps = {
   title?: string;
+  columns?: boolean;
   testId?: string;
   children: ReactNode;
 };
@@ -20,6 +21,7 @@ type InvestmentFactRowProps = {
  */
 export function InvestmentFactsCard({
   title,
+  columns = false,
   testId,
   children,
 }: InvestmentFactsCardProps) {
@@ -27,7 +29,15 @@ export function InvestmentFactsCard({
     <section className="flex flex-col gap-(--space-3)" data-testid={testId}>
       {title ? <InvestmentSectionTitle>{title}</InvestmentSectionTitle> : null}
       <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-        <dl className="divide-y divide-divider">{children}</dl>
+        <dl
+          className={
+            columns
+              ? "grid grid-cols-2 [&>div]:flex-col [&>div]:justify-start [&>div]:gap-(--space-1) [&>div]:border-0 [&>div>div]:text-left [&>div>p]:text-xs"
+              : "divide-y divide-divider"
+          }
+        >
+          {children}
+        </dl>
       </Card>
     </section>
   );

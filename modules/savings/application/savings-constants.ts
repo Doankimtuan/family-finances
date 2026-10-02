@@ -71,6 +71,10 @@ export const SAVINGS_CREATE_MODE_VALUES = [
   SavingsCreateMode.HISTORICAL_OPENING,
 ] as const;
 
+export const SAVINGS_PRINCIPAL_QUICK_ADD_VALUES = [
+  10_000_000, 20_000_000, 50_000_000, 100_000_000,
+] as const;
+
 /** Savings RPC names used at the application boundary and in diagnostics. */
 export const SAVINGS_RPC = {
   HOME_SUMMARY: "get_home_savings_summary",
@@ -377,6 +381,23 @@ export const INTEREST_RATE_DENOMINATOR = 100;
 
 /** Day-count convention: actual/365 for VND deposits. */
 export const DAYS_PER_YEAR = 365;
+
+/** Fresh provider form defaults; sample Stitch values are never saved by default. */
+export const SAVINGS_PROVIDER_CREATE_DEFAULTS = {
+  name: "",
+  family: SavingsFamily.BANK,
+  iconKey: "bank",
+  packageName: "",
+  termAmount: 12,
+  annualInterestRatePercent: 0,
+} as const;
+
+export const SAVINGS_PROVIDER_CREATE_ICON_KEYS = [
+  "bank",
+  "wallet",
+  "smartphone",
+  "vault",
+] as const;
 
 /** Penalty warning threshold: warn when penalty > 50% of accrued interest. */
 export const PENALTY_WARNING_THRESHOLD_PCT = 50;

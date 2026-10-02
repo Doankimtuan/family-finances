@@ -15,20 +15,26 @@ import {
   CARD_UTILIZATION_DANGER_PCT,
   CARD_UTILIZATION_WARN_PCT,
 } from "@/modules/ledger/application/client";
-import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
-import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
-import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  moneyAccountPath,
+} from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
+import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadgeTone } from "@/shared/ui/status-badge";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  Link: (linkProps: ComponentProps<"a"> & { prefetch?: boolean }) => {
+    const { href, children, ...anchorProps } = linkProps;
+    delete anchorProps.prefetch;
+    return (
+      <a href={href} {...anchorProps}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 vi.mock("next-intl", () => ({
@@ -206,22 +212,17 @@ describe("Ledger scan card surface ownership (B13)", () => {
     expect(indicator).not.toHaveClass("bg-danger");
   });
 
-  it("keeps Money scan accounts and credit liabilities in separate grouped lists", () => {
-    const cashGroups = [
+  it("keeps Money preview rows compact, routes domains, and separates card debt", () => {
+    const accounts = [
       {
         key: MoneyAccountGroupKey.CASH,
         accounts: [
           {
             id: "cash-1",
             title: "Daily cash",
-            typeLabel: "Cash",
-            balanceCaption: "Balance",
             balanceLabel: "1,200,000 ₫",
             icon: FINANCE_ICONS.cash,
             iconTone: IconContainerTone.INCOME,
-            financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
-            isOwnedByMe: false,
-            ownerStatus: OWNER_STATUS.ACTIVE,
           },
         ],
       },
@@ -231,48 +232,35 @@ describe("Ledger scan card surface ownership (B13)", () => {
       <MoneyAccountsScan
         labels={{
           sectionTitle: "Accounts",
-          groupTitles: {
-            [MoneyAccountGroupKey.CASH]: "Cash",
-            [MoneyAccountGroupKey.BANK]: "Bank",
-            [MoneyAccountGroupKey.WALLET]: "E-wallet",
-            [MoneyAccountGroupKey.SAVINGS]: "Savings",
-            [MoneyAccountGroupKey.INVESTMENT]: "Investments",
-            [MoneyAccountGroupKey.OTHER]: "Other",
-          },
-          creditCardsTitle: "Credit cards",
+          sectionDescription: "1 account · 1 credit card",
+          totalBalanceLabel: "1,200,000 ₫",
           creditCardType: "Credit card",
-          creditCardsHint: "Credit values stay separate.",
+          creditCardsTitle: "Credit cards",
+          creditCardsHint: "Amounts owed on cards are liabilities.",
           outstanding: "Outstanding",
-          availableCredit: "Available credit",
-          creditLimit: "Credit limit",
+          accountsUnavailable: "Accounts unavailable",
+          creditCardsUnavailable: "Credit cards unavailable",
           emptyTitle: "No accounts",
           emptyDescription: "Add an account.",
-          showAll: "See all accounts",
-          showLess: "Show fewer accounts",
+          viewAccounts: "View accounts",
+          showAllAccounts: "Show all accounts",
+          showFewerAccounts: "Show fewer accounts",
           attentionLabels: {
             [MoneyCreditAttention.OVERDUE]: "Overdue",
             [MoneyCreditAttention.DUE_SOON]: "Due soon",
             [MoneyCreditAttention.HIGH_UTILIZATION]: "High use",
           },
         }}
-        accountGroups={cashGroups}
-        initialAccountGroups={cashGroups}
-        accountPresentation="flat"
-        hasMoreAccounts={false}
+        accounts={accounts}
         creditCards={[
           {
             id: "card-1",
             title: "Daily card",
             outstandingLabel: "800,000 ₫",
-            availableLabel: "200,000 ₫",
-            limitLabel: "1,000,000 ₫",
-            utilizationPct: CARD_UTILIZATION_DANGER_PCT,
             utilizationLabel: "80% used",
-            utilizationAriaLabel: "80% of the card credit limit used",
-            attention: MoneyCreditAttention.OVERDUE,
+            attention: MoneyCreditAttention.DUE_SOON,
           },
         ]}
-        createAction={<button type="button">Add account</button>}
       />,
     );
 
@@ -280,29 +268,39 @@ describe("Ledger scan card surface ownership (B13)", () => {
     const creditRow = screen.getByTestId("money-hub-credit-card-row");
     expect(accountRow).toHaveAttribute("href", moneyAccountPath("cash-1"));
     expect(creditRow).toHaveAttribute("href", moneyAccountPath("card-1"));
+    expect(
+      screen.getByRole("heading", { name: "Credit cards" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Amounts owed on cards are liabilities."),
+    ).toBeInTheDocument();
 
     expect(
       screen.getByTestId("money-account-object-collection"),
     ).toHaveAttribute("data-slot", "card");
-    expect(screen.getByTestId("account-card")).toHaveAttribute(
-      "data-financial-object",
-      "account",
-    );
-    expect(screen.getByTestId("credit-card-card")).toHaveAttribute(
-      "data-financial-object",
-      "credit-card",
-    );
     expect(creditRow).toHaveTextContent("800,000 ₫");
     expect(creditRow).not.toHaveTextContent("200,000 ₫");
     expect(creditRow).not.toHaveTextContent("1,000,000 ₫");
-    expect(screen.getByText("Overdue")).toHaveClass(
-      "bg-danger/10",
-      "text-danger",
+    expect(screen.getByTestId("money-accounts-route-link")).toHaveAttribute(
+      "href",
+      APP_PATH.MONEY_ACCOUNTS,
     );
-    const indicator = screen
-      .getByTestId("credit-card-card")
-      .closest("a")
-      ?.querySelector('[data-slot="progress-indicator"]');
-    expect(indicator).toHaveClass("bg-danger");
+    expect(
+      screen.queryByTestId("money-accounts-manage"),
+    ).not.toBeInTheDocument();
+    const attentionBadge = screen
+      .getByText("Due soon")
+      .closest('[data-slot="status-badge"]');
+    expect(attentionBadge).toHaveClass(
+      "bg-warning/10",
+      "text-warning",
+      "whitespace-normal",
+    );
+    expect(creditRow.querySelector(".flex-wrap")).toBeInTheDocument();
+    expect(
+      creditRow.querySelector(
+        `[data-financial-kind="${FinancialNumberKind.CURRENT_STATE}"]`,
+      ),
+    ).toHaveTextContent("800,000 ₫");
   });
 });

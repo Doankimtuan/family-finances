@@ -41,7 +41,7 @@ test.describe("Authenticated E2E infrastructure", () => {
       fullPage: true,
     });
 
-    await page.getByTestId("transactions-add").click();
+    await page.getByTestId("money-capture").click();
     await expect(page.getByTestId("money-capture-entry").last()).toBeVisible();
     await page.screenshot({
       path: `${AUTH_FINAL_PATH}/vi-create-390-dark.png`,

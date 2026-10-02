@@ -89,6 +89,7 @@ describe("Together UI polish", () => {
         rolePartnerLabel="Partner"
         roleAdminHint="Can manage the household"
         rolePartnerHint="Member access"
+        activeLabel="Active"
       />,
     );
 
@@ -98,6 +99,8 @@ describe("Together UI polish", () => {
     expect(screen.getByText("(You)")).toBeInTheDocument();
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("Partner")).toBeInTheDocument();
+    expect(screen.getAllByText("Active")).toHaveLength(2);
+    expect(screen.queryByText("Member access")).not.toBeInTheDocument();
   });
 
   it("groups management destinations without dropping existing test ids", () => {
@@ -138,6 +141,7 @@ describe("Together UI polish", () => {
       <TogetherPrimaryLink
         href={TOGETHER_PATH.INVITATIONS_NEW}
         testId="together-invite-cta"
+        tonal
       >
         Invite partner
       </TogetherPrimaryLink>,
@@ -146,6 +150,9 @@ describe("Together UI polish", () => {
     expect(screen.getByTestId("together-invite-cta")).toHaveAttribute(
       "href",
       TOGETHER_PATH.INVITATIONS_NEW,
+    );
+    expect(screen.getByTestId("together-invite-cta")).toHaveClass(
+      "bg-primary-soft",
     );
     expect(screen.getByText("Invite partner")).toBeInTheDocument();
   });

@@ -4,8 +4,7 @@ import { setLocale } from "@/i18n/set-locale";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { getSessionMembership } from "@/modules/tenancy/application/get-session-membership";
 import {
   listSavingsEligibleAccounts,
   listProviderCatalog,
@@ -23,9 +22,9 @@ export default async function NewSavingPage({ params }: Props) {
   const locale = hasLocale(routing.locales, raw) ? raw : routing.defaultLocale;
   setLocale(locale);
 
-  const user = await getSessionUser();
+  const { user, membership } = await getSessionMembership();
   if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
-  if (!(await resolveActiveMembership(user.id))) {
+  if (!membership) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 

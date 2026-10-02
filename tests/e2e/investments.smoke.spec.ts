@@ -51,12 +51,12 @@ async function importPosition(
     page.getByTestId("investment-opening-form").first(),
   ).toBeVisible();
   await page.getByTestId("investment-type-crypto").first().click();
-  await page.getByTestId("investment-opening-next").first().click();
-  await page.getByTestId("investment-input-currency").click();
-  await page.getByRole("option", { name: "VND" }).click();
   await page.locator("#investment-name").fill(input.name);
   await page.locator("#investment-symbol").fill(input.symbol);
   await page.locator("#investment-provider").fill("G1 Custodian");
+  await page.getByTestId("investment-opening-next").first().click();
+  await page.getByTestId("investment-input-currency").click();
+  await page.getByRole("option", { name: "VND" }).click();
   await page.locator("#investment-quantity").fill(input.quantity);
   await page.locator("#investment-cost-per-unit").fill(input.basis);
   await page

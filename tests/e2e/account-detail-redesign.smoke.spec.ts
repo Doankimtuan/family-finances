@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { authenticateE2EUser } from "./support/auth";
 
 const ACCOUNT_DETAIL_SCENARIOS = [
@@ -32,9 +33,24 @@ async function signIn(page: Page) {
   await authenticateE2EUser(page);
 }
 
-async function accountHrefs(page: Page): Promise<string[]> {
+async function accountHrefs(
+  page: Page,
+  screenshotLabel: string,
+): Promise<string[]> {
   await page.goto("/en/money/accounts");
-  await expect(page).toHaveURL(/\/en\/money$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(new RegExp(`/en${APP_PATH.MONEY_ACCOUNTS}$`), {
+    timeout: 20_000,
+  });
+  const app = page.locator("#app-viewport-root");
+  await expect(app.getByTestId("money-accounts-directory")).toBeVisible();
+  await expect(app.getByTestId("money-create-account")).toBeVisible();
+  expect(
+    await app.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBe(false);
+  await page.addStyleTag({ content: "nextjs-portal { display: none; }" });
+  await app.screenshot({
+    path: `screenshots/money-accounts-directory-${screenshotLabel}.png`,
+  });
   const links = page.locator('a[href^="/en/money/accounts/"]');
   const hrefs: string[] = [];
   const count = await links.count();
@@ -80,7 +96,7 @@ test.describe("Account-detail redesign", () => {
       await page.setViewportSize(scenario);
       await page.emulateMedia({ colorScheme: scenario.colorScheme });
 
-      const hrefs = await accountHrefs(page);
+      const hrefs = await accountHrefs(page, scenario.name);
       test.skip(hrefs.length === 0, "No account available for inspection");
       const { normalHref, cardHref } = await detailHrefs(page, hrefs);
       const app = page.locator("#app-viewport-root");
@@ -89,7 +105,7 @@ test.describe("Account-detail redesign", () => {
         await page.goto(normalHref);
         await expect(app.getByTestId("money-account-detail")).toBeVisible();
         await expect(app.getByText("Balance", { exact: true })).toBeVisible();
-        await expect(app.getByTestId("account-quick-capture")).toBeVisible();
+        await expect(app.getByTestId("money-capture")).toBeVisible();
         await expect(app.getByTestId("account-management-open")).toBeVisible();
         await page.screenshot({
           path: `screenshots/account-detail-normal-${scenario.name}.png`,

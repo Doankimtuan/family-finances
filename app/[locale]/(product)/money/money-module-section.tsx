@@ -4,8 +4,7 @@ import {
   MoneyModuleAttentionLevel,
   type MoneyModuleAttentionLevel as AttentionLevel,
 } from "@/modules/ledger/application";
-import { Link } from "@/i18n/navigation";
-import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { BaseRow } from "@/shared/patterns/base-row";
 import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
@@ -18,6 +17,7 @@ import { AppIcon } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { Text } from "@/shared/ui/text";
+import { Heading } from "@/shared/ui/heading";
 
 /** Right-column state for a module row; a failed domain read never renders as zero. */
 export type MoneyModuleValue =
@@ -31,10 +31,15 @@ export type MoneyModuleRowProps = {
   testId: string;
   icon: IconSvgElement;
   iconTone: IconContainerTone;
+  iconClassName?: string;
   label: string;
   value: MoneyModuleValue;
   /** Quiet supporting signal under the label (counts, secondary amounts). */
   meta?: ReactNode;
+  /** Current domain status, such as whether investment prices are fresh. */
+  status?: { label: string; tone: StatusBadgeTone };
+  /** Quiet status beneath the amount for obligation rows. */
+  trailingMeta?: ReactNode;
   attention?: { level: AttentionLevel; label: string } | null;
 };
 
@@ -68,65 +73,91 @@ const ATTENTION_BADGE_TONE: Record<
 };
 
 /**
- * One money domain inside a grouped module card. Current-state amounts stay
- * neutral; attention (due soon / overdue / action required) is the only
- * colored element and always carries text, never color alone.
+ * One money domain inside a grouped module card. Amounts stay neutral; any
+ * colored status has a factual text label beside it.
  */
 export function MoneyModuleRow({
   href,
   testId,
   icon,
   iconTone,
+  iconClassName,
   label,
   value,
   meta,
+  status,
+  trailingMeta,
   attention,
 }: MoneyModuleRowProps) {
   return (
-    <Link
+    <BaseRow
       href={href}
-      prefetch={PRODUCT_LINK_PREFETCH}
-      className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
       data-testid={testId}
-    >
-      <IconContainer tone={iconTone} size="sm">
-        <AppIcon icon={icon} size="sm" />
-      </IconContainer>
-      <div className="min-w-0 flex-1">
+      divider="none"
+      interactiveClassName="hover:bg-surface-hover/50"
+      leading={
+        <IconContainer tone={iconTone} size="md" className={iconClassName}>
+          <AppIcon icon={icon} size="md" />
+        </IconContainer>
+      }
+      title={
         <Text size="sm" className="font-medium text-text-primary">
           {label}
         </Text>
-        {attention ? (
-          <StatusBadge
-            tone={ATTENTION_BADGE_TONE[attention.level]}
-            className="mt-(--space-1) min-h-6 rounded-(--radius-control) px-(--space-2) font-medium"
-          >
-            {attention.label}
-          </StatusBadge>
-        ) : meta ? (
-          <Text size="xs" tone="muted" className="mt-(--space-1) block">
-            {meta}
-          </Text>
-        ) : null}
-      </div>
-      <div className="flex shrink-0 items-center gap-(--space-2)">
-        <span
-          className={moduleValueClassName(value)}
-          data-financial-kind={moduleValueKind(value)}
-        >
-          {value.state === "count" ? (
-            value.label
-          ) : (
-            <FinancialValue>{value.label}</FinancialValue>
-          )}
-        </span>
-        <AppIcon
-          icon={ACTION_ICONS.forward}
-          size="sm"
-          className="shrink-0 text-text-tertiary"
-        />
-      </div>
-    </Link>
+      }
+      subtitle={
+        attention || status || meta ? (
+          <div className="flex min-w-0 flex-col items-start gap-(--space-1)">
+            {attention ? (
+              <StatusBadge
+                tone={ATTENTION_BADGE_TONE[attention.level]}
+                className="min-h-6 whitespace-nowrap rounded-(--radius-control) px-(--space-2) font-medium"
+              >
+                {attention.label}
+              </StatusBadge>
+            ) : null}
+            {status ? (
+              <StatusBadge
+                tone={status.tone}
+                className="min-h-6 whitespace-nowrap rounded-(--radius-control) px-(--space-2) font-medium"
+              >
+                {status.label}
+              </StatusBadge>
+            ) : null}
+            {meta ? (
+              <Text size="xs" tone="muted" className="block whitespace-normal">
+                {meta}
+              </Text>
+            ) : null}
+          </div>
+        ) : null
+      }
+      subtitleClassName="overflow-visible whitespace-normal"
+      trailing={
+        <>
+          <div className="flex shrink-0 items-center gap-(--space-2)">
+            <span
+              className={moduleValueClassName(value)}
+              data-financial-kind={moduleValueKind(value)}
+            >
+              {value.state === "count" ? (
+                value.label
+              ) : (
+                <FinancialValue>{value.label}</FinancialValue>
+              )}
+            </span>
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size="sm"
+              className="shrink-0 text-text-tertiary"
+            />
+          </div>
+          {trailingMeta}
+        </>
+      }
+      trailingClassName={trailingMeta ? "max-w-32 min-w-0" : undefined}
+      contentClassName="py-(--space-3)"
+    />
   );
 }
 
@@ -147,7 +178,18 @@ export function MoneyModuleCard({
   children: ReactNode;
 }) {
   return (
-    <Section title={title} description={description} testId={testId}>
+    <Section
+      title={
+        <Heading
+          level={2}
+          className="text-xs font-semibold tracking-wider uppercase text-text-secondary"
+        >
+          {title}
+        </Heading>
+      }
+      description={description}
+      testId={testId}
+    >
       <Card tone="elevated" className="gap-0 p-0">
         <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
           {children}

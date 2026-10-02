@@ -16,6 +16,7 @@ import {
   InvestmentLifecycleStatus,
   InvestmentHoldingReadStatus,
   InvestmentInputRateSource,
+  InvestmentValuationMetaVariant,
   MarketValuationQuality,
   INVESTMENT_REPORTING_CURRENCY,
 } from "@/modules/investments/application";
@@ -43,10 +44,7 @@ import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { MotionReveal } from "@/shared/motion";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
-import {
-  InvestmentValuationMeta,
-  InvestmentValuationMetaVariant,
-} from "../investment-valuation-meta";
+import { InvestmentValuationMeta } from "../investment-valuation-meta";
 import { InvestmentDetailActions } from "../investment-detail-actions";
 import { InvestmentMoreActions } from "../investment-more-actions";
 import { investmentAssetIcon } from "../investment-asset-icon";
@@ -58,6 +56,10 @@ import {
   InvestmentFactsCard,
 } from "../investment-facts";
 import { InvestmentPrivacyToggle } from "../investment-privacy-toggle";
+import {
+  buildHistoricalImportPreview,
+  HistoricalBasisInputMode,
+} from "@/modules/investments/application/historical-import-view-model";
 import { InvestmentSectionTitle } from "../investment-section-title";
 
 type Props = {
@@ -173,7 +175,7 @@ export default async function InvestmentDetailPage({
   if (holdingResult.status === InvestmentHoldingReadStatus.ERROR)
     return (
       <Page
-        contentClassName="gap-(--space-5)"
+        contentClassName="gap-(--space-3)"
         topBar={
           <TopAppBar
             variant="detail"
@@ -199,7 +201,7 @@ export default async function InvestmentDetailPage({
   if (holdingResult.status === InvestmentHoldingReadStatus.NOT_FOUND)
     return (
       <Page
-        contentClassName="gap-(--space-5)"
+        contentClassName="gap-(--space-3)"
         topBar={
           <TopAppBar
             variant="detail"
@@ -283,6 +285,17 @@ export default async function InvestmentDetailPage({
       ? CRYPTO_DECIMAL_DIGITS
       : STANDARD_DECIMAL_DIGITS;
   const quantityText = `${formatNumber(quantity, locale, { maximumFractionDigits: quantityDigits })} ${asset === InvestmentAssetClass.FUND ? tUx("overview.fundUnit") : t("unit")}`;
+  const averageCost = buildHistoricalImportPreview({
+    quantity: holding.quantity,
+    basisInputMode: HistoricalBasisInputMode.TOTAL,
+    totalCostBasis: holding.remainingTotalCostBasis,
+    averageCostPerUnit: null,
+    currentUnitValuation: null,
+  }).averageCostPerUnit;
+  const heroQuantityLabel =
+    holding.valuation?.price != null && holding.valuation.priceCurrency
+      ? `${quantityText} × ${formatNumber(holding.valuation.price, locale, { maximumFractionDigits: quantityDigits })} ${holding.valuation.priceCurrency} / ${tUx(ux.unitSuffixKey)}`
+      : quantityText;
   const valueCaption = resolveValueCaption(isClosed, asset, t);
   const referenceLabel =
     asset === InvestmentAssetClass.FUND
@@ -293,13 +306,14 @@ export default async function InvestmentDetailPage({
   return (
     <Page
       testId="investment-detail"
-      contentClassName="gap-(--space-5)"
+      contentClassName="gap-(--space-3)"
       topBar={
         <TopAppBar
           variant="detail"
           backHref={APP_PATH.MONEY_INVESTMENTS}
-          title={holding.name}
-          subtitle={instrumentContext}
+          title={t("title")}
+          subtitle={holding.name}
+          className="border-b border-border-subtle"
           trailing={
             holding.ownership.canMutate && !isClosed ? (
               <InvestmentMoreActions
@@ -359,6 +373,18 @@ export default async function InvestmentDetailPage({
         <InvestmentDetailHero
           icon={investmentAssetIcon(asset)}
           caption={valueCaption}
+          name={holding.name}
+          symbol={holding.instrument?.symbol ?? holding.symbol ?? undefined}
+          provider={providerDisplay}
+          quantityLabel={heroQuantityLabel}
+          ownership={
+            <FinancialOwnershipBadge
+              financialScope={holding.ownership.financialScope}
+              isOwnedByMe={holding.ownership.isOwnedByMe}
+              ownerStatus={holding.ownership.ownerStatus}
+              compact
+            />
+          }
           amountLabel={resolveHeroAmountLabel(
             isClosed,
             holding.currentValue,
@@ -371,22 +397,17 @@ export default async function InvestmentDetailPage({
             tUx("valuation.noCurrentValue"),
           )}
           trailing={
-            <InvestmentPrivacyToggle testId="investment-detail-financial-privacy-toggle" />
+            <InvestmentPrivacyToggle
+              testId="investment-detail-financial-privacy-toggle"
+              onSurface
+            />
           }
           context={
             <>
-              <FinancialOwnershipBadge
-                financialScope={holding.ownership.financialScope}
-                isOwnedByMe={holding.ownership.isOwnedByMe}
-                ownerStatus={holding.ownership.ownerStatus}
-                onHero
-                showExplanation
-              />
               {!isClosed ? (
                 <InvestmentValuationMeta
                   holding={holding}
                   variant={InvestmentValuationMetaVariant.INLINE}
-                  onHero
                 />
               ) : null}
             </>
@@ -398,6 +419,7 @@ export default async function InvestmentDetailPage({
           holdingId={holding.id}
           assetClass={asset}
           showSell={!isClosed}
+          valuationLabel={canUpdateManualValue ? valuationLabel : undefined}
         />
       ) : null}
       {isClosed ? (
@@ -410,6 +432,7 @@ export default async function InvestmentDetailPage({
       <InvestmentFactsCard
         title={t("performanceSection")}
         testId="investment-detail-performance"
+        columns
       >
         <InvestmentFactRow
           label={t("quantityLabel")}
@@ -439,6 +462,15 @@ export default async function InvestmentDetailPage({
                 </FinancialValue>
               </Text>
             )
+          }
+        />
+        <InvestmentFactRow
+          label={t("averageCost")}
+          value={
+            <Text size="sm" weight="medium" tabular>
+              <FinancialValue>{money(averageCost)}</FinancialValue>
+              {averageCost != null ? ` / ${tUx(ux.unitSuffixKey)}` : ""}
+            </Text>
           }
         />
         <InvestmentFactRow
@@ -527,6 +559,28 @@ export default async function InvestmentDetailPage({
           <InvestmentFactNote>{t("goldValuationNote")}</InvestmentFactNote>
         ) : null}
       </InvestmentFactsCard>
+      <Card tone="soft" className="gap-(--space-2) p-(--space-3)">
+        <FinancialOwnershipBadge
+          financialScope={holding.ownership.financialScope}
+          isOwnedByMe={holding.ownership.isOwnedByMe}
+          ownerStatus={holding.ownership.ownerStatus}
+          showExplanation
+        />
+        <Text size="xs" tone="secondary" className="text-pretty">
+          {tUx("stitchOverview.rulesDescription")}
+        </Text>
+        <Link
+          href={APP_PATH.POLICIES}
+          className="inline-flex min-h-11 items-center text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+        >
+          {tUx("stitchOverview.rulesLink")}
+        </Link>
+        {holding.notes ? (
+          <Text size="sm" tone="secondary" className="text-pretty">
+            {holding.notes}
+          </Text>
+        ) : null}
+      </Card>
       <section
         className="flex flex-col gap-(--space-3)"
         data-testid="investment-detail-activity"

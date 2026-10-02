@@ -5,6 +5,7 @@ import { authenticateE2EUser } from "./support/auth";
 async function openCreate(page: Page, locale: "en" | "vi", asset: string) {
   await page.goto(`/${locale}${APP_PATH.MONEY_INVESTMENTS_NEW}`);
   await page.getByTestId(`investment-type-${asset}`).first().click();
+  await page.locator("#investment-name").fill("Smoke investment");
   await page.getByTestId("investment-opening-next").first().click();
 }
 
@@ -29,13 +30,13 @@ test.describe("Investments lifecycle", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
     await page.goto(`/vi${APP_PATH.MONEY_INVESTMENTS}`);
-    await expect(page.getByTestId("investment-overview-client")).toBeVisible();
+    await expect(page.getByTestId("investment-stitch-overview")).toBeVisible();
     await expect(
-      page.locator("[data-testid^=investment-position-]").first(),
+      page.locator("[data-testid^=investment-overview-position-]").first(),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: /Đã đóng/ }).click();
-    const closed = page.locator("[data-testid^=investment-closed-position-]");
+    await page.getByRole("button", { name: /Đã tất toán/ }).click();
+    const closed = page.locator("[data-testid^=investment-overview-position-]");
     await expect(closed).not.toHaveCount(0);
     await closed.first().click();
     await expect(page.getByTestId("investment-detail")).toBeVisible();
@@ -53,9 +54,9 @@ test.describe("Investments lifecycle", () => {
     );
 
     await openCreate(page, "vi", "fund");
-    await page.getByText("Tôi đã sở hữu từ trước").click();
+    await page.getByText("Sở hữu từ trước").click();
     await expect(page.getByText("Tiền lấy từ đâu?")).toHaveCount(0);
-    await page.getByText("Tôi mua / đầu tư ngay bây giờ").click();
+    await page.getByText("Mua mới hôm nay").click();
     await expect(page.getByText("NAV / CCQ")).toBeVisible();
     await expect(page.getByText("Tiền lấy từ đâu?")).toBeVisible();
     await expectNoConsoleErrors(page);
@@ -67,14 +68,14 @@ test.describe("Investments lifecycle", () => {
     await page.setViewportSize({ width: 440, height: 900 });
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     await openCreate(page, "en", "stock");
-    await page.getByText("I am buying / investing right now").click();
+    await page.getByText("Buy now").click();
     await expect(page.getByText("Purchase price per share")).toBeVisible();
     await expect(page.getByText("Where is money coming from?")).toBeVisible();
     await openCreate(page, "en", "bond");
-    await page.getByText("I am buying / investing right now").click();
+    await page.getByText("Buy now").click();
     await expect(page.getByText("Total value")).toBeVisible();
     await expect(page.getByText("Where is money coming from?")).toBeVisible();
-    await page.getByText("I already owned this before").click();
+    await page.getByText("Already owned").click();
     await expect(page.getByText("Where is money coming from?")).toHaveCount(0);
     await page.goto(`/en${APP_PATH.MONEY_INVESTMENTS}`);
     await page.evaluate(() =>
@@ -85,8 +86,8 @@ test.describe("Investments lifecycle", () => {
     await page.evaluate(() =>
       localStorage.setItem("vinha.financial-values-hidden", "false"),
     );
-    await page.getByRole("button", { name: /Closed/ }).click();
-    const closed = page.locator("[data-testid^=investment-closed-position-]");
+    await page.getByRole("button", { name: /Settled/ }).click();
+    const closed = page.locator("[data-testid^=investment-overview-position-]");
     await expect(closed).not.toHaveCount(0);
     await closed.first().click();
     await expect(page.getByTestId("investment-detail")).toBeVisible();

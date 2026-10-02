@@ -1,27 +1,28 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { inboxItemPath } from "@/modules/tenancy/application/app-path";
+import {
+  InboxItemKind,
+  inboxItemTestId,
+} from "@/modules/inbox/application/inbox-constants";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
-import { formatDate } from "@/shared/i18n/formatters";
-import { ReviewCard, ReviewCardDensity } from "@/shared/patterns/review-card";
-import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { formatDate, formatPercent } from "@/shared/i18n/formatters";
+import { InboxRow } from "@/shared/patterns/inbox-row";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
-import { StatusBadgeTone } from "@/shared/ui/status-badge";
-import { INBOX_REVIEW_ROW_CLASS } from "./inbox-chrome";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { InboxFinancialAmount } from "./inbox-financial-amount";
 import {
   inboxAmountKind,
   inboxAmountLabel,
+  inboxAmountTone,
   inboxDisplayTitle,
   inboxItemVisual,
   inboxLifecycleLabelKey,
   inboxOwnershipHintKey,
   inboxQueueDominantTitle,
-  inboxQueueLifecycleLabel,
   inboxQueueRowSubtitle,
 } from "./inbox-presentations";
 
@@ -48,16 +49,27 @@ export function InboxQueueRow({ item, locale, readOnly }: InboxQueueRowProps) {
     displayTitle: item.displayTitle,
     kindLabel: t(`kinds.${item.kind}`),
   });
+  const accountName = item.accountName
+    ? localizeCatalogName(tCatalog, "accounts", item.accountName) ||
+      item.accountName
+    : null;
   const dominant = inboxQueueDominantTitle({
     kind: item.kind,
     displayTitle,
+    accountName,
   });
+  const maturityRate =
+    item.typed?.type === InboxItemKind.SAVINGS_MATURITY
+      ? item.typed.payload.currentRate
+      : null;
+  // ponytail: omit the mapper's default 0; model rate presence before showing a real 0% rate.
+  const maturityRateLabel =
+    maturityRate != null && Number.isFinite(maturityRate) && maturityRate > 0
+      ? `${t("factRate")}: ${formatPercent(maturityRate / 100, locale, { maximumFractionDigits: 2 })}`
+      : null;
   const detailParts = [
-    dominant.context,
-    item.accountName
-      ? localizeCatalogName(tCatalog, "accounts", item.accountName) ||
-        item.accountName
-      : null,
+    item.kind === InboxItemKind.SAVINGS_MATURITY ? null : accountName,
+    maturityRateLabel,
     localizedCategory && item.note?.trim() ? localizedCategory : null,
   ].filter((part): part is string => Boolean(part));
   const lifecycleKey = inboxLifecycleLabelKey(item.lifecycleContext);
@@ -74,50 +86,42 @@ export function InboxQueueRow({ item, locale, readOnly }: InboxQueueRowProps) {
     ? t(`statuses.${item.status}`)
     : t(`kinds.${item.kind}`);
 
-  const card = (
-    <ReviewCard
-      density={ReviewCardDensity.ROW}
-      showChevron={!readOnly}
-      unread={!readOnly && unread}
+  return (
+    <InboxRow
+      presentation="card"
+      accent={readOnly ? "neutral" : visual.accent}
       title={dominant.title}
-      kindLabel={kindLabel}
-      amountLabel={
+      subtitle={inboxQueueRowSubtitle({
+        lifecycleLabel,
+        ownershipHint: ownershipHintKey ? t(ownershipHintKey) : null,
+        detailParts,
+      })}
+      categoryBadge={
+        <StatusBadge
+          tone={readOnly ? StatusBadgeTone.NEUTRAL : visual.statusTone}
+        >
+          {kindLabel}
+        </StatusBadge>
+      }
+      unread={unread}
+      actionLabel={readOnly ? undefined : t("nextStepLabel")}
+      impactAmountContent={
         amountLabel ? (
           <InboxFinancialAmount
             amountLabel={amountLabel}
             kind={inboxAmountKind(item.kind)}
+            tone={inboxAmountTone(item.kind)}
           />
-        ) : null
+        ) : undefined
       }
       leading={
         <IconContainer tone={visual.tone} size="sm">
           <AppIcon icon={visual.icon} size="sm" />
         </IconContainer>
       }
-      statusTone={readOnly ? StatusBadgeTone.NEUTRAL : visual.statusTone}
-      subtitle={inboxQueueRowSubtitle({
-        lifecycleLabel: inboxQueueLifecycleLabel({
-          context: item.lifecycleContext,
-          label: lifecycleLabel,
-        }),
-        ownershipHint: ownershipHintKey ? t(ownershipHintKey) : null,
-        detailParts,
-      })}
-      data-testid={`inbox-item-${item.id}`}
+      href={readOnly ? undefined : inboxItemPath(item.id)}
+      aria-label={`${dominant.title} · ${kindLabel} · ${unread ? t("unreadLabel") : t("readLabel")}${readOnly ? "" : ` · ${t("nextStepLabel")}`}`}
+      data-testid={inboxItemTestId(item.id)}
     />
-  );
-
-  if (readOnly) return card;
-
-  return (
-    <Link
-      href={inboxItemPath(item.id)}
-      prefetch={PRODUCT_LINK_PREFETCH}
-      aria-label={`${displayTitle} · ${unread ? t("unreadLabel") : t("readLabel")}`}
-      className={INBOX_REVIEW_ROW_CLASS}
-      data-testid={`inbox-item-link-${item.id}`}
-    >
-      {card}
-    </Link>
   );
 }

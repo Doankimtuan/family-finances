@@ -164,6 +164,7 @@
   --color-border-default: var(--vinha-border-strong);
   --color-border-focus: var(--vinha-focus-ring);
   --color-divider: var(--vinha-divider);
+  --color-divider-subtle: var(--vinha-divider-subtle);
 
   /* Text */
   --color-text-primary: var(--vinha-text-primary);
@@ -493,7 +494,7 @@
   --sheet-footer-clearance: calc(var(--space-12) + var(--sheet-footer-space));
   /* FloatingAction geometry: pill height, gap above the attached bottom
      navigation, and the scroll clearance so content clears the fixed pill. */
-  --floating-action-size: 3rem;
+  --floating-action-size: var(--control-height-md);
   --floating-action-gap: var(--space-4);
   --floating-action-clearance: calc(
     var(--floating-action-size) + var(--floating-action-gap) + var(--space-12)
@@ -515,7 +516,7 @@
   --app-viewport-min: 320px;
   --app-viewport-band-max: 480px;
   --app-viewport-tablet-optional: 640px;
-  --bottom-navigation-height: 56px;
+  --bottom-navigation-height: calc(var(--space-16) + var(--space-3));
   --toast-dismiss-size: 44px;
 
   /* Control Dimensions & Touch Target */

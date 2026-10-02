@@ -12,20 +12,19 @@ import {
   allocationFactTone,
   allocationFactValue,
   exceptionHref,
+  getPlanMonthProgress,
   isUpcomingDueEvent,
 } from "@/app/[locale]/(product)/plan/plan-hub-presentations";
 import {
   AllocationHealthStatus,
   CalendarEventSource,
 } from "@/modules/plan/application/client";
-import {
-  PlanHomeExceptionKind,
-  PlanHomeHealthStatus,
-} from "@/modules/plan/application/plan-home-health";
+import { PlanHomeExceptionKind } from "@/modules/plan/application/plan-home-health";
 import { APP_PATH, planJarPath } from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { IconContainerTone } from "@/shared/ui/icon-container";
 import { PLAN_ICONS } from "@/shared/ui/icon-registry";
+import { StatusBadgeTone } from "@/shared/ui/status-badge";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({
@@ -53,33 +52,53 @@ function renderPlan(ui: ReactElement) {
 }
 
 describe("Plan hub UI polish", () => {
-  it("keeps the privacy control on the planning context and avoids a cash hero", () => {
+  it("shows household-local calendar progress only for the active month", () => {
+    const now = new Date("2026-09-28T12:00:00.000Z");
+
+    expect(getPlanMonthProgress("2026-09-01", "vi", now)).toEqual({
+      day: 28,
+      days: 30,
+      percent: 93,
+    });
+    expect(getPlanMonthProgress("2026-08-01", "vi", now)).toBeNull();
+    expect(getPlanMonthProgress("2026-13-01", "vi", now)).toBeNull();
+  });
+
+  it("matches the compact plan progress card without introducing a cash hero", () => {
     renderPlan(
       <PlanHubHero
-        periodCaption="This month"
-        periodLabel="September 2026"
-        assistLabel="Assisted"
-        health={PlanHomeHealthStatus.HEALTHY}
-        healthTitle="On track"
-        healthBody="The plan is holding."
-        contextMeta="1 jar · 100%"
+        attentionLabel={enPlan.home.planOnTrack}
+        attentionTone={StatusBadgeTone.POSITIVE}
+        dayProgressLabel="Day 15/30 · 50%"
+        dayProgressPercent={50}
+        todayLabel={enPlan.home.today}
+        activeJarSummary="1 active jar"
         incomeLabel="Income base for this month's plan"
         incomeValue="Not set"
+        usagePercent={50}
+        usageLabel="50% of the plan used"
+        overBudgetSpendShare={25}
+        plannedLabel="Planned"
+        plannedValue="$1,000"
+        spentLabel="Spent"
+        spentValue="$200"
+        remainingLabel="Remaining"
+        remainingValue="$800"
       />,
     );
 
     expect(screen.getByTestId("plan-period-pulse")).toBeInTheDocument();
-    expect(screen.getByText("September 2026")).toBeInTheDocument();
-    expect(screen.getByText("On track")).toBeInTheDocument();
-    expect(screen.getByText("1 jar · 100%")).toBeInTheDocument();
-    expect(screen.getByTestId("plan-hub-income-base")).toHaveAttribute(
+    expect(screen.getByText("Day 15/30 · 50%")).toBeInTheDocument();
+    expect(screen.getByText(/1 active jar/)).toBeInTheDocument();
+    expect(screen.getByTestId("plan-summary-planned")).toHaveAttribute(
       "data-financial-kind",
       "intention",
     );
     expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument();
-    expect(
-      screen.getByTestId("plan-financial-privacy-toggle"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Today")).toBeInTheDocument();
+    expect(screen.getByTestId("plan-period-pulse")).toHaveClass(
+      "bg-surface/90",
+    );
   });
 
   it("renders exception actions as links without inventing extra copy", () => {

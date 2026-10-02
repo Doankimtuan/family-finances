@@ -30,6 +30,7 @@ import { StatusAlert } from "@/shared/ui/status-alert";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { NAVIGATION_ICONS } from "@/shared/ui/icon-registry";
 import { InboxOfflineBanner } from "./inbox-offline-banner";
+import { InboxPrivacyToggle } from "./inbox-privacy-toggle";
 import { InboxQueueList } from "./inbox-queue-list";
 import { InboxQueueTabs } from "./inbox-queue-tabs";
 import {
@@ -173,19 +174,22 @@ export default async function InboxPage({ params, searchParams }: Props) {
       topBar={
         <TopAppBar
           variant="primary"
-          eyebrow={t("header.eyebrow")}
           title={t("title")}
-          meta={headerMeta}
+          status={headerMeta}
+          trailing={
+            <InboxPrivacyToggle
+              testId={INBOX_TEST_ID.FINANCIAL_PRIVACY_TOGGLE}
+            />
+          }
         />
       }
-      contentClassName="gap-(--space-5)"
+      contentClassName="gap-(--space-4)"
     >
       <InboxQueueTransition tab={activeTab}>
         <InboxOfflineBanner />
 
         <InboxQueueHeaderPending>
           <InboxSummary
-            state={headerState}
             headline={headline}
             supporting={headerSupporting}
             facts={summaryFacts}
@@ -220,7 +224,7 @@ export default async function InboxPage({ params, searchParams }: Props) {
           ) : null}
         </InboxQueueHeaderPending>
 
-        <InboxQueueTabs />
+        <InboxQueueTabs count={list.length} />
 
         <InboxQueueBodyPending>
           {loadFailed ? (

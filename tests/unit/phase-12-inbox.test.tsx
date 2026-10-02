@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactElement } from "react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 import enInbox from "@/messages/en/inbox.json";
@@ -20,7 +20,6 @@ import {
 } from "@/app/[locale]/(product)/inbox/inbox-detail-context";
 import { InboxFinancialAmount } from "@/app/[locale]/(product)/inbox/inbox-financial-amount";
 import {
-  groupInboxItemsByKind,
   inboxAmountKind,
   inboxAmountLabel,
   isInboxFilterActive,
@@ -31,12 +30,11 @@ import {
   InboxItemKind,
   InboxItemStatus,
   InboxKindFilter,
-  InboxQueueHeaderState,
   InboxQueueTab,
   InboxSourceType,
   INBOX_TEST_ID,
   inboxFilterTestId,
-  inboxGroupTestId,
+  inboxItemTestId,
 } from "@/modules/inbox/application/inbox-constants";
 import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
@@ -173,7 +171,7 @@ describe("Phase 12 Inbox attention center", () => {
     expect(inboxAmountLabel(0, DEFAULT_CURRENCY, "en")).toContain("0");
   });
 
-  it("groups by existing kind in first-seen order without inventing rank", () => {
+  it("preserves input order across mixed kinds in the attention feed", () => {
     const expenseLater = reviewItem({
       id: "550e8400-e29b-41d4-a716-446655440012",
       displayTitle: "Coffee",
@@ -186,23 +184,28 @@ describe("Phase 12 Inbox attention center", () => {
       note: null,
       categoryName: null,
     });
-    const groups = groupInboxItemsByKind([
-      reviewItem(),
-      maturity,
-      expenseLater,
-    ]);
+    renderInbox(
+      <InboxQueueList
+        items={[reviewItem(), maturity, expenseLater]}
+        locale="en"
+      />,
+    );
 
-    expect(groups.map((group) => group.kind)).toEqual([
-      InboxItemKind.UNMAPPED_EXPENSE,
-      InboxItemKind.SAVINGS_MATURITY,
-    ]);
-    expect(groups[0]?.items.map((item) => item.id)).toEqual([
-      reviewItem().id,
-      expenseLater.id,
-    ]);
+    const rows = [reviewItem().id, maturity.id, expenseLater.id].map((id) =>
+      screen.getByTestId(inboxItemTestId(id)),
+    );
+    expect(rows[0]).toHaveAttribute("href", inboxItemPath(reviewItem().id));
+    expect(
+      rows[0]!.compareDocumentPosition(rows[1]!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      rows[1]!.compareDocumentPosition(rows[2]!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
-  it("renders a summary-first open queue with kind groups and 44px filters", () => {
+  it("renders a summary-first mixed queue with 44px filters", () => {
     const maturity = reviewItem({
       id: "550e8400-e29b-41d4-a716-446655440013",
       kind: InboxItemKind.SAVINGS_MATURITY,
@@ -217,27 +220,35 @@ describe("Phase 12 Inbox attention center", () => {
 
     expect(screen.getByText(enInbox.pendingSectionTitle)).toBeInTheDocument();
     expect(
-      screen.getByTestId(inboxGroupTestId(InboxItemKind.UNMAPPED_EXPENSE)),
+      within(screen.getByTestId(inboxItemTestId(reviewItem().id))).getByText(
+        enInbox.kinds.unmapped_expense,
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId(inboxGroupTestId(InboxItemKind.SAVINGS_MATURITY)),
+      within(screen.getByTestId(inboxItemTestId(maturity.id))).getByText(
+        enInbox.kinds.savings_maturity,
+      ),
     ).toBeInTheDocument();
     const amounts = screen.getAllByTestId(INBOX_TEST_ID.AMOUNT);
     expect(amounts).toHaveLength(2);
-    expect(amounts[0]?.parentElement).toHaveAttribute(
+    expect(amounts[0]).toHaveAttribute(
       "data-financial-kind",
       FinancialNumberKind.MOVEMENT,
     );
-    expect(amounts[1]?.parentElement).toHaveAttribute(
+    expect(amounts[1]).toHaveAttribute(
       "data-financial-kind",
       FinancialNumberKind.CURRENT_STATE,
     );
-    expect(screen.getByTestId(INBOX_TEST_ID.SEARCH)).toHaveClass("min-h-11");
+    expect(screen.getByTestId(INBOX_TEST_ID.SEARCH).parentElement).toHaveClass(
+      "min-h-11",
+    );
+    const allFilter = screen.getByTestId(
+      inboxFilterTestId(InboxKindFilter.ALL),
+    );
+    expect(allFilter).toHaveClass("min-h-11");
+    expect(allFilter).toHaveTextContent(`${enInbox.filterAll} 2`);
     expect(
-      screen.getByTestId(inboxFilterTestId(InboxKindFilter.ALL)),
-    ).toHaveClass("min-h-11");
-    expect(
-      screen.getByTestId(`inbox-item-link-${reviewItem().id}`),
+      screen.getByTestId(inboxItemTestId(reviewItem().id)),
     ).toHaveAttribute("href", inboxItemPath(reviewItem().id));
   });
 
@@ -291,14 +302,14 @@ describe("Phase 12 Inbox attention center", () => {
     expect(screen.getByText(FINANCIAL_PRIVACY_MASK)).toBeInTheDocument();
     expect(screen.queryByText("₫45,000")).not.toBeInTheDocument();
     expect(
-      screen.getByTestId(`inbox-item-link-${reviewItem().id}`),
+      screen.getByTestId(inboxItemTestId(reviewItem().id)),
     ).toHaveAttribute("aria-label", expect.not.stringMatching(/45|₫/));
   });
 
   it("exposes Open/Archived as accessible tabs with keyboard movement", () => {
     renderInbox(
       <InboxQueueTransition tab={InboxQueueTab.OPEN}>
-        <InboxQueueTabs />
+        <InboxQueueTabs count={1} />
         <InboxQueueBodyPending>
           <p>Open queue</p>
         </InboxQueueBodyPending>
@@ -335,7 +346,6 @@ describe("Phase 12 Inbox attention center", () => {
     renderInbox(
       <>
         <InboxSummary
-          state={InboxQueueHeaderState.OPEN}
           headline={enInbox.header.headline.open.replace(
             "{count, plural, one {1 item to review} other {# items to review}}",
             "3 items to review",
@@ -365,7 +375,7 @@ describe("Phase 12 Inbox attention center", () => {
       </>,
     );
 
-    expect(screen.getByTestId("inbox-summary")).toHaveTextContent(
+    expect(screen.getByTestId(INBOX_TEST_ID.SUMMARY)).toHaveTextContent(
       "3 items to review",
     );
     expect(
@@ -374,9 +384,10 @@ describe("Phase 12 Inbox attention center", () => {
     expect(screen.getByTestId(INBOX_TEST_ID.DETAIL_CARD)).toHaveTextContent(
       "Lunch",
     );
-    expect(
-      screen.getByTestId(INBOX_TEST_ID.AMOUNT).parentElement,
-    ).toHaveAttribute("data-financial-kind", FinancialNumberKind.MOVEMENT);
+    expect(screen.getByTestId(INBOX_TEST_ID.AMOUNT)).toHaveAttribute(
+      "data-financial-kind",
+      FinancialNumberKind.MOVEMENT,
+    );
   });
 
   it("preserves canonical source links and existing mutation payloads", () => {

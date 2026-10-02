@@ -8,6 +8,7 @@ import {
   moneyTransactionPath,
 } from "@/modules/tenancy/application/app-path";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
+import { TogetherHeaderTab } from "@/shared/patterns/together-header-tab";
 import { TransactionAmountTone } from "@/shared/patterns/transaction-row";
 import { Progress } from "@/shared/ui/progress";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
@@ -31,11 +32,19 @@ import enNavigation from "@/messages/en/navigation.json";
 import viNavigation from "@/messages/vi/navigation.json";
 
 vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children, ...props }: ComponentProps<"a">) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+  Link: ({
+    href,
+    children,
+    prefetch,
+    ...props
+  }: ComponentProps<"a"> & { prefetch?: boolean }) => {
+    void prefetch;
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 function readProjectFile(relativePath: string) {
@@ -55,16 +64,24 @@ describe("Phase 16 cross-app visual QA", () => {
     window.localStorage.clear();
   });
 
-  it("keeps exactly five IA tabs and excludes Health", () => {
-    expect(TABS).toHaveLength(5);
+  it("keeps four IA route tabs and preserves the Together route link", () => {
+    expect(TABS).toHaveLength(4);
     expect(TABS.map((tab) => tab.href)).toEqual([
       APP_PATH.HOME,
       APP_PATH.MONEY,
       APP_PATH.PLAN,
       APP_PATH.INBOX,
-      APP_PATH.TOGETHER,
     ]);
+    expect(TABS.map((tab) => tab.href)).not.toContain(APP_PATH.TOGETHER);
     expect(TABS.some((tab) => tab.href === APP_PATH.HEALTH)).toBe(false);
+
+    render(<TogetherHeaderTab label={enNavigation.together} />);
+    expect(screen.getByTestId("together-header-tab")).toHaveAttribute(
+      "href",
+      APP_PATH.TOGETHER,
+    );
+    expect(enNavigation.record).toBe("Record");
+    expect(viNavigation.record).toBe("Ghi chép");
   });
 
   it("does not leak transaction amounts through the list accessible name when privacy is on", () => {
@@ -108,7 +125,7 @@ describe("Phase 16 cross-app visual QA", () => {
   it("tokenizes the Inbox badge and global not-found chrome", () => {
     const nav = readProjectFile("shared/patterns/bottom-navigation.tsx");
     expect(nav).not.toContain("text-[10px]");
-    expect(nav).toContain("text-xs");
+    expect(nav).toContain("text-label-sm");
 
     const progress = readProjectFile("shared/ui/progress.tsx");
     expect(progress).not.toContain('"Progress"');

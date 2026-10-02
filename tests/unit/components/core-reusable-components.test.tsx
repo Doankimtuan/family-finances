@@ -267,6 +267,20 @@ describe("Core Reusable Components — Implementation 02", () => {
       expect(handleChange).toHaveBeenCalledWith(150_000);
     });
 
+    it("uses the shared currency style for VND input", () => {
+      render(
+        <CurrencyInput
+          label="Credit limit"
+          locale="vi"
+          value={50_000_000}
+          onValueChange={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText("₫")).toHaveClass("text-numeric-lg");
+      expect(screen.getByDisplayValue("50.000.000")).toBeInTheDocument();
+    });
+
     it("uses compact locale labels and omits Vietnamese words in English", () => {
       render(
         <CurrencyInput

@@ -46,11 +46,14 @@ export function memberRowAriaLabel(input: {
   isSelf: boolean;
   youLabel: string;
   roleLabel: string;
+  activeLabel?: string;
 }): string {
-  if (input.isSelf) {
-    return `${input.name}, ${input.youLabel}, ${input.roleLabel}`;
-  }
-  return `${input.name}, ${input.roleLabel}`;
+  return [
+    input.name,
+    ...(input.isSelf ? [input.youLabel] : []),
+    input.roleLabel,
+    ...(input.activeLabel ? [input.activeLabel] : []),
+  ].join(", ");
 }
 
 export function invitationRowAriaLabel(input: {

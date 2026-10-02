@@ -9,7 +9,7 @@ test.describe("Plan hub (ST-E05-001)", () => {
     await expect(page).toHaveURL(/\/en\/login/, { timeout: 20_000 });
   });
 
-  test("plan hub teaching and entries when E2E credentials exist", async ({
+  test("plan overview and destinations when E2E credentials exist", async ({
     page,
   }) => {
     const email = process.env.E2E_USER_EMAIL;
@@ -31,17 +31,14 @@ test.describe("Plan hub (ST-E05-001)", () => {
     await page.goto("/en/plan");
     await expect(page.getByTestId("plan-hub")).toBeVisible();
     await expect(page.getByTestId("plan-period-pulse")).toBeVisible();
-    await expect(page.getByTestId("plan-teaching")).toBeVisible();
-    await expect(
-      page
-        .getByTestId("plan-teaching")
-        .getByText(/bank balance|số dư ngân hàng/i)
-        .first(),
-    ).toBeVisible();
-    await expect(page.getByTestId("plan-see-jars")).toBeVisible();
+    await expect(page.getByTestId("plan-summary-planned")).toBeVisible();
+    await expect(page.getByTestId("plan-jar-sort")).toBeVisible();
+    await expect(page.getByTestId("plan-home-upcoming")).toBeVisible();
+    await expect(page.getByTestId("plan-shortcuts")).toBeVisible();
+    await expect(page.getByTestId("plan-shortcut-calendar")).toBeVisible();
     await expect(page.getByTestId("plan-entry-goals")).toBeVisible();
     await expect(page.getByTestId("plan-entry-recurring")).toBeVisible();
-    await expect(page.getByTestId("plan-ritual-open")).toBeVisible();
-    await expect(page.getByTestId("plan-money-link")).toBeVisible();
+    await expect(page.getByTestId("plan-shortcut-review")).toBeVisible();
+    await expect(page.getByTestId("money-capture")).toBeVisible();
   });
 });

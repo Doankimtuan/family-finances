@@ -4,5 +4,9 @@
   "plan": "Kế hoạch",
   "inbox": "Hộp thư",
   "together": "Cùng nhau",
+  "addTransaction": "Thêm giao dịch",
+  "offlineAddTransaction": "Kết nối để thêm giao dịch",
+  "add": "Thêm",
+  "record": "Ghi chép",
   "health": "Sức khỏe"
 }

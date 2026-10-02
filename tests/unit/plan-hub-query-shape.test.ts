@@ -51,17 +51,19 @@ describe("Plan hub query shape", () => {
     expect(pulse).toContain("export const getPlanPulse = cache(loadPlanPulse)");
   });
 
-  it("keeps Plan hub sections and CTAs in the page", () => {
+  it("keeps the canonical overview sections and planning destinations in the page", () => {
     expect(planPage).toContain('testId="plan-hub"');
     expect(planPage).toContain("<PlanHubHero");
-    expect(planPage).toContain("<PlanHubExceptions");
     expect(planPage).toContain('testId="plan-home-jars"');
-    expect(planPage).toContain('testId="plan-home-goals"');
     expect(planPage).toContain('testId="plan-home-upcoming"');
-    expect(planPage).toContain('testId="plan-home-recommendations"');
+    expect(planPage).toContain('testId="plan-home-overspending"');
     expect(planPage).toContain("EmergencyInboxBanner");
-    expect(planPage).toContain("planRecurringPath");
+    expect(planPage).toContain("APP_PATH.PLAN_RECURRING");
+    expect(planPage).toContain("APP_PATH.PLAN_GOALS");
+    expect(planPage).not.toContain("<FloatingAction>");
+    expect(planPage).toContain("summarizeJarBudgets");
     expect(planPage).not.toContain("getMonthlyReview");
     expect(planPage).not.toContain("listRecurring(");
+    expect(planPage).not.toContain("RecommendationList");
   });
 });

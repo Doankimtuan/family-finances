@@ -78,6 +78,8 @@ export type DebtDue = {
 export type DebtSummary = {
   totalBorrowed: number;
   totalLent: number;
+  borrowedCount: number;
+  lentCount: number;
   activeCount: number;
   overdueCount: number;
   dueSoonCount: number;
@@ -331,8 +333,10 @@ export function buildDebtSummary(debts: Debt[], today: string): DebtSummary {
       const dueState = getDebtDueState(debt, today);
       if (debt.direction === DebtDirection.BORROWED) {
         summary.totalBorrowed += debt.remainingAmount;
+        summary.borrowedCount += 1;
       } else {
         summary.totalLent += debt.remainingAmount;
+        summary.lentCount += 1;
       }
       summary.activeCount += 1;
       if (dueState === DebtDueState.OVERDUE) {
@@ -349,6 +353,8 @@ export function buildDebtSummary(debts: Debt[], today: string): DebtSummary {
     {
       totalBorrowed: 0,
       totalLent: 0,
+      borrowedCount: 0,
+      lentCount: 0,
       activeCount: 0,
       overdueCount: 0,
       dueSoonCount: 0,

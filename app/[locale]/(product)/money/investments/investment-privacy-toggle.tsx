@@ -1,10 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
+import {
+  FinancialPrivacyToggle,
+  FinancialPrivacyToggleTone,
+} from "@/shared/patterns/financial-privacy-toggle";
 
 type InvestmentPrivacyToggleProps = {
   testId: string;
+  onSurface?: boolean;
 };
 
 /**
@@ -13,6 +17,7 @@ type InvestmentPrivacyToggleProps = {
  */
 export function InvestmentPrivacyToggle({
   testId,
+  onSurface = false,
 }: InvestmentPrivacyToggleProps) {
   const t = useTranslations("money");
 
@@ -21,6 +26,11 @@ export function InvestmentPrivacyToggle({
       hideLabel={t("financialPrivacy.hide")}
       showLabel={t("financialPrivacy.show")}
       testId={testId}
+      tone={
+        onSurface
+          ? FinancialPrivacyToggleTone.SURFACE
+          : FinancialPrivacyToggleTone.HERO
+      }
     />
   );
 }

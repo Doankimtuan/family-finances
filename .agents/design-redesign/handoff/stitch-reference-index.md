@@ -5,6 +5,12 @@
 **Active Design System Asset ID**: `assets/75087efd2c3c42baa6ce67405334331b` ("ViNha Warm Precision")  
 **Design Freeze**: **YES (Task 13 Design Freeze)**
 
+### Bottom Navigation Redesign
+
+- **Previous navigation reference**: `2b70f6125b134d3d9ca2499befaecf1b` (superseded; four route tabs and a centered action).
+- **Canonical navigation reference**: `468646066fc14f1f87f6080af33308eb` — _ViNha Bottom Navigation Specification & Live Preview (5 Routes + Floating Action)_.
+- **Contract**: Five equal route tabs (Home, Money, Plan, Inbox, Together) plus a separate floating `+ Thêm` action; both light and dark previews are included.
+
 ---
 
 ## 1. Canonical Screen Index (Light & Dark Pairs)

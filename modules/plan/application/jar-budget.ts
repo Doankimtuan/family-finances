@@ -50,6 +50,39 @@ export type JarBudgetMetrics = {
   incomeSource?: QualifyingIncomeSourceValue;
 };
 
+export type JarBudgetSummary = Pick<
+  JarBudgetMetrics,
+  "budgetAmount" | "spentAmount" | "remainingAmount"
+> & { usagePercent: number | null };
+
+export function summarizeJarBudgets(
+  jarIds: readonly string[],
+  byJarId: Readonly<Record<string, JarBudgetMetrics>>,
+): JarBudgetSummary | null {
+  if (jarIds.some((jarId) => !byJarId[jarId])) {
+    return null;
+  }
+
+  const totals = jarIds.reduce<Omit<JarBudgetSummary, "usagePercent">>(
+    (summary, jarId) => {
+      const metrics = byJarId[jarId];
+      return {
+        budgetAmount: summary.budgetAmount + metrics.budgetAmount,
+        spentAmount: summary.spentAmount + metrics.spentAmount,
+        remainingAmount: summary.remainingAmount + metrics.remainingAmount,
+      };
+    },
+    { budgetAmount: 0, spentAmount: 0, remainingAmount: 0 },
+  );
+  return {
+    ...totals,
+    usagePercent:
+      totals.budgetAmount > 0
+        ? Math.round((totals.spentAmount / totals.budgetAmount) * 100)
+        : null,
+  };
+}
+
 export type QualifyingIncomeResolution = {
   amount: number;
   source: QualifyingIncomeSourceValue;

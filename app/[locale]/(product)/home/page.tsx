@@ -23,8 +23,8 @@ type Props = {
 };
 
 /**
- * Home is the household command center: current position, attention,
- * intention, then period movement.
+ * Home summarizes current assets, attention, period cash flow, and recent
+ * activity for the household.
  */
 export default async function HomePage({ params, searchParams }: Props) {
   const { locale: rawLocale } = await params;
@@ -40,7 +40,7 @@ export default async function HomePage({ params, searchParams }: Props) {
       testId={HOME_TEST_ID.DASHBOARD}
       topBar={
         <Suspense fallback={<HomeTopBarFallback />}>
-          <HomeTopBar readiness={readiness} />
+          <HomeTopBar />
         </Suspense>
       }
       contentClassName="gap-(--space-5)"

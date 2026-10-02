@@ -9,6 +9,7 @@ import {
 import { ChoiceTile } from "@/shared/patterns/choice-tile";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { investmentAssetIcon } from "./investment-asset-icon";
 
@@ -54,7 +55,12 @@ export function OpeningAssetClassPicker({
                 />
               </IconContainer>
             }
-            className="items-start py-(--space-3)"
+            className={cn(
+              "items-center rounded-(--radius-card) py-(--space-4)",
+              selected === item
+                ? "border-primary bg-primary-soft"
+                : "border-border-subtle bg-surface",
+            )}
           >
             <span className="flex min-w-0 flex-col gap-(--space-1)">
               <Text size="sm" weight="semibold">

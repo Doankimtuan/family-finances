@@ -1,159 +1,168 @@
 import type { ReactNode } from "react";
-import { Alert02Icon } from "@/shared/ui/stitch-icon-compat";
 import { Card } from "@/shared/patterns/card";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
+import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Text } from "@/shared/ui/text";
-import { Skeleton } from "@/shared/ui/skeleton";
-import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
-import { AppIcon } from "@/shared/ui/app-icon";
-import {
-  ACTION_ICONS,
-  PLAN_ICONS,
-  UTILITY_ICONS,
-} from "@/shared/ui/icon-registry";
-import { PlanPrivacyToggle } from "./plan-privacy-toggle";
-import {
-  PlanHomeHealthStatus,
-  type PlanHomeHealthStatus as PlanHomeHealthStatusValue,
-} from "@/modules/plan/application/plan-home-health";
+import { StatusBadge } from "@/shared/ui/status-badge";
+import type { StatusBadgeTone } from "@/shared/ui/status-badge";
+import { IconContainerTone } from "@/shared/ui/icon-container";
+import { Progress } from "@/shared/ui/progress";
 
 type PlanHubHeroProps = {
-  periodCaption: string;
-  periodLabel: string;
-  assistLabel: string;
-  health?: PlanHomeHealthStatusValue;
-  healthTitle?: string;
-  healthBody?: string;
-  contextMeta?: string;
+  attentionLabel: string;
+  attentionTone: StatusBadgeTone;
+  dayProgressLabel?: string;
+  dayProgressPercent: number | null;
+  todayLabel: string;
+  activeJarSummary: string;
   incomeLabel: string;
   incomeValue: ReactNode;
-  status?: ReactNode;
+  usagePercent: number | null;
+  usageLabel?: string;
+  overBudgetSpendShare: number | null;
+  plannedLabel: string;
+  plannedValue: ReactNode;
+  spentLabel: string;
+  spentValue: ReactNode;
+  spentDetail?: string;
+  remainingLabel: string;
+  remainingValue: ReactNode;
 };
 
-type PlanHubHeroStatusProps = {
-  health: PlanHomeHealthStatusValue;
-  healthTitle: string;
-  healthBody: string;
-  contextMeta: string;
-};
-
-function healthIcon(health: PlanHomeHealthStatusValue) {
-  switch (health) {
-    case PlanHomeHealthStatus.HEALTHY:
-      return ACTION_ICONS.success;
-    case PlanHomeHealthStatus.ATTENTION:
-      return UTILITY_ICONS.info;
-    case PlanHomeHealthStatus.OFF_TRACK:
-      return Alert02Icon;
-    default:
-      return PLAN_ICONS.jar;
-  }
+function SummaryMetric({
+  label,
+  value,
+  detail,
+  testId,
+  valueClassName,
+}: {
+  label: string;
+  value: ReactNode;
+  detail?: string;
+  testId: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="min-w-0 px-(--space-2) first:ps-0 last:pe-0">
+      <Text size="xs" className="text-pretty leading-tight text-text-secondary">
+        {label}
+      </Text>
+      <Text
+        size="xs"
+        weight="semibold"
+        tabular
+        className={`mt-(--space-2) whitespace-nowrap tracking-tight ${valueClassName ?? "text-text-primary"}`}
+        data-financial-kind={FinancialNumberKind.INTENTION}
+        data-testid={testId}
+      >
+        <FinancialValue>{value}</FinancialValue>
+      </Text>
+      {detail ? (
+        <Text
+          size="xs"
+          className="mt-(--space-1) whitespace-nowrap text-text-secondary"
+        >
+          <FinancialValue>{detail}</FinancialValue>
+        </Text>
+      ) : null}
+    </div>
+  );
 }
 
 export function PlanHubHero({
-  periodCaption,
-  periodLabel,
-  assistLabel,
-  health,
-  healthTitle,
-  healthBody,
-  contextMeta,
+  attentionLabel,
+  attentionTone,
+  dayProgressLabel,
+  dayProgressPercent,
+  todayLabel,
+  activeJarSummary,
   incomeLabel,
   incomeValue,
-  status,
+  usagePercent,
+  usageLabel,
+  overBudgetSpendShare,
+  plannedLabel,
+  plannedValue,
+  spentLabel,
+  spentValue,
+  spentDetail,
+  remainingLabel,
+  remainingValue,
 }: PlanHubHeroProps) {
   return (
     <Card
-      tone="hero"
+      tone="default"
       className="gap-(--space-4) p-(--space-4)"
       data-testid="plan-period-pulse"
     >
-      <div className="flex items-start justify-between gap-(--space-3)">
-        <div className="min-w-0">
-          <Text size="sm" weight="medium" className="text-hero-muted">
-            {periodCaption}
-          </Text>
-          <Text
-            size="sm"
-            className="mt-(--space-1) text-pretty text-hero-muted"
-          >
-            {periodLabel}
-          </Text>
-        </div>
-        <div className="flex shrink-0 items-center gap-(--space-2)">
-          <StatusBadge
-            tone={StatusBadgeTone.SELECTED}
-            className="bg-white/10 text-hero-fg ring-white/15"
-          >
-            {assistLabel}
-          </StatusBadge>
-          <PlanPrivacyToggle testId="plan-financial-privacy-toggle" />
-        </div>
-      </div>
-      {status ??
-        (health && healthTitle && healthBody && contextMeta ? (
-          <PlanHubHeroStatus
-            health={health}
-            healthTitle={healthTitle}
-            healthBody={healthBody}
-            contextMeta={contextMeta}
-          />
-        ) : null)}
-      <div
-        className="border-t border-white/15 pt-(--space-3)"
-        data-testid="plan-hub-income-base"
-        data-financial-kind={FinancialNumberKind.INTENTION}
-      >
-        <Text size="xs" className="text-hero-muted">
-          {incomeLabel}
-        </Text>
-        <Text
-          size="sm"
-          weight="semibold"
-          className="mt-(--space-1) tracking-tight text-hero-fg"
+      <div className="flex items-center justify-between gap-(--space-2)">
+        <StatusBadge
+          tone={attentionTone}
+          className="min-h-7 px-(--space-3) text-xs"
         >
-          {incomeValue}
-        </Text>
+          {attentionLabel}
+        </StatusBadge>
+        {dayProgressLabel ? (
+          <Text
+            size="xs"
+            className="shrink-0 whitespace-nowrap text-text-secondary"
+          >
+            {dayProgressLabel}
+          </Text>
+        ) : null}
+      </div>
+      <Text size="xs" className="text-pretty text-text-secondary">
+        {activeJarSummary} · {incomeLabel}:{" "}
+        <FinancialValue>{incomeValue}</FinancialValue>
+      </Text>
+      {usagePercent != null ? (
+        <div className="relative pb-(--space-6)">
+          <Progress
+            value={usagePercent}
+            label={usageLabel}
+            showLabel={false}
+            tone={IconContainerTone.PRIMARY}
+            indicatorClassName={overBudgetSpendShare ? "bg-none" : undefined}
+            indicatorStyle={
+              overBudgetSpendShare != null && overBudgetSpendShare > 0
+                ? {
+                    backgroundImage: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${100 - overBudgetSpendShare}%, var(--color-danger) ${100 - overBudgetSpendShare}%, var(--color-danger) 100%)`,
+                  }
+                : undefined
+            }
+            privacyAware
+          />
+          {dayProgressPercent != null ? (
+            <span
+              className="absolute top-2 inline-flex min-h-6 w-max -translate-x-1/2 items-center whitespace-nowrap rounded-sm bg-surface-muted px-(--space-2) py-(--space-1) text-[10px] leading-tight text-text-secondary"
+              style={{
+                left: `clamp(var(--space-5), ${dayProgressPercent}%, calc(100% - var(--space-5)))`,
+              }}
+            >
+              {todayLabel}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="grid grid-cols-3 divide-x divide-divider-subtle border-t border-divider-subtle pt-(--space-3)">
+        <SummaryMetric
+          label={plannedLabel}
+          value={plannedValue}
+          testId="plan-summary-planned"
+        />
+        <SummaryMetric
+          label={spentLabel}
+          value={spentValue}
+          detail={spentDetail}
+          testId="plan-summary-spent"
+        />
+        <SummaryMetric
+          label={remainingLabel}
+          value={remainingValue}
+          testId="plan-summary-remaining"
+          valueClassName="text-primary"
+        />
       </div>
     </Card>
-  );
-}
-
-export function PlanHubHeroStatus({
-  health,
-  healthTitle,
-  healthBody,
-  contextMeta,
-}: PlanHubHeroStatusProps) {
-  return (
-    <div className="flex items-start gap-(--space-3)">
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-(--radius-control) bg-white/10 text-hero-fg">
-        <AppIcon icon={healthIcon(health)} size="sm" />
-      </span>
-      <div className="min-w-0">
-        <Text weight="semibold" className="text-balance text-hero-fg">
-          {healthTitle}
-        </Text>
-        <Text size="sm" className="mt-(--space-1) text-pretty text-hero-muted">
-          {healthBody}
-        </Text>
-        <Text size="xs" className="mt-(--space-2) text-pretty text-hero-muted">
-          {contextMeta}
-        </Text>
-      </div>
-    </div>
-  );
-}
-
-export function PlanHubHeroStatusLoading() {
-  return (
-    <div className="flex items-start gap-(--space-3)" aria-hidden="true">
-      <Skeleton className="mt-0.5 size-8 shrink-0 rounded-(--radius-control) bg-white/20" />
-      <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
-        <Skeleton className="h-5 w-36 bg-white/20" />
-        <Skeleton className="h-4 w-full bg-white/15" />
-        <Skeleton className="h-3 w-40 bg-white/15" />
-      </div>
-    </div>
   );
 }

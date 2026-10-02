@@ -3,6 +3,7 @@ import {
   planGoalPath,
   planJarPath,
 } from "@/modules/tenancy/application/app-path";
+import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
 import {
   AllocationHealthStatus,
   CalendarEventSource,
@@ -79,6 +80,40 @@ export function exceptionHref(exception: PlanHomeException): string {
 
 export function isUpcomingDueEvent(source: string | undefined): boolean {
   return source != null && UPCOMING_DUE_SOURCES.has(source);
+}
+
+export function getPlanMonthProgress(
+  periodMonth: string,
+  locale: string,
+  now = new Date(),
+) {
+  const [year, month] = periodMonth.slice(0, 7).split("-").map(Number);
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    month < 1 ||
+    month > 12
+  ) {
+    return null;
+  }
+
+  const todayParts = new Intl.DateTimeFormat(locale, {
+    timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(now);
+  const getPart = (type: "year" | "month" | "day") =>
+    Number(todayParts.find((part) => part.type === type)?.value);
+  const [todayYear, todayMonth, day] = [
+    getPart("year"),
+    getPart("month"),
+    getPart("day"),
+  ];
+  if (todayYear !== year || todayMonth !== month) return null;
+
+  const days = new Date(year, month, 0).getDate();
+  return { day, days, percent: Math.round((day / days) * 100) };
 }
 
 export function allocationFactValue(

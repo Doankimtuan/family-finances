@@ -82,12 +82,15 @@ async function createSaving(
   await expect(
     surface(page).getByTestId("savings-create-wizard"),
   ).toBeVisible();
-  await surface(page).getByTestId(`savings-provider-${providerId}`).click();
-  await surface(page).getByTestId(`savings-package-${packageId}`).click();
+  if (historical) {
+    await surface(page).getByTestId("savings-create-mode-historical").click();
+  }
+  await surface(page).getByTestId("savings-type-platform").click();
   if (historical) {
     await page.getByLabel("Saving name").fill("Existing family saving");
   }
-  await surface(page).getByTestId("savings-wizard-next").click();
+  await surface(page).getByTestId(`savings-provider-${providerId}`).click();
+  await surface(page).getByTestId(`savings-package-${packageId}`).click();
   await page.locator("#savings-principal").fill(PRINCIPAL);
   if (historical) {
     const start = new Date();
@@ -105,7 +108,6 @@ async function createSaving(
     await dateGroup
       .getByRole("spinbutton", { name: "year, Start date" })
       .press("Tab");
-    await surface(page).getByTestId("savings-create-mode-historical").click();
     await expect(
       surface(page).locator('[data-testid^="savings-source-"]'),
     ).toHaveCount(0);

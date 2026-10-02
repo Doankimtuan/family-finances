@@ -90,7 +90,7 @@ describe("Phase 13 Together identity", () => {
     );
   });
 
-  it("renders a scan-first member row with identity, you, role, and hint", () => {
+  it("renders compact active member rows with identity, you, and role", () => {
     render(
       <TogetherMemberPreview
         members={[adminMember, selfPartner]}
@@ -100,6 +100,7 @@ describe("Phase 13 Together identity", () => {
         rolePartnerLabel="Partner"
         roleAdminHint="Can manage the household"
         rolePartnerHint="Member access"
+        activeLabel="Active"
       />,
     );
 
@@ -110,11 +111,16 @@ describe("Phase 13 Together identity", () => {
     expect(screen.getByText("(You)")).toBeInTheDocument();
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("Partner")).toBeInTheDocument();
-    expect(screen.getByText("Can manage the household")).toBeInTheDocument();
-    expect(screen.getByText("Member access")).toBeInTheDocument();
-    expect(screen.getByLabelText("Admin Member, Admin")).toBeInTheDocument();
+    expect(screen.getAllByText("Active")).toHaveLength(2);
     expect(
-      screen.getByLabelText("self@example.com, You, Partner"),
+      screen.queryByText("Can manage the household"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Member access")).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Admin Member, Admin, Active"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("self@example.com, You, Partner, Active"),
     ).toBeInTheDocument();
   });
 
@@ -257,14 +263,15 @@ describe("Phase 13 Together contracts", () => {
     expect(overview).toContain("TOGETHER_PATH.INVITATIONS");
     expect(overview).toContain("TOGETHER_PATH.INVITATIONS_NEW");
     expect(overview).toContain("TOGETHER_PATH.POLICIES");
-    expect(overview).toContain("TOGETHER_PATH.SETTINGS");
-    expect(overview).not.toContain("TOGETHER_PATH.PREFERENCES");
-    expect(overview).toContain('title={t("title")}');
+    expect(overview).toContain("TOGETHER_PATH.PREFERENCES");
+    expect(overview).not.toContain("TOGETHER_PATH.SETTINGS");
+    expect(overview).toContain('{t("header.headline")}');
     expect(overview).toContain('title={t("membersTitle")}');
     expect(overview).toContain('title={t("invitedTitle")}');
     expect(overview).toContain('title={t("collaborationTitle")}');
-    expect(overview).toContain('title={t("settingsSectionTitle")}');
-    expect(overview).toContain("together-settings-link");
+    expect(overview).not.toContain("settingsSectionTitle");
+    expect(overview).not.toContain("together-settings-link");
+    expect(overview).toContain("together-preferences-link");
     expect(overview).toContain("TogetherInvitationPreview");
     expect(overview).toContain("pendingCount > 0");
     expect(overview).not.toContain("Net Worth");

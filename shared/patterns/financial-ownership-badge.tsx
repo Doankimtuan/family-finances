@@ -20,6 +20,7 @@ type Props = {
   compact?: boolean;
   /** Render as quiet hero-surface text instead of a surface pill. */
   onHero?: boolean;
+  className?: string;
 };
 
 export function FinancialOwnershipBadge({
@@ -29,6 +30,7 @@ export function FinancialOwnershipBadge({
   showExplanation = false,
   compact = false,
   onHero = false,
+  className,
 }: Props) {
   const t = useTranslations("money.ownership");
   let label = t("household");
@@ -50,8 +52,9 @@ export function FinancialOwnershipBadge({
           onHero
             ? "w-fit text-hero-muted"
             : compact
-              ? "inline-flex w-fit items-center gap-(--space-1) font-medium"
-              : "inline-flex w-fit items-center gap-(--space-1-5) rounded-full bg-primary-soft px-(--space-2-5) py-1 font-medium text-primary ring-1 ring-primary/15",
+              ? "inline-flex w-fit items-center gap-(--space-1) px-(--space-2) font-medium"
+              : "inline-flex w-fit items-center gap-(--space-1-5) rounded-full bg-primary-soft px-(--space-3) py-1 font-medium text-primary ring-1 ring-primary/15",
+          className,
         )}
         data-testid="financial-ownership-badge"
         aria-label={label}

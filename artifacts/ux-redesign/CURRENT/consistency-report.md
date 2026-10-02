@@ -4,7 +4,7 @@
 
 | Constraint | Result |
 |---|---|
-| Five-tab navigation fixed. | Preserved Home, Money, Plan, Inbox, Together. |
+| Primary navigation aligned. | Home, Money, Plan, and Inbox are route tabs; one centered transaction action opens creation, and the Home household shortcut opens Together. |
 | Health/Settings secondary. | Preserved. |
 | Phase B IA canonical. | No route/module ownership changes introduced. |
 | Domain behavior frozen. | UX references domain contracts; no business behavior changed. |
@@ -29,7 +29,6 @@
 
 ## Remaining Required Improvements
 
-- Phase B IA treats Investments as future scalability; Phase C includes investment UX because current domain docs approve the domain package and the prompt requires the journeys. Later phases should reconcile route catalog detail without changing the five-tab shell.
+- Phase B IA treats Investments as future scalability; Phase C includes investment UX because current domain docs approve the domain package and the prompt requires the journeys. The shell uses four bottom route tabs, a centered transaction action, and the Home household shortcut to Together.
 - Exact bilingual microcopy should be created later in a translation-ready catalog.
 - Full per-screen state copy should be completed in Phase E screen blueprints.
-

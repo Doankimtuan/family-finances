@@ -1,6 +1,4 @@
 import { Suspense, type ReactNode } from "react";
-import { Link } from "@/i18n/navigation";
-import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import type { _Translator } from "use-intl";
 import type { AppMessages } from "../../../../global";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -17,9 +15,10 @@ import { InvestmentHomeValuationQuality } from "@/modules/investments/applicatio
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
-import { Card } from "@/shared/patterns/card";
 import { Section } from "@/shared/patterns/section";
+import { BaseRow } from "@/shared/patterns/base-row";
 import { Text } from "@/shared/ui/text";
+import { Heading } from "@/shared/ui/heading";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { AppIcon } from "@/shared/ui/app-icon";
 import {
@@ -27,8 +26,13 @@ import {
   IconContainerTone,
   type IconContainerTone as IconContainerToneValue,
 } from "@/shared/ui/icon-container";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import {
+  ACTION_ICONS,
+  HOME_PRODUCT_SUMMARY_ICONS,
+} from "@/shared/ui/icon-registry";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 
 type Props = {
   locale: string;
@@ -50,29 +54,26 @@ type StreamingProps = Omit<
   debt: Promise<HomeProductReadResult<HomeDebtSummary>>;
 };
 
-const PRODUCT_ROW_CLASS =
-  "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
-
 type ProductVisual = {
-  icon: (typeof FINANCE_ICONS)[keyof typeof FINANCE_ICONS];
+  icon: (typeof HOME_PRODUCT_SUMMARY_ICONS)[keyof typeof HOME_PRODUCT_SUMMARY_ICONS];
   tone: IconContainerToneValue;
 };
 
 const PRODUCT_ROW_VISUAL = {
   savings: {
-    icon: FINANCE_ICONS.savings,
+    icon: HOME_PRODUCT_SUMMARY_ICONS.savings,
     tone: IconContainerTone.SAVINGS,
   },
   investments: {
-    icon: FINANCE_ICONS.investment,
+    icon: HOME_PRODUCT_SUMMARY_ICONS.investments,
     tone: IconContainerTone.INVESTMENT,
   },
   loans: {
-    icon: FINANCE_ICONS.loan,
+    icon: HOME_PRODUCT_SUMMARY_ICONS.loans,
     tone: IconContainerTone.DEBT,
   },
   debt: {
-    icon: FINANCE_ICONS.debt,
+    icon: HOME_PRODUCT_SUMMARY_ICONS.debt,
     tone: IconContainerTone.DEBT,
   },
 } as const satisfies Record<string, ProductVisual>;
@@ -89,6 +90,7 @@ function ProductRow({
   attention,
   value,
   unavailable,
+  inactive = false,
   kind,
   testId,
 }: {
@@ -99,65 +101,78 @@ function ProductRow({
   attention: boolean;
   value?: ReactNode;
   unavailable: string;
+  inactive?: boolean;
   kind?: (typeof FinancialNumberKind)[keyof typeof FinancialNumberKind];
   testId?: string;
 }) {
   return (
-    <Link
+    <BaseRow
       href={href}
-      prefetch={PRODUCT_LINK_PREFETCH}
-      className={PRODUCT_ROW_CLASS}
       data-testid={testId}
-    >
-      <IconContainer tone={visual.tone} size="sm">
-        <AppIcon icon={visual.icon} size="sm" />
-      </IconContainer>
-      <div className="min-w-0 flex-1">
-        <Text size="sm" className="font-medium text-text-primary">
+      leading={
+        <IconContainer tone={visual.tone} size="md">
+          <AppIcon icon={visual.icon} size="sm" />
+        </IconContainer>
+      }
+      title={
+        <Text
+          size="sm"
+          className={
+            inactive
+              ? "font-medium text-text-muted"
+              : "font-medium text-text-primary"
+          }
+        >
           {label}
         </Text>
-        {attention ? (
+      }
+      subtitle={
+        inactive ? (
+          <Text size="xs" tone="muted" className="mt-0.5 block text-pretty">
+            {detail}
+          </Text>
+        ) : attention ? (
           <StatusBadge
             tone={StatusBadgeTone.WARNING}
-            className="mt-(--space-1) font-medium"
+            className="mt-0.5 font-medium"
           >
             {detail}
           </StatusBadge>
         ) : (
-          <Text
-            size="xs"
-            tone="muted"
-            className="mt-(--space-1) block text-pretty"
-          >
+          <Text size="xs" tone="muted" className="mt-0.5 block text-pretty">
             {detail}
           </Text>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center gap-(--space-2)">
-        {value != null ? (
-          <Text
-            size="sm"
-            weight={
-              kind === FinancialNumberKind.ESTIMATE ? "medium" : "semibold"
-            }
-            tabular
-            className="tracking-tight text-text-primary"
-            data-financial-kind={kind}
-          >
-            {value}
-          </Text>
-        ) : (
-          <Text size="sm" tabular tone="secondary">
-            {unavailable}
-          </Text>
-        )}
-        <AppIcon
-          icon={ACTION_ICONS.forward}
-          size="sm"
-          className="shrink-0 text-text-tertiary"
-        />
-      </div>
-    </Link>
+        )
+      }
+      trailing={
+        <div className="flex shrink-0 items-center gap-(--space-2)">
+          {value != null ? (
+            <Text
+              size="sm"
+              weight={
+                kind === FinancialNumberKind.ESTIMATE ? "medium" : "semibold"
+              }
+              tabular
+              className={
+                inactive
+                  ? "tracking-tight text-text-muted"
+                  : "tracking-tight text-text-primary"
+              }
+              data-financial-kind={kind}
+            >
+              {value}
+            </Text>
+          ) : (
+            <Text size="sm" tabular tone="secondary">
+              {unavailable}
+            </Text>
+          )}
+        </div>
+      }
+      contentClassName="py-(--space-3)"
+      className="rounded-(--radius-control) bg-surface-muted/55"
+      divider="none"
+    />
   );
 }
 
@@ -311,7 +326,13 @@ function LoanProductRowContent({
   return (
     <ProductRow
       href={APP_PATH.MONEY_LOANS}
-      visual={PRODUCT_ROW_VISUAL.loans}
+      visual={{
+        ...PRODUCT_ROW_VISUAL.loans,
+        tone:
+          result.summary.activeCount === 0
+            ? IconContainerTone.NEUTRAL
+            : PRODUCT_ROW_VISUAL.loans.tone,
+      }}
       testId={testId}
       label={t("productSummary.loans.label")}
       detail={
@@ -324,8 +345,13 @@ function LoanProductRowContent({
             })
       }
       attention={result.summary.attentionCount > 0}
+      inactive={result.summary.activeCount === 0}
       value={
-        <FinancialValue>
+        <FinancialValue
+          className={
+            result.summary.activeCount === 0 ? "text-text-muted" : undefined
+          }
+        >
           {money(result.summary.remainingPrincipal, currency, locale)}
         </FinancialValue>
       }
@@ -361,7 +387,13 @@ function DebtProductRowContent({
   return (
     <ProductRow
       href={APP_PATH.MONEY_DEBTS}
-      visual={PRODUCT_ROW_VISUAL.debt}
+      visual={{
+        ...PRODUCT_ROW_VISUAL.debt,
+        tone:
+          result.summary.activeCount === 0
+            ? IconContainerTone.NEUTRAL
+            : PRODUCT_ROW_VISUAL.debt.tone,
+      }}
       testId={testId}
       label={t("productSummary.debt.label")}
       detail={
@@ -374,8 +406,13 @@ function DebtProductRowContent({
             })
       }
       attention={result.summary.attentionCount > 0}
+      inactive={result.summary.activeCount === 0}
       value={
-        <FinancialValue>
+        <FinancialValue
+          className={
+            result.summary.activeCount === 0 ? "text-text-muted" : undefined
+          }
+        >
           {money(
             result.summary.borrowedRemaining + result.summary.lentRemaining,
             currency,
@@ -400,38 +437,55 @@ export function HomeProductSummaries({
 }: Props) {
   return (
     <Section
-      title={t("productSummary.title")}
-      description={t("productSummary.hint")}
+      title={
+        <Heading level={2} className="text-lg leading-snug">
+          {t("productSummary.title")}
+        </Heading>
+      }
+      description={
+        <Text size="xs" tone="muted" className="leading-relaxed">
+          {t("productSummary.hint")}
+        </Text>
+      }
+      action={
+        <Link
+          href={APP_PATH.MONEY}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className="inline-flex items-center gap-(--space-1)"
+        >
+          {t("productSummary.openMoney")}
+          <AppIcon icon={ACTION_ICONS.forward} size="xs" />
+        </Link>
+      }
       testId={HOME_TEST_ID.PRODUCT_SUMMARIES}
+      className="gap-(--space-4) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)"
     >
-      <Card tone="elevated" className="gap-0 p-0">
-        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
-          <SavingsProductRowContent
-            locale={locale}
-            currency={currency}
-            result={savings}
-            t={t}
-          />
-          <InvestmentProductRowContent
-            locale={locale}
-            currency={currency}
-            result={investments}
-            t={t}
-          />
-          <LoanProductRowContent
-            locale={locale}
-            currency={currency}
-            result={loans}
-            t={t}
-          />
-          <DebtProductRowContent
-            locale={locale}
-            currency={currency}
-            result={debt}
-            t={t}
-          />
-        </div>
-      </Card>
+      <div className="flex flex-col gap-(--space-2)">
+        <SavingsProductRowContent
+          locale={locale}
+          currency={currency}
+          result={savings}
+          t={t}
+        />
+        <InvestmentProductRowContent
+          locale={locale}
+          currency={currency}
+          result={investments}
+          t={t}
+        />
+        <LoanProductRowContent
+          locale={locale}
+          currency={currency}
+          result={loans}
+          t={t}
+        />
+        <DebtProductRowContent
+          locale={locale}
+          currency={currency}
+          result={debt}
+          t={t}
+        />
+      </div>
     </Section>
   );
 }
@@ -439,16 +493,15 @@ export function HomeProductSummaries({
 export function ProductRowSkeleton() {
   return (
     <div
-      className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
+      className="flex min-h-14 items-center gap-(--space-3) rounded-(--radius-control) bg-surface-muted/55 px-(--space-3) py-(--space-3)"
       aria-hidden
     >
-      <Skeleton className="size-8 shrink-0 rounded-(--radius-control)" />
+      <Skeleton className="size-10 shrink-0 rounded-(--radius-control)" />
       <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-3 w-40" />
       </div>
       <Skeleton className="h-4 w-16" />
-      <Skeleton className="size-4 shrink-0" />
     </div>
   );
 }
@@ -552,46 +605,63 @@ export function HomeProductSummariesStreaming({
 }: StreamingProps) {
   return (
     <Section
-      title={t("productSummary.title")}
-      description={t("productSummary.hint")}
+      title={
+        <Heading level={2} className="text-lg leading-snug">
+          {t("productSummary.title")}
+        </Heading>
+      }
+      description={
+        <Text size="xs" tone="muted" className="leading-relaxed">
+          {t("productSummary.hint")}
+        </Text>
+      }
+      action={
+        <Link
+          href={APP_PATH.MONEY}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className="inline-flex items-center gap-(--space-1)"
+        >
+          {t("productSummary.openMoney")}
+          <AppIcon icon={ACTION_ICONS.forward} size="xs" />
+        </Link>
+      }
       testId={HOME_TEST_ID.PRODUCT_SUMMARIES}
+      className="gap-(--space-4) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)"
     >
-      <Card tone="elevated" className="gap-0 p-0">
-        <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
-          <Suspense fallback={<ProductRowSkeleton />}>
-            <SavingsProductRow
-              result={savings}
-              locale={locale}
-              currency={currency}
-              t={t}
-            />
-          </Suspense>
-          <Suspense fallback={<ProductRowSkeleton />}>
-            <InvestmentProductRow
-              result={investments}
-              locale={locale}
-              currency={currency}
-              t={t}
-            />
-          </Suspense>
-          <Suspense fallback={<ProductRowSkeleton />}>
-            <LoanProductRow
-              result={loans}
-              locale={locale}
-              currency={currency}
-              t={t}
-            />
-          </Suspense>
-          <Suspense fallback={<ProductRowSkeleton />}>
-            <DebtProductRow
-              result={debt}
-              locale={locale}
-              currency={currency}
-              t={t}
-            />
-          </Suspense>
-        </div>
-      </Card>
+      <div className="flex flex-col gap-(--space-2)">
+        <Suspense fallback={<ProductRowSkeleton />}>
+          <SavingsProductRow
+            result={savings}
+            locale={locale}
+            currency={currency}
+            t={t}
+          />
+        </Suspense>
+        <Suspense fallback={<ProductRowSkeleton />}>
+          <InvestmentProductRow
+            result={investments}
+            locale={locale}
+            currency={currency}
+            t={t}
+          />
+        </Suspense>
+        <Suspense fallback={<ProductRowSkeleton />}>
+          <LoanProductRow
+            result={loans}
+            locale={locale}
+            currency={currency}
+            t={t}
+          />
+        </Suspense>
+        <Suspense fallback={<ProductRowSkeleton />}>
+          <DebtProductRow
+            result={debt}
+            locale={locale}
+            currency={currency}
+            t={t}
+          />
+        </Suspense>
+      </div>
     </Section>
   );
 }

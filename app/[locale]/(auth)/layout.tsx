@@ -8,7 +8,7 @@ import {
 import { ChromeShell } from "@/shared/patterns/chrome-shell";
 
 /**
- * Auth/System chrome — AppViewport only; no five-tab BottomNavigation.
+ * Auth/System chrome — AppViewport only; no product BottomNavigation.
  */
 export default async function AuthLayout({
   children,

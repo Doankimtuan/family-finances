@@ -11,30 +11,39 @@ import {
   HomeProductReadStatus,
   type HomeReadinessReadResult,
 } from "@/modules/home/application";
+import { HOME_RECENT_ACTIVITY_LIMIT } from "@/modules/home/application/home-constants";
 import { getOpenInboxAttention } from "@/modules/inbox/application";
 import {
   calculateMoneyAssetOverview,
   MoneyAssetOverviewStatus,
 } from "@/modules/ledger/application";
 import { getHouseholdPreferences } from "@/modules/tenancy/application/get-household-preferences";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { FloatingAction } from "@/shared/patterns/floating-action";
+import {
+  HeaderPill,
+  HeaderPillTone,
+  TopAppBar,
+  TopAppBarVariant,
+} from "@/shared/patterns/top-app-bar";
 import { Section } from "@/shared/patterns/section";
 import { Card } from "@/shared/patterns/card";
 import { MotionReveal } from "@/shared/motion";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { HomeCaptureAction } from "./home-capture-action";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { Heading } from "@/shared/ui/heading";
+import { NAVIGATION_ICONS, UTILITY_ICONS } from "@/shared/ui/icon-registry";
+import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
+import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { HomeDayZeroTrio } from "./home-day-zero-trio";
 import { HomeFinancialPulse } from "./home-financial-pulse";
 import { HomeInboxCta } from "./home-inbox-cta";
 import { HomePeriodControl } from "./home-period-control";
 import { HomePeriodStory } from "./home-period-story";
 import { HomePeriodTransition } from "./home-period-transition";
-import { HomePlanPulse } from "./home-plan-pulse";
 import { HomeProductSummariesStreaming } from "./home-product-summaries";
+import { HomeRecentActivity } from "./home-recent-activity";
 import { HomeStatusLane } from "./home-status-lane";
 import {
-  homeGreetingPeriod,
   HOME_DASHBOARD_DEFAULT_PERIOD,
   HOME_PERIOD_FOCUS_INTENT_KEY,
   HOME_PERIOD_FOCUS_QUERY,
@@ -63,23 +72,26 @@ function resolveDashboardPeriod(rawPeriod?: string): HomeDashboardPeriodValue {
 export function HomeTopBarFallback() {
   return (
     <TopAppBar
-      variant="contextual"
+      variant={TopAppBarVariant.PRIMARY}
       showBrandMark
-      eyebrow={<Skeleton className="h-4 w-28" aria-hidden />}
-      title={<Skeleton className="h-9 w-48" aria-hidden />}
-      subtitle={<Skeleton className="mt-(--space-1) h-4 w-60" aria-hidden />}
-      meta={<Skeleton className="h-4 w-40" aria-hidden />}
+      eyebrow={
+        <div className="flex min-w-0 flex-col gap-(--space-1)">
+          <Skeleton className="h-4 w-36" aria-hidden />
+          <Skeleton className="h-3 w-48" aria-hidden />
+        </div>
+      }
+      trailing={
+        <div className="flex items-center gap-(--space-1)">
+          <Skeleton className="size-11 rounded-full" aria-hidden />
+          <Skeleton className="size-11 rounded-full" aria-hidden />
+        </div>
+      }
     />
   );
 }
 
-export async function HomeTopBar({
-  readiness,
-}: {
-  readiness: Promise<HomeReadinessReadResult>;
-}) {
-  const [readinessResult, preferences, inbox, translation] = await Promise.all([
-    readiness,
+export async function HomeTopBar() {
+  const [preferences, inbox, translation] = await Promise.all([
     getHouseholdPreferences(),
     getOpenInboxAttention(),
     getTranslations(HOME_TRANSLATION_NAMESPACE),
@@ -87,23 +99,52 @@ export async function HomeTopBar({
   const t: HomeTranslator = translation;
   const householdEyebrow =
     preferences?.householdName || t("header.householdContext");
-  const hasAvailableMeta =
-    readinessResult.status === HomeDashboardReadStatus.READY && inbox != null;
 
   return (
     <TopAppBar
-      variant="contextual"
+      variant={TopAppBarVariant.PRIMARY}
       showBrandMark
-      eyebrow={householdEyebrow}
-      title={t(`header.greeting.${homeGreetingPeriod()}`)}
-      subtitle={t("header.dashboardSupporting")}
-      meta={
-        hasAvailableMeta
-          ? t("header.meta.available", {
-              accountCount: readinessResult.readiness.accountCount,
-              openInboxCount: inbox.openCount,
-            })
-          : t("header.meta.unavailable")
+      eyebrow={
+        <div className="flex min-w-0 flex-col items-start">
+          <div className="flex min-w-0 items-center gap-(--space-2)">
+            <span className="truncate text-sm font-semibold text-text-primary">
+              {householdEyebrow}
+            </span>
+            <HeaderPill
+              tone={HeaderPillTone.POSITIVE}
+              className="min-h-6 shrink-0 px-(--space-2) text-[11px]"
+            >
+              {t("header.sharedWallet")}
+            </HeaderPill>
+          </div>
+          <p className="mt-(--space-1) text-xs font-normal text-text-muted">
+            {t("header.dashboardSupporting")}
+          </p>
+        </div>
+      }
+      title={<h1 className="sr-only">{t("title")}</h1>}
+      trailing={
+        <div className="flex items-center gap-(--space-1)">
+          <Link
+            href={APP_PATH.INBOX}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            aria-label={t("inbox.title")}
+            className="relative flex size-11 items-center justify-center rounded-full border border-border-subtle bg-surface text-text-secondary shadow-xs transition-[background-color,border-color,color] duration-(--duration-fast) hover:border-border-default hover:text-text-primary active:scale-(--press-scale)"
+          >
+            <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
+            {inbox && inbox.openCount > 0 ? (
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-warning ring-2 ring-surface" />
+            ) : null}
+          </Link>
+          <Link
+            href={APP_PATH.TOGETHER}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            aria-label={t("header.householdMembers")}
+            className="flex size-11 items-center justify-center rounded-full border border-primary/30 bg-primary-soft text-primary shadow-xs"
+          >
+            <AppIcon icon={NAVIGATION_ICONS.together} size="sm" />
+          </Link>
+        </div>
       }
     />
   );
@@ -112,33 +153,36 @@ export async function HomeTopBar({
 function HomeContentSkeleton() {
   return (
     <div className="flex flex-col gap-(--space-5)" aria-hidden>
-      <Card tone="hero" className="gap-0 p-(--space-4)">
+      <Card tone="elevated" className="gap-0 p-(--space-4)">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-(--space-2) h-9 w-52" />
         <Skeleton className="mt-(--space-4) h-8 w-full rounded-full" />
       </Card>
       <SectionSkeleton />
       <SectionSkeleton />
-      <SectionSkeleton />
       <SectionSkeleton rows={4} />
+      <SectionSkeleton rows={HOME_RECENT_ACTIVITY_LIMIT} />
     </div>
   );
 }
 
 function SectionSkeleton({ rows = 1 }: { rows?: number }) {
   return (
-    <section className="flex flex-col gap-(--space-3)">
-      <div className="flex flex-col gap-(--space-2)">
-        <Skeleton className="h-5 w-32" />
-        <Skeleton className="h-4 w-56" />
+    <section className="flex flex-col gap-(--space-4) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)">
+      <div>
+        <div className="flex min-h-11 items-center justify-between gap-(--space-3)">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <Skeleton className="mt-(--space-1) h-4 w-56" />
       </div>
-      <Card tone="elevated" className="gap-0 p-0">
+      <div className="flex flex-col gap-(--space-2)">
         {Array.from({ length: rows }, (_, index) => (
           <div
             key={index}
-            className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2)"
+            className="flex min-h-14 items-center gap-(--space-3) rounded-(--radius-control) bg-surface-muted/55 px-(--space-3) py-(--space-3)"
           >
-            <Skeleton className="size-8 shrink-0 rounded-(--radius-control)" />
+            <Skeleton className="size-10 shrink-0 rounded-(--radius-control)" />
             <div className="flex min-w-0 flex-1 flex-col gap-(--space-2)">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-3 w-40" />
@@ -146,7 +190,7 @@ function SectionSkeleton({ rows = 1 }: { rows?: number }) {
             <Skeleton className="h-4 w-16" />
           </div>
         ))}
-      </Card>
+      </div>
     </section>
   );
 }
@@ -190,11 +234,18 @@ async function HomeFinancialPulseSection({
     assetOverview.status === MoneyAssetOverviewStatus.UNAVAILABLE
       ? null
       : assetOverview.total;
-  const balanceNote =
+  const balanceNote = [
+    t("financialPulse.hint"),
     assetOverview.status === MoneyAssetOverviewStatus.PARTIAL
       ? t("financialPulse.partial", assetOverview.investmentCoverage)
-      : undefined;
-
+      : null,
+    investmentsResult.status === HomeProductReadStatus.READY &&
+    investmentsResult.summary.valuationStale
+      ? t("financialPulse.stale")
+      : null,
+  ]
+    .filter((note) => note != null)
+    .join(" ");
   return (
     <MotionReveal>
       <HomeFinancialPulse
@@ -204,29 +255,6 @@ async function HomeFinancialPulseSection({
         locale={locale}
       />
     </MotionReveal>
-  );
-}
-
-function HomePlanSection({
-  readiness,
-  t,
-}: {
-  readiness: Extract<
-    HomeReadinessReadResult,
-    { status: typeof HomeDashboardReadStatus.READY }
-  >["readiness"];
-  t: HomeTranslator;
-}) {
-  return (
-    <HomePlanPulse
-      title={t("planPulse.title")}
-      hint={t("planPulse.hint")}
-      jarsCount={t("planPulse.jarsCount", {
-        count: readiness.activeJarCount,
-      })}
-      allocateLabel={t(`planPulse.allocate.${readiness.incomeAllocateMode}`)}
-      openLabel={t("planPulse.openPlan")}
-    />
   );
 }
 
@@ -240,7 +268,11 @@ async function HomeInboxSection({
   const result = await inbox;
   return (
     <Section
-      title={t("inbox.title")}
+      title={
+        <Heading level={2} className="sr-only">
+          {t("inbox.title")}
+        </Heading>
+      }
       contentClassName="gap-(--space-3)"
       testId={HOME_TEST_ID.INBOX_BLOCK}
     >
@@ -260,18 +292,16 @@ async function HomeInboxSection({
 
 async function HomePeriodSection({
   periodData,
-  inbox,
   locale,
   focusIntent,
   currency,
 }: {
   periodData: ReturnType<typeof getHomePeriodData>;
-  inbox: ReturnType<typeof getOpenInboxAttention>;
   locale: string;
   focusIntent?: string;
   currency: string;
 }) {
-  const [periodResult, inboxResult] = await Promise.all([periodData, inbox]);
+  const periodResult = await periodData;
   if (periodResult.status === HomeDashboardReadStatus.ERROR) {
     return <HomeStatusLane kind={HomeStatusLaneKind.ERROR} />;
   }
@@ -285,7 +315,6 @@ async function HomePeriodSection({
       currency={currency}
       locale={locale}
       period={periodResult.data.period}
-      canReviewUncategorized={inboxResult?.canReviewUncategorized ?? false}
       periodControl={
         <HomePeriodControl
           restoreFocus={focusIntent === HOME_PERIOD_FOCUS_INTENT_KEY}
@@ -340,7 +369,7 @@ export async function HomeContent({
       <HomePeriodTransition period={period}>
         <Suspense
           fallback={
-            <Card tone="hero" className="h-40" aria-hidden>
+            <Card tone="elevated" className="h-40" aria-hidden>
               <Skeleton className="h-full w-full" />
             </Card>
           }
@@ -359,13 +388,8 @@ export async function HomeContent({
         </Suspense>
 
         <Suspense fallback={<SectionSkeleton />}>
-          <HomePlanSection readiness={readinessResult.readiness} t={t} />
-        </Suspense>
-
-        <Suspense fallback={<SectionSkeleton />}>
           <HomePeriodSection
             periodData={periodData}
-            inbox={inbox}
             locale={locale}
             focusIntent={query[HOME_PERIOD_FOCUS_QUERY]}
             currency={readinessResult.readiness.currency}
@@ -383,12 +407,13 @@ export async function HomeContent({
             t={t}
           />
         </Suspense>
+
+        <Suspense
+          fallback={<SectionSkeleton rows={HOME_RECENT_ACTIVITY_LIMIT} />}
+        >
+          <HomeRecentActivity locale={locale} />
+        </Suspense>
       </HomePeriodTransition>
-      <FloatingAction>
-        <HomeCaptureAction
-          accountCount={readinessResult.readiness.accountCount}
-        />
-      </FloatingAction>
     </>
   );
 }

@@ -31,7 +31,7 @@ test.describe("Investment Market Valuation UI 02", () => {
       await page.goto(`/${viewport.locale}${APP_PATH.MONEY_INVESTMENTS}`);
 
       await expect(
-        page.getByTestId("investment-overview-client"),
+        page.getByTestId("investment-stitch-overview"),
       ).toBeVisible();
       await expect(
         page.getByTestId("investment-valuation-meta").first(),
@@ -44,7 +44,10 @@ test.describe("Investment Market Valuation UI 02", () => {
         ),
       ).toBe(true);
 
-      await page.locator("[data-testid^=investment-position-]").first().click();
+      await page
+        .locator("[data-testid^=investment-overview-position-]")
+        .first()
+        .click();
       await expect(page.getByTestId("investment-detail")).toBeVisible();
       await expect(
         page.getByTestId("investment-valuation-meta").first(),

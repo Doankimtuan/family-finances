@@ -1,99 +1,110 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect, Link } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
+import { APP_LOCALE, routing } from "@/i18n/routing";
 import {
   APP_PATH,
+  PLAN_MONTH_QUERY,
   planJarPath,
-  planGoalPath,
-  planRecurringPath,
 } from "@/modules/tenancy/application/app-path";
+import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
   getPlanPulse,
   getCurrentJarBudgets,
+  getPlanBudgetHistory,
+  listPlanBudgetHistoryMonths,
   listPlanHubUpcomingEvents,
-  listGoals,
   currentPeriodMonth,
   PlanAssistMode,
   RitualMode,
-  calculateAllocationHealth,
-  AllocationHealthStatus,
   JarBudgetState,
   JarKind,
+  CalendarCashFlowSign,
+  CalendarEventSource,
   DEFAULT_CURRENCY,
-  QualifyingIncomeSource,
   PLAN_HUB_UPCOMING_DAYS,
   PLAN_HUB_UPCOMING_EVENT_LIMIT,
+  summarizeJarBudgets,
+  JAR_BUDGET_PERCENT_SCALE,
+  PLAN_PERIOD_MONTH_PATTERN,
+  type CalendarEvent,
   type JarBudgetMetrics,
+  type PlanBudgetHistory,
 } from "@/modules/plan/application";
-import {
-  collectPlanHomeExceptions,
-  prioritizePlanHomeExceptions,
-  resolvePlanHomeHealth,
-  PlanHomeExceptionKind,
-  type PlanHomeException,
-} from "@/modules/plan/application/plan-home-health";
 import { listOpenInboxItems } from "@/modules/inbox/application";
-import { InboxItemKind } from "@/modules/inbox/application/inbox-constants";
-import { GoalStatus } from "@/modules/plan/application/plan-constants";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
-import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
+import {
+  formatCurrency,
+  formatDate,
+  formatNumber,
+} from "@/shared/i18n/formatters";
+import {
+  differenceInUtcCalendarDays,
+  todayIsoDate,
+} from "@/shared/utils/iso-date";
 import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { Card } from "@/shared/patterns/card";
 import { MotionReveal } from "@/shared/motion/reveal";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Section } from "@/shared/patterns/section";
 import { EmptyState } from "@/shared/patterns/empty-state";
+import { JarCard } from "@/shared/patterns/jar-card";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { InlineAlert } from "@/shared/ui/inline-alert";
+import { InlineAlertVariant } from "@/shared/ui/inline-alert-constants";
 import { Text } from "@/shared/ui/text";
+import { Progress } from "@/shared/ui/progress";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
-import { IconContainerTone } from "@/shared/ui/icon-container";
-import { PLAN_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import {
+  ACTION_ICONS,
+  FINANCE_ICONS,
+  PLAN_ICONS,
+} from "@/shared/ui/icon-registry";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { EmergencyInboxBanner } from "./emergency-inbox-banner";
 import { PlanOfflineBanner } from "./plan-offline-banner";
-import { RecommendationList } from "./recommendation-list";
-import {
-  PLAN_ACCENT_LINK_CLASS,
-  PLAN_INLINE_LINK_CLASS,
-  PLAN_SURFACE_LINK_CLASS,
-} from "./plan-chrome";
+import { PLAN_ACCENT_LINK_CLASS, PLAN_INLINE_LINK_CLASS } from "./plan-chrome";
 import { PlanSectionTitle } from "./plan-section-title";
-import {
-  PlanHubHero,
-  PlanHubHeroStatus,
-  PlanHubHeroStatusLoading,
-} from "./plan-hub-hero";
-import { PlanHubExceptions } from "./plan-hub-exceptions";
+import { PlanHubHero } from "./plan-hub-hero";
+import { PlanJarFilterList } from "./plan-jar-filter-list";
 import {
   PlanDestinationCard,
   PlanDestinationRow,
+  PlanDestinationTile,
 } from "./plan-destination-row";
-import { PlanHubWorkObject, PlanHubWorkRow } from "./plan-hub-work-row";
 import {
-  allocationFactValue,
+  getPlanMonthProgress,
   isUpcomingDueEvent,
-  PLAN_HUB_VISIBLE_GOAL_LIMIT,
   PLAN_HUB_VISIBLE_JAR_LIMIT,
-  PLAN_HUB_RECOMMENDATION_LIMIT,
-  RecommendationListVariant,
-  resolvePlanHealthCopy,
 } from "./plan-hub-presentations";
 import {
-  getPlanRecommendations,
-  type PlanRecommendation,
-} from "@/modules/plan/application/plan-recommendations";
-import { PlanContextSkeleton, PlanWorkRowSkeleton } from "./loading";
+  jarBudgetProgressPercent,
+  jarStateLabelKey,
+  JAR_KIND_ICON_TONE,
+} from "./jars/jar-presentations";
+import {
+  PlanContextSkeleton,
+  PlanShortcutTilesFallback,
+  PlanWorkRowSkeleton,
+} from "./loading";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { cn } from "@/shared/utils/cn";
+import { PlanPeriodSelect } from "./plan-period-select";
 
-type Props = { params: Promise<{ locale: string }> };
+type Props = {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ [PLAN_MONTH_QUERY]?: string | string[] }>;
+};
 type LooseTranslator = {
   (key: string, values?: Record<string, string | number>): string;
   rich: (
@@ -105,52 +116,55 @@ type LooseTranslator = {
   ) => ReactNode;
 };
 
-type HomeGoal = {
-  id: string;
-  name: string;
-  status: string;
-  targetDate: string | null;
-  targetAmount: number;
-  fundedAmount: number;
-  progressPercent: number | null;
-  isLegacyIntention?: boolean;
+type PlanPulseValue = NonNullable<Awaited<ReturnType<typeof getPlanPulse>>>;
+type PlanInboxResult = Awaited<ReturnType<typeof listOpenInboxItems>>;
+type PlanHistoryJar = PlanBudgetHistory["jars"][number];
+type PlanHubData = {
+  tCatalog: LooseTranslator;
+  tJars: LooseTranslator;
+  inboxItems: PlanInboxResult;
+  activeJars: PlanPulseValue["activeJars"];
+  assistMode: PlanAssistMode;
+  currency: string;
+  currentPeriodMonth: string;
+  periodMonth: string;
+  periodIncome: number;
+  budgetsByJar: Record<string, JarBudgetMetrics>;
+  budgetSummary: ReturnType<typeof summarizeJarBudgets>;
+  historyMonths: string[];
+  historyJars: PlanHistoryJar[];
+  isHistorical: boolean;
+  historyAvailable: boolean;
+  historyMissingJarSnapshotCount: number;
 };
 
-type HomeEvent = {
-  id?: string;
-  date: string;
-  title: string;
-  amount: number;
-  source?: string;
+type PlanHubQueryPromises = {
+  tCatalogPromise: ReturnType<typeof getTranslations>;
+  tJarsPromise: ReturnType<typeof getTranslations>;
+  pulsePromise: ReturnType<typeof getPlanPulse>;
+  currentJarBudgetsPromise: ReturnType<typeof getCurrentJarBudgets>;
+  historyMonthsPromise: ReturnType<typeof listPlanBudgetHistoryMonths>;
+  inboxItemsPromise: ReturnType<typeof listOpenInboxItems>;
+  historyPromise: Promise<PlanBudgetHistory | null>;
 };
 
-function pickHomeGoals(
-  goals: readonly HomeGoal[],
-  limit = PLAN_HUB_VISIBLE_GOAL_LIMIT,
-): HomeGoal[] {
-  return [...goals]
-    .filter(
-      (goal) =>
-        goal.status === GoalStatus.ACTIVE || goal.status === GoalStatus.READY,
-    )
-    .sort((a, b) => {
-      const aDate = a.targetDate ?? "9999-12-31";
-      const bDate = b.targetDate ?? "9999-12-31";
-      if (aDate !== bDate) return aDate.localeCompare(bDate);
-      return (
-        (a.progressPercent ?? Number.POSITIVE_INFINITY) -
-        (b.progressPercent ?? Number.POSITIVE_INFINITY)
-      );
-    })
-    .slice(0, limit);
-}
+const PLAN_EVENT_ICON_BY_SOURCE: Record<
+  CalendarEvent["source"],
+  IconSvgElement
+> = {
+  [CalendarEventSource.RECURRING]: PLAN_ICONS.recurring,
+  [CalendarEventSource.CARD_DUE]: FINANCE_ICONS.card,
+  [CalendarEventSource.LOAN]: FINANCE_ICONS.loan,
+  [CalendarEventSource.LIABILITY]: FINANCE_ICONS.debt,
+  [CalendarEventSource.PAYOFF_MILESTONE]: FINANCE_ICONS.ledger,
+};
 
 function upcomingWithinDays(
-  events: readonly HomeEvent[],
+  events: readonly CalendarEvent[],
   now = new Date(),
   days = PLAN_HUB_UPCOMING_DAYS,
   limit = PLAN_HUB_UPCOMING_EVENT_LIMIT,
-): HomeEvent[] {
+): CalendarEvent[] {
   const start = now.toISOString().slice(0, 10);
   const endDate = new Date(now);
   endDate.setUTCDate(endDate.getUTCDate() + days);
@@ -161,388 +175,290 @@ function upcomingWithinDays(
     .slice(0, limit);
 }
 
-function formatPlanPeriod(periodMonth: string, locale: string): string {
-  return formatDate(new Date(`${periodMonth}T00:00:00Z`), locale, {
-    month: "long",
-    year: "numeric",
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-}
-
-function formatGoalDate(date: string | null, locale: string): string | null {
-  if (!date) return null;
-  return formatDate(new Date(`${date}T00:00:00Z`), locale, {
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
-}
-
-function exceptionTitle(
-  exception: PlanHomeException,
-  t: (key: string, values?: Record<string, string | number>) => string,
-  tCatalog: (key: string, values?: Record<string, string | number>) => string,
-) {
-  const name = exception.jarName
-    ? localizeCatalogName(tCatalog, "jars", exception.jarName)
-    : undefined;
-  switch (exception.kind) {
-    case PlanHomeExceptionKind.OVERSPENT_JAR:
-      return t("home.exceptionOverspent", {
-        name: name ?? t("recommendations.unknownJar"),
-      });
-    case PlanHomeExceptionKind.UNCATEGORIZED:
-      return t("home.exceptionUncategorized", {
-        count: exception.count ?? 0,
-      });
-    case PlanHomeExceptionKind.NO_INCOME:
-      return t("home.exceptionNoIncome");
-    case PlanHomeExceptionKind.OVER_ALLOCATED:
-      return t("home.exceptionOverAllocated", {
-        percent: exception.percent ?? 0,
-      });
-    case PlanHomeExceptionKind.GOAL_BACKING:
-      return t("home.exceptionGoalBacking", {
-        name: exception.goalName ?? t("home.goalFallbackName"),
-      });
-    case PlanHomeExceptionKind.NEAR_LIMIT_JAR:
-      return t("home.exceptionNearLimit", {
-        name: name ?? t("recommendations.unknownJar"),
-      });
-  }
-}
-
-function exceptionDescription(
-  exception: PlanHomeException,
-  t: LooseTranslator,
-  currency: string,
+function formatPlanPeriod(
+  periodMonth: string,
   locale: string,
-) {
-  if (exception.kind === PlanHomeExceptionKind.OVERSPENT_JAR) {
-    if (exception.amount == null) return undefined;
-    return t.rich("home.exceptionOverspentBody", {
-      amount: formatCurrency(exception.amount, currency, locale, {
-        maximumFractionDigits: 0,
-      }),
-      money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
-    });
-  }
-  if (exception.kind === PlanHomeExceptionKind.NEAR_LIMIT_JAR) {
-    if (exception.amount == null) return undefined;
-    return t.rich("home.exceptionNearLimitBody", {
-      amount: formatCurrency(exception.amount, currency, locale, {
-        maximumFractionDigits: 0,
-      }),
-      money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
-    });
-  }
-  return undefined;
-}
-
-function exceptionAction(
-  exception: PlanHomeException,
-  t: (key: string) => string,
-) {
-  if (
-    exception.kind === PlanHomeExceptionKind.OVERSPENT_JAR ||
-    exception.kind === PlanHomeExceptionKind.NEAR_LIMIT_JAR
-  ) {
-    return t("home.exceptionOpenJar");
-  }
-  if (exception.kind === PlanHomeExceptionKind.UNCATEGORIZED) {
-    return t("home.exceptionOpenInbox");
-  }
-  if (exception.kind === PlanHomeExceptionKind.GOAL_BACKING) {
-    return t("home.exceptionOpenGoal");
-  }
-  return t("home.exceptionOpenPlan");
-}
-
-function jarRemainingLabel(
-  metrics: JarBudgetMetrics | undefined,
-  isNoIncome: boolean,
-  isOverspent: boolean,
   t: LooseTranslator,
-  currency: string,
-  locale: string,
-): ReactNode {
-  if (!metrics) return t("jars.budget.notAvailable");
-  if (isNoIncome) return t("jars.budget.setIncome");
-  if (isOverspent) {
-    return t.rich("jars.budget.overBy", {
-      amount: formatCurrency(
-        Math.abs(metrics.remainingAmount),
-        currency,
-        locale,
-        {
-          maximumFractionDigits: 0,
-        },
-      ),
-      money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
-    });
-  }
-  return t.rich("jars.budget.remaining", {
-    amount: formatCurrency(metrics.remainingAmount, currency, locale, {
-      maximumFractionDigits: 0,
+): string {
+  const date = new Date(`${periodMonth}T00:00:00Z`);
+  return t("home.periodSelector", {
+    month: formatDate(date, locale, {
+      month: locale === APP_LOCALE.VIETNAMESE ? "numeric" : "long",
+      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
     }),
-    money: (chunks: ReactNode) => <FinancialValue>{chunks}</FinancialValue>,
+    year: formatDate(date, locale, {
+      year: "numeric",
+      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    }),
   });
 }
 
-function intentionAmount(label: string) {
-  return (
-    <FinancialValue>
-      <span data-financial-kind={FinancialNumberKind.INTENTION}>{label}</span>
-    </FinancialValue>
-  );
-}
-
-type PlanTranslationPromise = ReturnType<typeof getTranslations>;
-type PlanPulseResult = Awaited<ReturnType<typeof getPlanPulse>>;
-type PlanPulseValue = NonNullable<PlanPulseResult>;
-type PlanInboxResult = Awaited<ReturnType<typeof listOpenInboxItems>>;
-type PlanGoalsResult = Awaited<ReturnType<typeof listGoals>>;
-
-type PlanHubDecisionData = {
-  tCatalog: LooseTranslator;
-  inboxItems: PlanInboxResult;
-  activeJars: PlanPulseValue["activeJars"];
-  assistMode: PlanAssistMode;
-  currency: string;
-  periodMonth: string;
-  uncategorizedCount: number;
-  budgetsByJar: Record<string, JarBudgetMetrics>;
-  visibleBudgets: JarBudgetMetrics[];
-  health: ReturnType<typeof resolvePlanHomeHealth>;
-  allocationHealth: ReturnType<typeof calculateAllocationHealth>;
-  rawGoals: NonNullable<PlanGoalsResult>["goals"];
-  homeGoals: HomeGoal[];
-  allExceptions: PlanHomeException[];
-  exceptions: PlanHomeException[];
-  recommendations: PlanRecommendation[];
-  primaryRecommendation: PlanRecommendation | undefined;
-  supportingRecommendations: PlanRecommendation[];
-  jarNames: Record<string, string>;
-  goalNames: Record<string, string>;
-  periodIncome: number;
-};
-
-type PlanHubQueryPromises = {
-  tCatalogPromise: PlanTranslationPromise;
-  pulsePromise: ReturnType<typeof getPlanPulse>;
-  currentJarBudgetsPromise: ReturnType<typeof getCurrentJarBudgets>;
-  inboxItemsPromise: ReturnType<typeof listOpenInboxItems>;
-  goalsPromise: ReturnType<typeof listGoals>;
-  upcomingPromise: ReturnType<typeof listPlanHubUpcomingEvents>;
-};
-
-async function resolvePlanHubDecisionData({
+async function resolvePlanHubData({
   tCatalogPromise,
+  tJarsPromise,
   pulsePromise,
   currentJarBudgetsPromise,
+  historyMonthsPromise,
   inboxItemsPromise,
-  goalsPromise,
-}: Omit<
-  PlanHubQueryPromises,
-  "upcomingPromise"
->): Promise<PlanHubDecisionData> {
-  const [tCatalogValue, pulse, currentJarBudgets, inboxItems, goalsList] =
-    await Promise.all([
-      tCatalogPromise,
-      pulsePromise,
-      currentJarBudgetsPromise,
-      inboxItemsPromise,
-      goalsPromise,
-    ]);
-  const tCatalog = tCatalogValue as unknown as LooseTranslator;
+  historyPromise,
+  requestedMonth,
+}: PlanHubQueryPromises & {
+  requestedMonth?: string;
+}): Promise<PlanHubData> {
+  const [
+    tCatalogValue,
+    tJarsValue,
+    pulse,
+    currentJarBudgets,
+    historyMonthsValue,
+    inboxItems,
+    history,
+  ] = await Promise.all([
+    tCatalogPromise,
+    tJarsPromise,
+    pulsePromise,
+    currentJarBudgetsPromise,
+    historyMonthsPromise,
+    inboxItemsPromise,
+    historyPromise,
+  ]);
   const activeJars = (pulse?.activeJars ?? []).filter(
     (jar) => jar.kind !== JarKind.INCOME,
   );
-  const assistMode =
-    pulse?.monthCloseMode === RitualMode.MANUAL
-      ? PlanAssistMode.MANUAL
-      : PlanAssistMode.ASSISTED;
-  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
-  const periodMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
-  const uncategorizedCount = (inboxItems ?? []).filter(
-    (item) => item.kind === InboxItemKind.UNMAPPED_EXPENSE,
-  ).length;
-  const budgetsByJar = currentJarBudgets?.byJarId ?? {};
-  const visibleBudgets = activeJars
-    .map((jar) => budgetsByJar[jar.id])
-    .filter((budget): budget is NonNullable<typeof budget> => Boolean(budget));
-  const allocationHealth = calculateAllocationHealth(
-    activeJars,
-    currentJarBudgets?.periodIncome ?? 0,
-  );
-  const health = resolvePlanHomeHealth({
-    activeJarCount: activeJars.length,
-    budgets: visibleBudgets,
-    uncategorizedCount,
-    allocationStatus: allocationHealth.status,
-  });
-  const rawGoals = goalsList?.goals ?? [];
-  const homeGoals = pickHomeGoals(rawGoals);
-  const goalsMissingBacking = rawGoals.filter(
-    (goal) =>
-      (goal.status === GoalStatus.ACTIVE || goal.status === GoalStatus.READY) &&
-      Boolean(goal.isLegacyIntention),
-  );
-  const allExceptions: PlanHomeException[] = [
-    ...collectPlanHomeExceptions({
-      budgetsByJar,
-      jars: activeJars,
-      uncategorizedCount,
-    }),
-  ];
-  if (allocationHealth.status === AllocationHealthStatus.NO_INCOME) {
-    allExceptions.push({ kind: PlanHomeExceptionKind.NO_INCOME });
-  } else if (
-    allocationHealth.status === AllocationHealthStatus.OVER_ALLOCATED
-  ) {
-    allExceptions.push({
-      kind: PlanHomeExceptionKind.OVER_ALLOCATED,
-      percent: allocationHealth.utilizationPercent,
-    });
-  }
-  for (const goal of goalsMissingBacking) {
-    allExceptions.push({
-      kind: PlanHomeExceptionKind.GOAL_BACKING,
-      goalId: goal.id,
-      goalName: goal.name,
-    });
-  }
-  const exceptions = prioritizePlanHomeExceptions(allExceptions);
-  const recommendations = getPlanRecommendations({
-    assistMode,
-    periodMonth,
-    jars: activeJars,
-    budgetsByJar,
-    qualifyingIncome: currentJarBudgets?.periodIncome ?? 0,
-    uncategorizedCount,
-    goals: rawGoals,
-    limit: PLAN_HUB_RECOMMENDATION_LIMIT,
-  });
+  const historyMonths = historyMonthsValue ?? [];
+  const currentMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
+  const historyMonth =
+    requestedMonth &&
+    PLAN_PERIOD_MONTH_PATTERN.test(requestedMonth) &&
+    requestedMonth < currentMonth
+      ? requestedMonth
+      : null;
+  const isHistorical = historyMonth !== null;
+  const selectedHistory = isHistorical ? history : null;
+  const historyJars = selectedHistory?.jars ?? [];
+  const budgetsByJar = isHistorical
+    ? Object.fromEntries(historyJars.map((jar) => [jar.id, jar.metrics]))
+    : (currentJarBudgets?.byJarId ?? {});
+  const historyAvailable = !isHistorical || selectedHistory !== null;
+  const periodMonth = historyMonth ?? currentMonth;
+  const budgetSummary = isHistorical
+    ? selectedHistory
+      ? summarizeJarBudgets(
+          historyJars.map((jar) => jar.id),
+          budgetsByJar,
+        )
+      : null
+    : currentJarBudgets
+      ? summarizeJarBudgets(
+          activeJars.map((jar) => jar.id),
+          budgetsByJar,
+        )
+      : null;
 
   return {
-    tCatalog,
+    tCatalog: tCatalogValue as unknown as LooseTranslator,
+    tJars: tJarsValue as unknown as LooseTranslator,
     inboxItems,
     activeJars,
-    assistMode,
-    currency,
+    assistMode:
+      pulse?.monthCloseMode === RitualMode.MANUAL
+        ? PlanAssistMode.MANUAL
+        : PlanAssistMode.ASSISTED,
+    currency: selectedHistory?.currency ?? pulse?.currency ?? DEFAULT_CURRENCY,
+    currentPeriodMonth: currentMonth,
     periodMonth,
-    uncategorizedCount,
+    periodIncome: isHistorical
+      ? (selectedHistory?.periodIncome ?? 0)
+      : (currentJarBudgets?.periodIncome ?? 0),
     budgetsByJar,
-    visibleBudgets,
-    health,
-    allocationHealth,
-    rawGoals,
-    homeGoals,
-    allExceptions,
-    exceptions,
-    recommendations,
-    primaryRecommendation: recommendations[0],
-    supportingRecommendations: recommendations.slice(1),
-    jarNames: Object.fromEntries(
-      activeJars.map((jar) => [
-        jar.id,
-        localizeCatalogName(tCatalog, "jars", jar.name),
-      ]),
-    ),
-    goalNames: Object.fromEntries(rawGoals.map((goal) => [goal.id, goal.name])),
-    periodIncome: currentJarBudgets?.periodIncome ?? 0,
+    budgetSummary,
+    historyMonths,
+    historyJars,
+    isHistorical,
+    historyAvailable,
+    historyMissingJarSnapshotCount:
+      selectedHistory?.missingJarSnapshotCount ?? 0,
   };
 }
 
-async function PlanHeroStatusSection({
-  dataPromise,
-  t,
-}: {
-  dataPromise: Promise<PlanHubDecisionData>;
-  t: LooseTranslator;
-}) {
-  const data = await dataPromise;
-  const firstExceptionTitle = data.exceptions[0]
-    ? exceptionTitle(data.exceptions[0], t, data.tCatalog)
-    : t("home.attentionFallback");
-  const overspentCount = data.visibleBudgets.filter(
-    (budget) => budget.state === JarBudgetState.OVERSPENT,
-  ).length;
-  const { title: healthTitle, body: healthBody } = resolvePlanHealthCopy(
-    data.health,
-    t,
-    firstExceptionTitle,
-    overspentCount,
-  );
-  const contextMeta = [
-    t("home.factJarsValue", { count: data.activeJars.length }),
-    allocationFactValue(data.allocationHealth, t),
-  ].join(" · ");
-
+function intentionAmount(value: string) {
   return (
-    <PlanHubHeroStatus
-      health={data.health}
-      healthTitle={healthTitle}
-      healthBody={healthBody}
-      contextMeta={contextMeta}
-    />
+    <FinancialValue>
+      <span data-financial-kind={FinancialNumberKind.INTENTION}>{value}</span>
+    </FinancialValue>
   );
 }
 
 async function PlanCriticalSection({
   locale,
   t,
-  pulsePromise,
-  currentJarBudgetsPromise,
-  decisionDataPromise,
-}: Pick<PlanHubQueryPromises, "pulsePromise" | "currentJarBudgetsPromise"> & {
+  dataPromise,
+}: {
   locale: string;
   t: LooseTranslator;
-  decisionDataPromise: Promise<PlanHubDecisionData>;
+  dataPromise: Promise<PlanHubData>;
 }) {
-  const [pulse, currentJarBudgets] = await Promise.all([
-    pulsePromise,
-    currentJarBudgetsPromise,
-  ]);
-  const assistMode =
-    pulse?.monthCloseMode === RitualMode.MANUAL
-      ? PlanAssistMode.MANUAL
-      : PlanAssistMode.ASSISTED;
-  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
-  const periodMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
-  const periodIncome = currentJarBudgets?.periodIncome ?? 0;
+  const data = await dataPromise;
+  const summary = data.budgetSummary;
+  const amount = (value: number) =>
+    formatCurrency(value, data.currency, locale, { maximumFractionDigits: 0 });
+  const incomeValue =
+    data.periodIncome > 0
+      ? amount(data.periodIncome)
+      : t("home.factIncomeEmpty");
+  const summaryUnavailable = t("home.summaryUnavailable");
+  const periodJars = data.isHistorical
+    ? data.historyJars.map((jar) => ({ ...jar }))
+    : data.activeJars.flatMap((jar) => {
+        const metrics = data.budgetsByJar[jar.id];
+        return metrics ? [{ id: jar.id, name: jar.name, metrics }] : [];
+      });
+  const overBudgetJars = periodJars.filter(
+    (jar) => jar.metrics.state === JarBudgetState.OVERSPENT,
+  );
+  const overBudgetJarSpend = overBudgetJars.reduce(
+    (total, jar) => total + jar.metrics.spentAmount,
+    0,
+  );
+  const overBudgetSpendShare =
+    summary && summary.spentAmount > 0
+      ? Math.min(100, (overBudgetJarSpend / summary.spentAmount) * 100)
+      : null;
+  const monthProgress = data.isHistorical
+    ? null
+    : getPlanMonthProgress(data.periodMonth, locale);
+  const progressLabel = monthProgress
+    ? t("home.dayProgress", {
+        day: formatNumber(monthProgress.day, locale),
+        days: formatNumber(monthProgress.days, locale),
+        percent: formatNumber(monthProgress.percent, locale),
+      })
+    : undefined;
+  const usagePercentLabel =
+    summary && summary.budgetAmount > 0
+      ? formatNumber(
+          (summary.spentAmount / summary.budgetAmount) * 100,
+          locale,
+          { maximumFractionDigits: 1 },
+        )
+      : undefined;
+  const usageLabel = usagePercentLabel
+    ? t("home.monthlyUsage", { percent: usagePercentLabel })
+    : undefined;
+  const periodOptions = [
+    data.currentPeriodMonth,
+    ...data.historyMonths.filter((month) => month !== data.currentPeriodMonth),
+  ].map((month) => ({
+    value: month,
+    label: formatPlanPeriod(month, locale, t),
+  }));
 
   return (
     <MotionReveal>
-      <PlanHubHero
-        periodCaption={t("period.label")}
-        periodLabel={formatPlanPeriod(periodMonth, locale)}
-        assistLabel={t(
-          assistMode === PlanAssistMode.MANUAL
-            ? "home.assistManual"
-            : "home.assistAssisted",
+      <div className="flex flex-col gap-(--space-3)">
+        <div className="flex items-center justify-between gap-(--space-2)">
+          <PlanPeriodSelect
+            label={t("home.periodSelectorLabel")}
+            loadingLabel={t("home.periodLoading")}
+            options={periodOptions}
+            selectedMonth={data.periodMonth}
+          />
+          <StatusBadge
+            tone={
+              data.isHistorical
+                ? StatusBadgeTone.NEUTRAL
+                : StatusBadgeTone.POSITIVE
+            }
+            className={cn(
+              "min-h-8 shrink-0 px-(--space-3) text-xs",
+              data.isHistorical
+                ? "border-border-subtle bg-surface-muted text-text-secondary"
+                : "border-primary/25 bg-primary/10 text-primary",
+            )}
+          >
+            <span
+              className="size-1.5 rounded-full bg-current"
+              aria-hidden="true"
+            />
+            {data.isHistorical
+              ? t("home.historyReadOnly")
+              : t(
+                  data.assistMode === PlanAssistMode.MANUAL
+                    ? "home.assistManual"
+                    : "home.assistAssisted",
+                )}
+          </StatusBadge>
+        </div>
+        {data.isHistorical && !data.historyAvailable ? (
+          <StatusAlert
+            variant="warning"
+            title={t("home.historyUnavailableTitle")}
+            description={t("home.historyUnavailableBody")}
+          />
+        ) : (
+          <>
+            {data.isHistorical && data.historyMissingJarSnapshotCount > 0 ? (
+              <StatusAlert
+                variant="warning"
+                title={t("home.historyIncompleteTitle")}
+                description={t("home.historyIncompleteBody", {
+                  count: data.historyMissingJarSnapshotCount,
+                })}
+              />
+            ) : null}
+            <PlanHubHero
+              attentionLabel={t(
+                overBudgetJars.length > 0
+                  ? "home.planAttention"
+                  : "home.planOnTrack",
+                { count: overBudgetJars.length },
+              )}
+              attentionTone={
+                overBudgetJars.length > 0
+                  ? StatusBadgeTone.WARNING
+                  : StatusBadgeTone.POSITIVE
+              }
+              dayProgressLabel={progressLabel}
+              dayProgressPercent={monthProgress?.percent ?? null}
+              todayLabel={t("home.today")}
+              activeJarSummary={
+                data.isHistorical
+                  ? t("home.historyJarSummary", { count: periodJars.length })
+                  : t("home.activeJarSummary", {
+                      count: data.activeJars.length,
+                    })
+              }
+              incomeLabel={t("home.factIncome")}
+              incomeValue={incomeValue}
+              usagePercent={summary?.usagePercent ?? null}
+              usageLabel={usageLabel}
+              overBudgetSpendShare={overBudgetSpendShare}
+              plannedLabel={t("home.metricPlanned")}
+              plannedValue={
+                summary ? amount(summary.budgetAmount) : summaryUnavailable
+              }
+              spentLabel={t("home.metricSpent")}
+              spentValue={
+                summary ? amount(summary.spentAmount) : summaryUnavailable
+              }
+              spentDetail={
+                usagePercentLabel
+                  ? t("home.monthlyUsageDetail", { percent: usagePercentLabel })
+                  : undefined
+              }
+              remainingLabel={t("home.metricRemaining")}
+              remainingValue={
+                summary ? amount(summary.remainingAmount) : summaryUnavailable
+              }
+            />
+          </>
         )}
-        status={
-          <Suspense fallback={<PlanHubHeroStatusLoading />}>
-            <PlanHeroStatusSection dataPromise={decisionDataPromise} t={t} />
-          </Suspense>
-        }
-        incomeLabel={t("home.factIncome")}
-        incomeValue={
-          periodIncome > 0
-            ? intentionAmount(
-                formatCurrency(periodIncome, currency, locale, {
-                  maximumFractionDigits: 0,
-                }),
-              )
-            : t("home.factIncomeEmpty")
-        }
-      />
+      </div>
     </MotionReveal>
   );
 }
 
-async function PlanDecisionsSection({
+async function PlanAttentionSection({
   locale,
   t,
   userId,
@@ -551,27 +467,20 @@ async function PlanDecisionsSection({
   locale: string;
   t: LooseTranslator;
   userId: string;
-  dataPromise: Promise<PlanHubDecisionData>;
+  dataPromise: Promise<PlanHubData>;
 }) {
   const data = await dataPromise;
-  const recommendationHref = (recommendation: PlanRecommendation) => {
-    const action = recommendation.action;
-    if (!action) return APP_PATH.PLAN;
-    if (action.type === "review_transactions")
-      return APP_PATH.MONEY_TRANSACTIONS;
-    if (action.type === "plan_settings") return APP_PATH.PLAN;
-    if (action.entityType === "goal" && action.entityId)
-      return planGoalPath(action.entityId);
-    if (action.entityType === "jar") {
-      const sourceJarId = action.payload?.sourceJarId;
-      return planJarPath(
-        typeof sourceJarId === "string" ? sourceJarId : (action.entityId ?? ""),
-      );
-    }
-    if (action.entityType === "recurring" && action.entityId)
-      return planRecurringPath(action.entityId);
-    return APP_PATH.PLAN;
-  };
+  if (data.isHistorical) return null;
+  const overspent = data.activeJars.flatMap((jar) => {
+    const metrics = data.budgetsByJar[jar.id];
+    return metrics?.state === JarBudgetState.OVERSPENT
+      ? [{ jar, metrics }]
+      : [];
+  });
+  const first = overspent[0];
+  const firstName = first
+    ? localizeCatalogName(data.tCatalog, "jars", first.jar.name)
+    : "";
 
   return (
     <>
@@ -582,83 +491,339 @@ async function PlanDecisionsSection({
         body={t("jars.reallocate.emergencyBannerBody")}
         openLabel={t("jars.reallocate.emergencyBannerOpen")}
       />
-      <PlanHubExceptions
-        title={t("home.exceptionsTitle")}
-        emptyTitle={t("home.exceptionsEmptyTitle")}
-        emptyBody={t("home.exceptionsEmptyBody")}
-        exceptions={data.exceptions}
-        hiddenCount={data.allExceptions.length - data.exceptions.length}
-        viewAllHref={APP_PATH.PLAN_JARS}
-        viewAllLabel={t("home.viewAll")}
-        renderTitle={(exception) => exceptionTitle(exception, t, data.tCatalog)}
-        renderDescription={(exception) =>
-          exceptionDescription(exception, t, data.currency, locale)
-        }
-        renderAction={(exception) => exceptionAction(exception, t)}
-      />
-      {data.primaryRecommendation ? (
-        <RecommendationList
-          recommendations={[data.primaryRecommendation]}
-          t={t}
-          resolveHref={recommendationHref}
-          jarNames={data.jarNames}
-          goalNames={data.goalNames}
-          currency={data.currency}
-          locale={locale}
-          title={t("home.nextDecisionTitle")}
-          variant={RecommendationListVariant.HIGHLIGHTED}
-          testId="plan-home-recommendations"
-        />
-      ) : null}
-      {data.supportingRecommendations.length > 0 ? (
-        <RecommendationList
-          recommendations={data.supportingRecommendations}
-          t={t}
-          resolveHref={recommendationHref}
-          jarNames={data.jarNames}
-          goalNames={data.goalNames}
-          currency={data.currency}
-          locale={locale}
-          title={t("home.moreDecisionsTitle")}
-          variant={RecommendationListVariant.SUPPORTING}
-          testId="plan-home-recommendations-supporting"
+      {first ? (
+        <InlineAlert
+          variant={InlineAlertVariant.ERROR}
+          title={
+            first.metrics.budgetAmount > 0
+              ? t.rich("home.overspentJarTitle", {
+                  name: firstName,
+                  amount: formatCurrency(
+                    first.metrics.spentAmount - first.metrics.budgetAmount,
+                    data.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
+                  money: (chunks: ReactNode) => (
+                    <FinancialValue>{chunks}</FinancialValue>
+                  ),
+                })
+              : t("home.overspentNoBudgetTitle", { name: firstName })
+          }
+          description={
+            first.metrics.budgetAmount > 0 ? (
+              <>
+                {t.rich("home.overspentJarDetails", {
+                  spent: formatCurrency(
+                    first.metrics.spentAmount,
+                    data.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
+                  planned: formatCurrency(
+                    first.metrics.budgetAmount,
+                    data.currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  ),
+                  percent: formatNumber(
+                    (first.metrics.spentAmount / first.metrics.budgetAmount) *
+                      100,
+                    locale,
+                    { maximumFractionDigits: 1 },
+                  ),
+                  money: (chunks: ReactNode) => (
+                    <FinancialValue>{chunks}</FinancialValue>
+                  ),
+                })}
+                <p className="mt-(--space-1)">
+                  {t("home.overspentReviewRemainingDays")}
+                </p>
+              </>
+            ) : (
+              t.rich("home.overspentNoBudgetBody", {
+                name: localizeCatalogName(
+                  data.tCatalog,
+                  "jars",
+                  first.jar.name,
+                ),
+                spent: formatCurrency(
+                  first.metrics.spentAmount,
+                  data.currency,
+                  locale,
+                  { maximumFractionDigits: 0 },
+                ),
+                money: (chunks: ReactNode) => (
+                  <FinancialValue>{chunks}</FinancialValue>
+                ),
+              })
+            )
+          }
+          action={
+            <Link
+              href={planJarPath(first.jar.id)}
+              prefetch={PRODUCT_LINK_PREFETCH}
+              className={cn(
+                PLAN_INLINE_LINK_CLASS,
+                "gap-(--space-1) text-primary",
+              )}
+              data-testid="plan-adjust-overspent-jar"
+            >
+              {t("home.adjustJarAllocation")}
+              <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.XS} />
+            </Link>
+          }
+          testId="plan-home-overspending"
         />
       ) : null}
     </>
   );
 }
 
+async function PlanJarsSection({
+  locale,
+  t,
+  dataPromise,
+}: {
+  locale: string;
+  t: LooseTranslator;
+  dataPromise: Promise<PlanHubData>;
+}) {
+  const data = await dataPromise;
+  const formatAmount = (value: number) =>
+    formatCurrency(value, data.currency, locale, { maximumFractionDigits: 0 });
+  const previewJars = data.activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT);
+
+  const getJarStatusLabel = (metrics: JarBudgetMetrics | undefined) => {
+    if (!metrics) return undefined;
+    if (metrics.state === JarBudgetState.OVERSPENT) {
+      return t("home.jarOverspentStatus");
+    }
+    if (metrics.budgetAmount <= 0) return t("home.jarNoBudgetStatus");
+
+    return t("home.jarRemainingStatus", {
+      percent: formatNumber(
+        Math.max(0, JAR_BUDGET_PERCENT_SCALE - metrics.usagePercent),
+        locale,
+      ),
+    });
+  };
+
+  if (data.isHistorical) {
+    const historyTitle = (
+      <PlanSectionTitle>
+        {t("home.jarSectionCount", { count: data.historyJars.length })}
+      </PlanSectionTitle>
+    );
+    if (!data.historyAvailable) return null;
+    if (data.historyJars.length === 0) {
+      return (
+        <Section
+          title={historyTitle}
+          testId="plan-home-jars"
+          contentClassName="gap-0"
+        >
+          <EmptyState
+            title={t("home.historyJarsEmptyTitle")}
+            description={t("home.historyJarsEmptyBody")}
+            icon={<AppIcon icon={PLAN_ICONS.jar} />}
+            className="flex-none py-(--space-4)"
+          />
+        </Section>
+      );
+    }
+    return (
+      <Section
+        title={historyTitle}
+        testId="plan-home-jars"
+        contentClassName="gap-(--space-2)"
+      >
+        {data.historyJars.map((jar) => {
+          const metrics = jar.metrics;
+          const name = localizeCatalogName(data.tCatalog, "jars", jar.name);
+          const usageLabel = t("home.jarUsage", {
+            spent: formatAmount(metrics.spentAmount),
+            planned: formatAmount(metrics.budgetAmount),
+          });
+          const statusLabel = getJarStatusLabel(metrics);
+          const isOverspent = metrics.state === JarBudgetState.OVERSPENT;
+          return (
+            <Card
+              key={jar.id}
+              tone="elevated"
+              className="gap-(--space-3) p-(--space-3)"
+              data-testid={`plan-history-jar-${jar.id}`}
+            >
+              <div className="flex min-w-0 items-center gap-(--space-3)">
+                <IconContainer tone={IconContainerTone.NEUTRAL} size="md">
+                  <AppIcon icon={PLAN_ICONS.jar} />
+                </IconContainer>
+                <div className="min-w-0 flex-1">
+                  <Text size="sm" weight="semibold" className="truncate">
+                    {name}
+                  </Text>
+                  <Text size="xs" tone="muted" className="mt-(--space-1)">
+                    <FinancialValue>{usageLabel}</FinancialValue>
+                  </Text>
+                </div>
+                <div className="shrink-0 text-right">
+                  <Text
+                    size="sm"
+                    weight="semibold"
+                    tone={isOverspent ? "danger" : "primary"}
+                    tabular
+                    data-financial-kind={FinancialNumberKind.INTENTION}
+                  >
+                    <FinancialValue>
+                      {metrics.remainingAmount < 0 ? "+" : ""}
+                      {formatAmount(Math.abs(metrics.remainingAmount))}
+                    </FinancialValue>
+                  </Text>
+                  {statusLabel ? (
+                    <Text
+                      size="xs"
+                      tone={isOverspent ? "danger" : "muted"}
+                      className="mt-(--space-1)"
+                    >
+                      {statusLabel}
+                    </Text>
+                  ) : null}
+                </div>
+              </div>
+              {metrics.budgetAmount > 0 ? (
+                <Progress
+                  value={metrics.usagePercent}
+                  label={usageLabel}
+                  showLabel={false}
+                  indicatorClassName={isOverspent ? "bg-danger" : undefined}
+                  privacyAware
+                />
+              ) : null}
+            </Card>
+          );
+        })}
+      </Section>
+    );
+  }
+
+  return (
+    <Section contentClassName="gap-0" testId="plan-home-jars">
+      {!data.budgetSummary ? (
+        <StatusAlert
+          variant="warning"
+          title={t("home.jarsUnavailableTitle")}
+          description={t("home.jarsUnavailableBody")}
+        />
+      ) : null}
+      {data.activeJars.length === 0 ? (
+        <EmptyState
+          title={t("jars.emptyTitle")}
+          description={t("jars.emptyDescription")}
+          icon={<AppIcon icon={PLAN_ICONS.jar} />}
+          action={
+            <Link
+              href={APP_PATH.PLAN_JARS}
+              prefetch={PRODUCT_LINK_PREFETCH}
+              className={PLAN_ACCENT_LINK_CLASS}
+            >
+              {t("home.createJar")}
+            </Link>
+          }
+          className="flex-none py-(--space-4)"
+        />
+      ) : (
+        <PlanJarFilterList
+          locale={locale}
+          title={t("home.jarSectionCount", { count: previewJars.length })}
+          labels={{
+            group: t("home.jarFilterAria"),
+            all: t("home.jarFilterAll"),
+            overspent: t("home.jarFilterOverspent"),
+            remaining: t("home.jarFilterRemaining"),
+            empty: t("home.jarFilterEmpty"),
+            sort: t("home.jarSort"),
+            sortByName: t("home.jarSortByName"),
+            restoreSort: t("home.jarSortRestore"),
+          }}
+          items={previewJars.map((jar) => {
+            const metrics = data.budgetsByJar[jar.id];
+            const usagePercent =
+              metrics && metrics.budgetAmount > 0
+                ? jarBudgetProgressPercent(metrics)
+                : undefined;
+            const name = localizeCatalogName(data.tCatalog, "jars", jar.name);
+            return {
+              id: jar.id,
+              sortName: name,
+              budgetState: metrics?.state,
+              hasRemaining: Boolean(metrics && metrics.remainingAmount > 0),
+              content: (
+                <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+                  <JarCard
+                    compact
+                    href={planJarPath(jar.id)}
+                    name={name}
+                    kindLabel={data.tJars(`kinds.${jar.kind}`)}
+                    stateLabel={data.tJars(jarStateLabelKey(jar.state))}
+                    state={jar.state}
+                    amountLabel={
+                      metrics ? (
+                        <FinancialValue>
+                          {metrics.remainingAmount < 0 ? "+" : ""}
+                          {formatAmount(Math.abs(metrics.remainingAmount))}
+                        </FinancialValue>
+                      ) : undefined
+                    }
+                    secondaryLabel={getJarStatusLabel(metrics)}
+                    usageLabel={
+                      metrics
+                        ? t("home.jarUsage", {
+                            spent: formatAmount(metrics.spentAmount),
+                            planned: formatAmount(metrics.budgetAmount),
+                          })
+                        : undefined
+                    }
+                    usagePercent={usagePercent}
+                    budgetState={metrics?.state}
+                    iconTone={JAR_KIND_ICON_TONE[jar.kind]}
+                    data-testid={`plan-jar-${jar.id}`}
+                  />
+                </Card>
+              ),
+            };
+          })}
+        />
+      )}
+    </Section>
+  );
+}
+
 async function PlanUpcomingSection({
   locale,
   t,
-  pulsePromise,
-  upcomingPromise,
-}: Pick<PlanHubQueryPromises, "pulsePromise" | "upcomingPromise"> & {
+  dataPromise,
+}: {
   locale: string;
   t: LooseTranslator;
+  dataPromise: Promise<PlanHubData>;
 }) {
-  const [pulse, upcomingPreview] = await Promise.all([
-    pulsePromise,
-    upcomingPromise,
-  ]);
-  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
+  const data = await dataPromise;
+  if (data.isHistorical) return null;
+  const upcomingPreview = await listPlanHubUpcomingEvents();
+  const currency = upcomingPreview?.currency ?? DEFAULT_CURRENCY;
   const upcoming = upcomingWithinDays(
-    (upcomingPreview?.events ?? []) as HomeEvent[],
+    (upcomingPreview?.events ?? []).filter(
+      (event) => event.cashFlowSign === CalendarCashFlowSign.OUTFLOW,
+    ),
   );
+  const today = todayIsoDate();
 
   return (
     <Section
       title={<PlanSectionTitle>{t("home.upcomingTitle")}</PlanSectionTitle>}
-      action={
-        <Link
-          href={APP_PATH.PLAN_CALENDAR}
-          prefetch={PRODUCT_LINK_PREFETCH}
-          className={PLAN_INLINE_LINK_CLASS}
-          data-testid="plan-see-calendar"
-        >
-          {t("calendar.cta")}
-        </Link>
-      }
+      description={t("home.upcomingDescription", {
+        days: PLAN_HUB_UPCOMING_DAYS,
+      })}
       testId="plan-home-upcoming"
     >
       {upcoming.length === 0 ? (
@@ -666,369 +831,192 @@ async function PlanUpcomingSection({
           {t("home.upcomingEmpty")}
         </Text>
       ) : (
-        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-          <ul className="divide-y divide-divider">
-            {upcoming.map((event) => (
+        <ul
+          className="flex flex-col gap-(--space-2)"
+          data-testid="plan-upcoming-outflows"
+        >
+          {upcoming.map((event) => {
+            const due = isUpcomingDueEvent(event.source);
+            const daysUntil = Math.max(
+              0,
+              differenceInUtcCalendarDays(today, event.date),
+            );
+            const countdown =
+              daysUntil === 0
+                ? t("home.upcomingToday")
+                : t("home.upcomingCountdown", {
+                    days: formatNumber(daysUntil, locale),
+                  });
+            const dateLabel = formatDate(
+              new Date(`${event.date}T00:00:00Z`),
+              locale,
+              {
+                day: "numeric",
+                month: "short",
+                timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+              },
+            );
+
+            return (
               <li
-                key={event.id ?? `${event.date}-${event.title}`}
-                className="flex min-h-14 items-start gap-(--space-3) px-(--space-4) py-(--space-3)"
+                key={event.id}
+                className="min-w-0"
+                data-testid={`plan-upcoming-event-${event.id}`}
               >
-                <div className="min-w-0 flex-1">
-                  <Text size="xs" tone="muted">
-                    {formatDate(new Date(`${event.date}T00:00:00Z`), locale, {
-                      day: "numeric",
-                      month: "short",
-                      timeZone: "Asia/Ho_Chi_Minh",
-                    })}
-                  </Text>
-                  <Text
-                    size="sm"
-                    weight="medium"
-                    className="mt-(--space-1) line-clamp-2 text-pretty"
+                <Card
+                  tone="elevated"
+                  className="flex min-w-0 flex-row items-center gap-(--space-3) p-(--space-3)"
+                >
+                  <IconContainer
+                    tone={
+                      due ? IconContainerTone.WARNING : IconContainerTone.INFO
+                    }
+                    size="md"
                   >
-                    {event.title}
-                  </Text>
-                </div>
-                <div className="shrink-0 text-right">
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    tabular
-                    data-financial-kind={FinancialNumberKind.INTENTION}
-                  >
-                    {intentionAmount(
-                      formatCurrency(event.amount, currency, locale, {
-                        maximumFractionDigits: 0,
-                      }),
-                    )}
-                  </Text>
-                  <Text size="xs" tone="secondary">
-                    {isUpcomingDueEvent(event.source)
-                      ? t("home.upcomingDue")
-                      : t("home.upcomingExpected")}
-                  </Text>
-                </div>
+                    <AppIcon icon={PLAN_EVENT_ICON_BY_SOURCE[event.source]} />
+                  </IconContainer>
+                  <div className="min-w-0 flex-1">
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      className="line-clamp-2 text-pretty"
+                    >
+                      {event.title}
+                    </Text>
+                    <Text size="xs" tone="muted" className="mt-(--space-1)">
+                      {due ? t("home.upcomingDue") : t("home.upcomingExpected")}
+                      {" · "}
+                      {dateLabel}
+                    </Text>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      tabular
+                      data-financial-kind={FinancialNumberKind.INTENTION}
+                    >
+                      {intentionAmount(
+                        formatCurrency(event.amount, currency, locale, {
+                          maximumFractionDigits: 0,
+                        }),
+                      )}
+                    </Text>
+                    <StatusBadge
+                      tone={
+                        due ? StatusBadgeTone.WARNING : StatusBadgeTone.NEUTRAL
+                      }
+                      className="mt-(--space-1)"
+                    >
+                      {countdown}
+                    </StatusBadge>
+                  </div>
+                </Card>
               </li>
-            ))}
-          </ul>
-        </Card>
+            );
+          })}
+        </ul>
       )}
     </Section>
   );
 }
 
-async function PlanJarsSection({
+async function PlanShortcutSections({
   locale,
   t,
-  tCatalogPromise,
-  pulsePromise,
-  currentJarBudgetsPromise,
-}: Pick<
-  PlanHubQueryPromises,
-  "tCatalogPromise" | "pulsePromise" | "currentJarBudgetsPromise"
-> & {
+  dataPromise,
+}: {
   locale: string;
   t: LooseTranslator;
+  dataPromise: Promise<PlanHubData>;
 }) {
-  const [tCatalogValue, pulse, currentJarBudgets] = await Promise.all([
-    tCatalogPromise,
-    pulsePromise,
-    currentJarBudgetsPromise,
-  ]);
-  const tCatalog = tCatalogValue as unknown as LooseTranslator;
-  const activeJars = (pulse?.activeJars ?? []).filter(
-    (jar) => jar.kind !== JarKind.INCOME,
-  );
-  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
-  const budgetsByJar = currentJarBudgets?.byJarId ?? {};
+  const data = await dataPromise;
+  if (data.isHistorical) return null;
+  const periodMonth = data.periodMonth;
+  const month = formatDate(new Date(`${periodMonth}T00:00:00Z`), locale, {
+    month: locale === APP_LOCALE.VIETNAMESE ? "numeric" : "long",
+    timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+  });
 
-  return activeJars.length === 0 ? (
-    <Section
-      title={<PlanSectionTitle>{t("jars.title")}</PlanSectionTitle>}
-      description={t("jars.subtitle")}
-      action={
-        <Link
-          href={APP_PATH.PLAN_JARS}
-          prefetch={PRODUCT_LINK_PREFETCH}
-          className={PLAN_INLINE_LINK_CLASS}
-          data-testid="plan-see-jars"
-        >
-          {t("home.viewAll")}
-        </Link>
-      }
-      testId="plan-home-jars"
+  return (
+    <div
+      className="grid grid-cols-2 gap-(--space-2)"
+      data-testid="plan-shortcuts"
     >
-      <EmptyState
-        title={t("jars.emptyTitle")}
-        description={t("jars.emptyDescription")}
-        action={
-          <Link
-            href={APP_PATH.PLAN_JARS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_ACCENT_LINK_CLASS}
-          >
-            {t("home.createJar")}
-          </Link>
-        }
-        className="flex-none py-(--space-4)"
+      <PlanDestinationTile
+        href={APP_PATH.PLAN_CALENDAR}
+        testId="plan-shortcut-calendar"
+        icon={PLAN_ICONS.calendar}
+        label={t("home.calendarShortcutTitle")}
+        meta={t("home.workspaceCalendarMeta")}
       />
-    </Section>
-  ) : (
+      <PlanDestinationTile
+        href={APP_PATH.PLAN_RITUAL}
+        testId="plan-shortcut-review"
+        icon={PLAN_ICONS.monthlyReview}
+        label={t("home.monthlyReviewShortcutTitle", { month })}
+        meta={t("home.monthlyReviewShortcutDescription")}
+      />
+    </div>
+  );
+}
+
+async function PlanToolDestinations({
+  t,
+  dataPromise,
+}: {
+  t: LooseTranslator;
+  dataPromise: Promise<PlanHubData>;
+}) {
+  const data = await dataPromise;
+  if (data.isHistorical) return null;
+  return (
     <PlanDestinationCard
-      title={t("jars.title")}
-      description={t("jars.subtitle")}
-      action={
-        <Link
-          href={APP_PATH.PLAN_JARS}
-          prefetch={PRODUCT_LINK_PREFETCH}
-          className={PLAN_INLINE_LINK_CLASS}
-          data-testid="plan-see-jars"
-        >
-          {t("home.viewAll")}
-        </Link>
-      }
-      testId="plan-home-jars"
+      title={t("home.workspaceTitle")}
+      testId="plan-ritual-cta"
     >
-      {!currentJarBudgets ? (
-        <div className="px-(--space-4) py-(--space-3)">
-          <StatusAlert
-            variant="warning"
-            title={t("home.jarsUnavailableTitle")}
-            description={t("home.jarsUnavailableBody")}
-          />
-        </div>
-      ) : null}
-      {activeJars.slice(0, PLAN_HUB_VISIBLE_JAR_LIMIT).map((jar) => {
-        const metrics = budgetsByJar[jar.id];
-        const isNoIncome =
-          metrics?.state === JarBudgetState.NO_BUDGET &&
-          metrics.incomeSource === QualifyingIncomeSource.NONE;
-        const isOverspent = metrics?.state === JarBudgetState.OVERSPENT;
-        return (
-          <PlanHubWorkRow
-            key={jar.id}
-            href={planJarPath(jar.id)}
-            testId={`plan-jar-${jar.id}`}
-            icon={PLAN_ICONS.jar}
-            iconTone={IconContainerTone.SAVINGS}
-            label={localizeCatalogName(tCatalog, "jars", jar.name)}
-            meta={t(`jars.kinds.${jar.kind}`)}
-            value={jarRemainingLabel(
-              metrics,
-              isNoIncome,
-              Boolean(isOverspent),
-              t,
-              currency,
-              locale,
-            )}
-            valueTone={isOverspent ? "danger" : "primary"}
-            marksIntention={Boolean(metrics) && !isNoIncome}
-            financialObject={PlanHubWorkObject.JAR}
-          />
-        );
-      })}
-      {activeJars.length > PLAN_HUB_VISIBLE_JAR_LIMIT ? (
-        <Link
-          href={APP_PATH.PLAN_JARS}
-          prefetch={PRODUCT_LINK_PREFETCH}
-          className={`${PLAN_INLINE_LINK_CLASS} mx-(--space-2) my-(--space-1)`}
-        >
-          {t("home.viewAllJars", { count: activeJars.length })}
-        </Link>
-      ) : null}
+      <PlanDestinationRow
+        href={APP_PATH.PLAN_GOALS}
+        testId="plan-entry-goals"
+        icon={PLAN_ICONS.goal}
+        iconTone={IconContainerTone.INVESTMENT}
+        label={t("home.goalsTitle")}
+        meta={t("home.goalsEmptyBody")}
+      />
+      <PlanDestinationRow
+        href={APP_PATH.PLAN_RECURRING}
+        testId="plan-entry-recurring"
+        icon={PLAN_ICONS.recurring}
+        iconTone={IconContainerTone.TRANSFER}
+        label={t("home.recurringLink")}
+        meta={t("home.workspaceRecurringMeta")}
+      />
     </PlanDestinationCard>
   );
 }
 
-async function PlanGoalsSection({
-  locale,
+async function PlanAllocationAction({
+  dataPromise,
   t,
-  pulsePromise,
-  goalsPromise,
-}: Pick<PlanHubQueryPromises, "pulsePromise" | "goalsPromise"> & {
-  locale: string;
+}: {
+  dataPromise: Promise<PlanHubData>;
   t: LooseTranslator;
 }) {
-  const [pulse, goalsList] = await Promise.all([pulsePromise, goalsPromise]);
-  const currency = pulse?.currency ?? DEFAULT_CURRENCY;
-  const homeGoals = pickHomeGoals(goalsList?.goals ?? []);
-
-  return homeGoals.length === 0 ? (
-    <Section
-      title={<PlanSectionTitle>{t("home.goalsTitle")}</PlanSectionTitle>}
-      action={
-        <span data-testid="plan-entry-goals" className="inline-flex">
-          <Link
-            href={APP_PATH.PLAN_GOALS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-see-goals"
-          >
-            {t("home.viewAll")}
-          </Link>
-        </span>
-      }
-      testId="plan-home-goals"
+  const data = await dataPromise;
+  if (data.isHistorical) return null;
+  return (
+    <Link
+      href={APP_PATH.PLAN_JARS}
+      prefetch={PRODUCT_LINK_PREFETCH}
+      className={cn(
+        PLAN_ACCENT_LINK_CLASS,
+        "w-auto shrink-0 gap-(--space-1) rounded-full border border-primary/50 bg-transparent px-(--space-3) text-xs font-semibold text-primary shadow-none hover:bg-primary/10",
+      )}
+      data-testid="plan-allocate"
     >
-      <EmptyState
-        title={t("home.goalsEmptyTitle")}
-        description={t("home.goalsEmptyBody")}
-        icon={<AppIcon icon={PLAN_ICONS.goal} size={AppIconSize.DISPLAY} />}
-        action={
-          <Link
-            href={APP_PATH.PLAN_GOALS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_SURFACE_LINK_CLASS}
-          >
-            {t("home.createGoal")}
-          </Link>
-        }
-        className="flex-none py-(--space-4)"
-      />
-    </Section>
-  ) : (
-    <PlanDestinationCard
-      title={t("home.goalsTitle")}
-      action={
-        <span data-testid="plan-entry-goals" className="inline-flex">
-          <Link
-            href={APP_PATH.PLAN_GOALS}
-            prefetch={PRODUCT_LINK_PREFETCH}
-            className={PLAN_INLINE_LINK_CLASS}
-            data-testid="plan-see-goals"
-          >
-            {t("home.viewAll")}
-          </Link>
-        </span>
-      }
-      testId="plan-home-goals"
-    >
-      {homeGoals.map((goal) => {
-        const targetDate = formatGoalDate(goal.targetDate, locale);
-        return (
-          <PlanHubWorkRow
-            key={goal.id}
-            href={planGoalPath(goal.id)}
-            testId={`plan-home-goal-${goal.id}`}
-            icon={PLAN_ICONS.goal}
-            iconTone={IconContainerTone.INVESTMENT}
-            label={goal.name}
-            meta={[
-              goal.isLegacyIntention
-                ? t("home.goalLegacy")
-                : t("home.goalLinked"),
-              targetDate,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-            value={
-              goal.progressPercent == null
-                ? t("home.goalProgressIndeterminate")
-                : t.rich("home.goalProgress", {
-                    funded: formatCurrency(
-                      goal.fundedAmount,
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    ),
-                    target: formatCurrency(
-                      goal.targetAmount,
-                      currency,
-                      locale,
-                      { maximumFractionDigits: 0 },
-                    ),
-                    moneyFunded: (chunks: ReactNode) => (
-                      <FinancialValue>{chunks}</FinancialValue>
-                    ),
-                    moneyTarget: (chunks: ReactNode) => (
-                      <FinancialValue>{chunks}</FinancialValue>
-                    ),
-                    percent: goal.progressPercent,
-                  })
-            }
-            valueTone={goal.progressPercent == null ? "secondary" : "primary"}
-            marksIntention={goal.progressPercent != null}
-            financialObject={PlanHubWorkObject.GOAL}
-          />
-        );
-      })}
-    </PlanDestinationCard>
-  );
-}
-
-function PlanStaticSections({ t }: { t: LooseTranslator }) {
-  return (
-    <>
-      <PlanDestinationCard
-        title={t("home.workspaceTitle")}
-        testId="plan-ritual-cta"
-      >
-        <PlanDestinationRow
-          href={APP_PATH.PLAN_RECURRING}
-          testId="plan-entry-recurring"
-          icon={PLAN_ICONS.recurring}
-          iconTone={IconContainerTone.TRANSFER}
-          label={t("home.recurringLink")}
-          meta={t("home.workspaceRecurringMeta")}
-        />
-        <PlanDestinationRow
-          href={APP_PATH.PLAN_CALENDAR}
-          testId="plan-workspace-calendar"
-          icon={PLAN_ICONS.calendar}
-          iconTone={IconContainerTone.INFO}
-          label={t("calendar.title")}
-          meta={t("home.workspaceCalendarMeta")}
-        />
-        <PlanDestinationRow
-          href={APP_PATH.PLAN_RITUAL}
-          testId="plan-ritual-open"
-          icon={PLAN_ICONS.ritual}
-          iconTone={IconContainerTone.PRIMARY}
-          label={t("review.title")}
-          meta={t("home.workspaceRitualMeta")}
-        />
-      </PlanDestinationCard>
-      <div
-        data-testid="plan-teaching"
-        className="flex flex-col gap-(--space-2) border-t border-border-subtle pt-(--space-3)"
-      >
-        <Text size="sm" tone="secondary" className="text-pretty">
-          {t("teaching.body")}
-        </Text>
-        <Link
-          href={APP_PATH.MONEY}
-          prefetch={PRODUCT_LINK_PREFETCH}
-          className={PLAN_INLINE_LINK_CLASS}
-          data-testid="plan-money-link"
-        >
-          {t("moneyLink")}
-        </Link>
-      </div>
-    </>
-  );
-}
-
-function PlanCriticalFallback() {
-  return <PlanContextSkeleton />;
-}
-
-function PlanDecisionsFallback() {
-  return (
-    <Section title={<Skeleton className="h-4 w-40" />}>
-      <Card tone="elevated" className="gap-0 p-0">
-        <PlanWorkRowSkeleton />
-      </Card>
-    </Section>
-  );
-}
-
-function PlanUpcomingFallback() {
-  return (
-    <Section title={<Skeleton className="h-4 w-28" />}>
-      <Card tone="elevated" className="gap-0 p-0">
-        <PlanWorkRowSkeleton />
-      </Card>
-    </Section>
+      <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.XS} />
+      {t("home.allocate")}
+    </Link>
   );
 }
 
@@ -1043,19 +1031,43 @@ function PlanJarsFallback() {
   );
 }
 
-function PlanGoalsFallback() {
+function PlanUpcomingFallback() {
   return (
-    <Section title={<Skeleton className="h-4 w-28" />}>
-      <Card tone="elevated" className="gap-0 p-0">
-        <PlanWorkRowSkeleton />
-      </Card>
+    <Section
+      title={<Skeleton className="h-4 w-40" />}
+      description={<Skeleton className="h-3 w-52" />}
+      testId="plan-home-upcoming"
+    >
+      <div className="flex flex-col gap-(--space-2)">
+        <Card tone="elevated" className="gap-0 p-0">
+          <PlanWorkRowSkeleton />
+        </Card>
+        <Card tone="elevated" className="gap-0 p-0">
+          <PlanWorkRowSkeleton />
+        </Card>
+      </div>
     </Section>
   );
 }
 
-/** Plan hub: current intention, attention, next decision, and planning entries. */
-export default async function PlanHubPage({ params }: Props) {
-  const { locale: rawLocale } = await params;
+function PlanAttentionFallback() {
+  return (
+    <div
+      className="rounded-(--radius-control) border border-warning/30 bg-warning/10 p-(--space-4)"
+      aria-hidden="true"
+    >
+      <Skeleton className="h-4 w-40" />
+      <Skeleton className="mt-(--space-2) h-4 w-3/4" />
+    </div>
+  );
+}
+
+/** Plan hub: live jar intention totals, jar status, and upcoming outflows. */
+export default async function PlanHubPage({ params, searchParams }: Props) {
+  const [{ locale: rawLocale }, query] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const locale = hasLocale(routing.locales, rawLocale)
     ? rawLocale
     : routing.defaultLocale;
@@ -1065,72 +1077,82 @@ export default async function PlanHubPage({ params }: Props) {
   if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
   const membership = await resolveActiveMembership(user.id);
   if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
+  const queryMonth = query[PLAN_MONTH_QUERY];
+  const requestedMonth =
+    typeof queryMonth === "string" ? queryMonth : undefined;
+  const isHistoricalRequest =
+    requestedMonth !== undefined &&
+    PLAN_PERIOD_MONTH_PATTERN.test(requestedMonth) &&
+    requestedMonth < currentPeriodMonth();
 
   const tPromise = getTranslations("plan");
   const tCatalogPromise = getTranslations("catalog");
-  const pulsePromise = getPlanPulse();
-  const currentJarBudgetsPromise = getCurrentJarBudgets();
-  const inboxItemsPromise = listOpenInboxItems();
-  const goalsPromise = listGoals();
-  const upcomingPromise = listPlanHubUpcomingEvents();
-  const t = (await tPromise) as unknown as LooseTranslator;
-  const decisionDataPromise = resolvePlanHubDecisionData({
+  const tJarsPromise = getTranslations("plan.jars");
+  const pulsePromise = isHistoricalRequest
+    ? Promise.resolve(null)
+    : getPlanPulse();
+  const currentJarBudgetsPromise = isHistoricalRequest
+    ? Promise.resolve(null)
+    : getCurrentJarBudgets();
+  const historyMonthsPromise = listPlanBudgetHistoryMonths();
+  const inboxItemsPromise = isHistoricalRequest
+    ? Promise.resolve([])
+    : listOpenInboxItems();
+  const historyPromise = isHistoricalRequest
+    ? getPlanBudgetHistory(requestedMonth)
+    : Promise.resolve(null);
+  const planTranslation = await tPromise;
+  const t = planTranslation as unknown as LooseTranslator;
+  const dataPromise = resolvePlanHubData({
     tCatalogPromise,
+    tJarsPromise,
     pulsePromise,
     currentJarBudgetsPromise,
+    historyMonthsPromise,
     inboxItemsPromise,
-    goalsPromise,
+    historyPromise,
+    requestedMonth,
   });
 
   return (
     <Page
       testId="plan-hub"
-      topBar={<TopAppBar title={t("title")} subtitle={t("subtitle")} />}
+      topBar={
+        <TopAppBar
+          variant={TopAppBarVariant.PRIMARY}
+          title={t("home.title")}
+          subtitle={t("home.subtitle")}
+          trailing={
+            <Suspense fallback={null}>
+              <PlanAllocationAction dataPromise={dataPromise} t={t} />
+            </Suspense>
+          }
+        />
+      }
+      contentClassName="px-(--space-5) pt-(--space-5)"
     >
       <PlanOfflineBanner />
-      <Suspense fallback={<PlanCriticalFallback />}>
-        <PlanCriticalSection
-          locale={locale}
-          t={t}
-          pulsePromise={pulsePromise}
-          currentJarBudgetsPromise={currentJarBudgetsPromise}
-          decisionDataPromise={decisionDataPromise}
-        />
+      <Suspense fallback={<PlanContextSkeleton />}>
+        <PlanCriticalSection locale={locale} t={t} dataPromise={dataPromise} />
       </Suspense>
-      <Suspense fallback={<PlanDecisionsFallback />}>
-        <PlanDecisionsSection
+      <Suspense fallback={<PlanAttentionFallback />}>
+        <PlanAttentionSection
           locale={locale}
           t={t}
           userId={user.id}
-          dataPromise={decisionDataPromise}
-        />
-      </Suspense>
-      <Suspense fallback={<PlanUpcomingFallback />}>
-        <PlanUpcomingSection
-          locale={locale}
-          t={t}
-          pulsePromise={pulsePromise}
-          upcomingPromise={upcomingPromise}
+          dataPromise={dataPromise}
         />
       </Suspense>
       <Suspense fallback={<PlanJarsFallback />}>
-        <PlanJarsSection
-          locale={locale}
-          t={t}
-          tCatalogPromise={tCatalogPromise}
-          pulsePromise={pulsePromise}
-          currentJarBudgetsPromise={currentJarBudgetsPromise}
-        />
+        <PlanJarsSection locale={locale} t={t} dataPromise={dataPromise} />
       </Suspense>
-      <Suspense fallback={<PlanGoalsFallback />}>
-        <PlanGoalsSection
-          locale={locale}
-          t={t}
-          pulsePromise={pulsePromise}
-          goalsPromise={goalsPromise}
-        />
+      <PlanToolDestinations t={t} dataPromise={dataPromise} />
+      <Suspense fallback={<PlanUpcomingFallback />}>
+        <PlanUpcomingSection locale={locale} t={t} dataPromise={dataPromise} />
       </Suspense>
-      <PlanStaticSections t={t} />
+      <Suspense fallback={<PlanShortcutTilesFallback />}>
+        <PlanShortcutSections locale={locale} t={t} dataPromise={dataPromise} />
+      </Suspense>
     </Page>
   );
 }

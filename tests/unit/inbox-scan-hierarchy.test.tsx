@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactElement } from "react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { NextIntlClientProvider } from "next-intl";
 import enInbox from "@/messages/en/inbox.json";
@@ -18,24 +18,28 @@ import { InboxUnavailable } from "@/app/[locale]/(product)/inbox/inbox-unavailab
 import {
   inboxOwnershipHintKey,
   inboxQueueDominantTitle,
-  inboxQueueLifecycleLabel,
   inboxQueueRowSubtitle,
 } from "@/app/[locale]/(product)/inbox/inbox-presentations";
 import {
   InboxEnrichmentState,
   InboxItemKind,
   InboxItemStatus,
+  InboxKindFilter,
   InboxLifecycleContext,
   InboxSourceType,
   INBOX_TEST_ID,
-  inboxGroupTestId,
+  inboxFilterTestId,
+  inboxItemTestId,
 } from "@/modules/inbox/application/inbox-constants";
+import { instantiateTypedReviewItem } from "@/modules/inbox/application";
 import { InboxSourceCapability } from "@/modules/inbox/application/inbox-source-capabilities";
 import type { InboxReviewItem } from "@/modules/inbox/application/inbox-types";
 import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  inboxItemPath,
+} from "@/modules/tenancy/application/app-path";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
-import { REVIEW_CARD_TEST_ID } from "@/shared/patterns/review-card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 
 vi.mock("@/i18n/navigation", () => ({
@@ -106,24 +110,26 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     expect(screen.getByTestId(INBOX_TEST_ID.AMOUNT)).toHaveTextContent(
       "₫45,000",
     );
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      enInbox.kinds.unmapped_expense,
-    );
     expect(screen.getByText(/Cash · Food/)).toBeInTheDocument();
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.UNREAD)).toBeInTheDocument();
+    const row = screen.getByTestId(inboxItemTestId(reviewItem().id));
     expect(
-      screen
-        .queryByTestId("inbox-item-550e8400-e29b-41d4-a716-446655440010")
-        ?.querySelector("[data-slot='status-badge']"),
-    ).toBeNull();
-    expect(
-      screen.getByTestId(
-        "inbox-item-link-550e8400-e29b-41d4-a716-446655440010",
-      ),
-    ).toHaveAttribute(
+      within(row).getByText(enInbox.kinds.unmapped_expense),
+    ).toBeInTheDocument();
+    expect(row).toHaveAttribute(
       "aria-label",
       expect.stringContaining(enInbox.unreadLabel),
     );
+  });
+
+  it("uses an independent review card with amount and open cue below the item", () => {
+    renderInbox(<InboxQueueList items={[reviewItem()]} locale="en" />);
+
+    const row = screen.getByTestId(inboxItemTestId(reviewItem().id));
+    expect(row).toHaveAttribute("href", inboxItemPath(reviewItem().id));
+    expect(within(row).getByText(enInbox.nextStepLabel)).toBeInTheDocument();
+    expect(row.querySelector('[data-tone="default"]')).not.toBeNull();
+    expect(row.querySelector(".border-t")).not.toBeNull();
+    expect(row.querySelector("button")).toBeNull();
   });
 
   it("keeps ownership metadata in the compact secondary line", () => {
@@ -162,11 +168,8 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
 
     expect(
-      screen.queryByTestId(REVIEW_CARD_TEST_ID.UNREAD),
-    ).not.toBeInTheDocument();
-    expect(
       screen.getByTestId(
-        "inbox-item-link-550e8400-e29b-41d4-a716-446655440020",
+        inboxItemTestId("550e8400-e29b-41d4-a716-446655440020"),
       ),
     ).toHaveAttribute("aria-label", expect.stringContaining(enInbox.readLabel));
   });
@@ -175,9 +178,11 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     renderInbox(<InboxQueueList items={[reviewItem()]} locale="vi" />, "vi");
 
     expect(screen.getByText("Lunch")).toBeInTheDocument();
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      viInbox.kinds.unmapped_expense,
-    );
+    expect(
+      within(screen.getByTestId(inboxItemTestId(reviewItem().id))).getByText(
+        viInbox.kinds.unmapped_expense,
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText("kinds.unmapped_expense"),
     ).not.toBeInTheDocument();
@@ -197,16 +202,18 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
       />,
     );
 
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      enInbox.statuses.resolved,
-    );
+    const row = screen.getByTestId(inboxItemTestId(reviewItem().id));
     expect(
-      screen.queryByTestId(REVIEW_CARD_TEST_ID.UNREAD),
-    ).not.toBeInTheDocument();
+      within(row).getByText(enInbox.statuses.resolved),
+    ).toBeInTheDocument();
+    expect(row).toHaveAttribute(
+      "aria-label",
+      expect.stringContaining(enInbox.readLabel),
+    );
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("mirrors summary, tabs, filters, groups, and compact rows in the route skeleton", () => {
+  it("mirrors the summary, tabs, filters, and compact feed in the route skeleton", () => {
     const { container } = render(
       <>
         <InboxQueueSummarySkeleton />
@@ -218,11 +225,9 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     const summary = screen.getByTestId(INBOX_TEST_ID.LOADING_SUMMARY);
     const tabs = screen.getByTestId(INBOX_TEST_ID.LOADING_TABS);
     const filters = screen.getByTestId(INBOX_TEST_ID.LOADING_FILTERS);
-    const groups = screen.getAllByTestId(INBOX_TEST_ID.LOADING_GROUP);
     const rows = screen.getAllByTestId(INBOX_TEST_ID.LOADING_ROW);
 
-    expect(groups).toHaveLength(2);
-    expect(rows).toHaveLength(5);
+    expect(rows).toHaveLength(3);
     expect(container.innerHTML.indexOf(summary.outerHTML)).toBeLessThan(
       container.innerHTML.indexOf(tabs.outerHTML),
     );
@@ -230,9 +235,10 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
       container.innerHTML.indexOf(filters.outerHTML),
     );
     expect(container.innerHTML.indexOf(filters.outerHTML)).toBeLessThan(
-      container.innerHTML.indexOf(groups[0].outerHTML),
+      container.innerHTML.indexOf(rows[0]!.outerHTML),
     );
-    expect(rows[0]).toHaveClass("min-h-14");
+    expect(rows[0]).toHaveClass("rounded-(--radius-card)");
+    expect(rows[0]?.querySelector(".border-t")).not.toBeNull();
   });
 
   it("keeps the loading route composition aligned with the loaded queue", () => {
@@ -290,7 +296,7 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
         ownershipHint: "Owner action required · read-only",
         detailParts: ["Cash"],
       }),
-    ).toBe("Due: 1 Jan 2026 · Cash");
+    ).toBe("Due: 1 Jan 2026 · Cash · Owner action required · read-only");
     expect(
       inboxQueueRowSubtitle({
         lifecycleLabel: null,
@@ -306,63 +312,44 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
       }),
     ).toBeNull();
     expect(
-      inboxQueueLifecycleLabel({
-        context: InboxLifecycleContext.MATURITY,
-        label: "Maturity: Oct 8, 2026",
-      }),
-    ).toBeNull();
-    expect(
-      inboxQueueLifecycleLabel({
-        context: InboxLifecycleContext.DUE,
-        label: "Due: 1 Jan 2026",
-      }),
-    ).toBe("Due: 1 Jan 2026");
-    expect(
-      inboxQueueLifecycleLabel({
-        context: InboxLifecycleContext.EXPIRES,
-        label: "Expires: 1 Jan 2026",
-      }),
-    ).toBe("Expires: 1 Jan 2026");
-    expect(
       inboxQueueRowSubtitle({
-        lifecycleLabel: inboxQueueLifecycleLabel({
-          context: InboxLifecycleContext.MATURITY,
-          label: "Maturity: Oct 8, 2026",
-        }),
-        ownershipHint: null,
+        lifecycleLabel: "Maturity: Oct 8, 2026",
+        ownershipHint: "Owner action required · read-only",
         detailParts: ["Settlement cash"],
       }),
-    ).toBe("Settlement cash");
+    ).toBe(
+      "Maturity: Oct 8, 2026 · Settlement cash · Owner action required · read-only",
+    );
     expect(
       inboxQueueDominantTitle({
         kind: InboxItemKind.SAVINGS_MATURITY,
         displayTitle: "Tikop 3 tháng vợ — Matures in 30 days",
+        accountName: "Tikop 3 tháng vợ",
       }),
     ).toEqual({
-      title: "Matures in 30 days",
-      context: "Tikop 3 tháng vợ",
+      title: "Tikop 3 tháng vợ — Matures in 30 days",
     });
     expect(
       inboxQueueDominantTitle({
         kind: InboxItemKind.SAVINGS_MATURITY,
         displayTitle: "Matures in 30 days",
+        accountName: "Settlement cash",
       }),
     ).toEqual({
-      title: "Matures in 30 days",
-      context: null,
+      title: "Settlement cash — Matures in 30 days",
     });
     expect(
       inboxQueueDominantTitle({
         kind: InboxItemKind.UNMAPPED_EXPENSE,
         displayTitle: "Lunch — leftover",
+        accountName: "Cash",
       }),
     ).toEqual({
       title: "Lunch — leftover",
-      context: null,
     });
   });
 
-  it("keeps the savings-maturity countdown once and omits the duplicate date", () => {
+  it("shows the savings-maturity product, state, and date in the scan hierarchy", () => {
     const maturityTitle = "Matures in 30 days";
     renderInbox(
       <InboxQueueList
@@ -375,6 +362,11 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
             note: null,
             categoryName: null,
             accountName: "Settlement cash",
+            typed: instantiateTypedReviewItem({
+              kind: InboxItemKind.SAVINGS_MATURITY,
+              sourceId: reviewItem().sourceId,
+              contextJson: { currentRate: 5.8 },
+            }),
             lifecycleDate: "2026-10-08",
             lifecycleContext: InboxLifecycleContext.MATURITY,
           }),
@@ -384,22 +376,30 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
 
     const row = screen.getByTestId(
-      "inbox-item-550e8400-e29b-41d4-a716-446655440030",
+      inboxItemTestId("550e8400-e29b-41d4-a716-446655440030"),
     );
     expect(row).toHaveTextContent(maturityTitle);
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      enInbox.kinds.savings_maturity,
+    expect(row).toHaveTextContent("Settlement cash — Matures in 30 days");
+    expect(row).toHaveTextContent(`${enInbox.lifecycleMaturity}:`);
+    expect(row).toHaveTextContent("Oct 8, 2026");
+    expect(row).toHaveTextContent(`${enInbox.factRate}: 5.8%`);
+    expect(
+      within(row).getByText(enInbox.kinds.savings_maturity),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(
+        inboxItemTestId("550e8400-e29b-41d4-a716-446655440030"),
+      ),
+    ).toHaveAttribute(
+      "aria-label",
+      expect.stringContaining("Settlement cash — Matures in 30 days"),
     );
-    expect(row).toHaveTextContent("Settlement cash");
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.UNREAD)).toBeInTheDocument();
-    expect(row).not.toHaveTextContent(`${enInbox.lifecycleMaturity}:`);
-    expect(row).not.toHaveTextContent("Oct 8, 2026");
     expect(screen.getByTestId(INBOX_TEST_ID.AMOUNT)).toHaveTextContent(
       "₫45,000",
     );
   });
 
-  it("keeps the savings-maturity product as compact context, not a second title line", () => {
+  it("keeps a stored savings-maturity product and state together in the title", () => {
     renderInbox(
       <InboxQueueList
         items={[
@@ -420,19 +420,26 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
 
     const row = screen.getByTestId(
-      "inbox-item-550e8400-e29b-41d4-a716-446655440034",
+      inboxItemTestId("550e8400-e29b-41d4-a716-446655440034"),
     );
     expect(row).toHaveTextContent("Matures in 30 days");
-    expect(row).toHaveTextContent("Tikop 3 tháng vợ");
-    expect(row).not.toHaveTextContent("Tikop 3 tháng vợ — Matures in 30 days");
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      enInbox.kinds.savings_maturity,
-    );
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.UNREAD)).toBeInTheDocument();
-    expect(row).not.toHaveTextContent(`${enInbox.lifecycleMaturity}:`);
+    expect(row).toHaveTextContent("Tikop 3 tháng vợ — Matures in 30 days");
+    expect(
+      within(row).getByText(enInbox.kinds.savings_maturity),
+    ).toBeInTheDocument();
+    expect(row).toHaveTextContent("Oct 8, 2026");
+    expect(row).not.toHaveTextContent(`${enInbox.factRate}:`);
     expect(
       screen.getByTestId(
-        "inbox-item-link-550e8400-e29b-41d4-a716-446655440034",
+        inboxItemTestId("550e8400-e29b-41d4-a716-446655440034"),
+      ),
+    ).toHaveAttribute(
+      "aria-label",
+      expect.stringContaining(enInbox.unreadLabel),
+    );
+    expect(
+      screen.getByTestId(
+        inboxItemTestId("550e8400-e29b-41d4-a716-446655440034"),
       ),
     ).toHaveAttribute(
       "aria-label",
@@ -440,7 +447,7 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
   });
 
-  it("keeps ownership context on the savings-maturity row without restoring the date", () => {
+  it("keeps ownership and maturity date context on the savings-maturity row", () => {
     renderInbox(
       <InboxQueueList
         items={[
@@ -464,12 +471,14 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     expect(
       screen.getByText(new RegExp(enInbox.ownerRequiredHint)),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("inbox-item-550e8400-e29b-41d4-a716-446655440031"),
-    ).not.toHaveTextContent(`${enInbox.lifecycleMaturity}:`);
+    const row = screen.getByTestId(
+      inboxItemTestId("550e8400-e29b-41d4-a716-446655440031"),
+    );
+    expect(row).toHaveTextContent(`${enInbox.lifecycleMaturity}:`);
+    expect(row).toHaveTextContent("Owner action required");
   });
 
-  it("keeps Vietnamese savings-maturity kind copy without duplicating the date", () => {
+  it("shows Vietnamese savings-maturity lifecycle metadata", () => {
     renderInbox(
       <InboxQueueList
         items={[
@@ -491,13 +500,13 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
 
     const row = screen.getByTestId(
-      "inbox-item-550e8400-e29b-41d4-a716-446655440032",
+      inboxItemTestId("550e8400-e29b-41d4-a716-446655440032"),
     );
     expect(row).toHaveTextContent("Matures in 30 days");
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      viInbox.kinds.savings_maturity,
-    );
-    expect(row).not.toHaveTextContent(`${viInbox.lifecycleMaturity}:`);
+    expect(
+      within(row).getByText(viInbox.kinds.savings_maturity),
+    ).toBeInTheDocument();
+    expect(row).toHaveTextContent(`${viInbox.lifecycleMaturity}:`);
   });
 
   it("keeps independent due-date context on non-maturity rows", () => {
@@ -521,26 +530,28 @@ describe("Inbox scan and loading hierarchy (B07)", () => {
     );
 
     const row = screen.getByTestId(
-      "inbox-item-550e8400-e29b-41d4-a716-446655440033",
+      inboxItemTestId("550e8400-e29b-41d4-a716-446655440033"),
     );
     expect(row).toHaveTextContent("Home loan installment");
     expect(row).toHaveTextContent(`${enInbox.lifecycleDue}:`);
-    expect(screen.getByTestId(REVIEW_CARD_TEST_ID.KIND)).toHaveTextContent(
-      enInbox.kinds.loan_payment_attention,
-    );
+    expect(
+      within(row).getByText(enInbox.kinds.loan_payment_attention),
+    ).toBeInTheDocument();
   });
 
   it("does not change Inbox queue tabs, filters, or grouping chrome", () => {
     renderInbox(<InboxQueueList items={[reviewItem()]} locale="en" />);
 
-    expect(screen.getByTestId("inbox-kind-filter")).toBeInTheDocument();
-    expect(screen.getByTestId("inbox-search")).toBeInTheDocument();
-    expect(screen.getByTestId("inbox-filter-all")).toBeInTheDocument();
+    expect(screen.getByTestId(INBOX_TEST_ID.KIND_FILTER)).toBeInTheDocument();
+    expect(screen.getByTestId(INBOX_TEST_ID.SEARCH)).toBeInTheDocument();
+    expect(
+      screen.getByTestId(inboxFilterTestId(InboxKindFilter.ALL)),
+    ).toBeInTheDocument();
     expect(screen.getByText(enInbox.pendingSectionTitle)).toBeInTheDocument();
     expect(
-      screen.getByTestId(inboxGroupTestId(InboxItemKind.UNMAPPED_EXPENSE)),
+      screen.getByTestId(inboxItemTestId(reviewItem().id)),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("inbox-partner-note")).toHaveTextContent(
+    expect(screen.getByTestId(INBOX_TEST_ID.PARTNER_NOTE)).toHaveTextContent(
       enInbox.partnerEqualNote,
     );
   });

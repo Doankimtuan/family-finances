@@ -303,18 +303,18 @@ describe("Phase 11 Recurring, Calendar, and Ritual presentation", () => {
     });
   });
 
-  it("keeps Plan hub child entries concise and the five-tab shell unchanged", () => {
+  it("keeps Plan hub child entries concise and the five-route shell unchanged", () => {
     const hub = readProjectFile("app/[locale]/(product)/plan/page.tsx");
     expect(hub).toContain("plan-entry-recurring");
-    expect(hub).toContain("plan-workspace-calendar");
-    expect(hub).toContain("plan-ritual-open");
+    expect(hub).toContain("plan-shortcut-calendar");
+    expect(hub).toContain("plan-shortcut-review");
     expect(hub).toContain("APP_PATH.PLAN_RECURRING");
     expect(hub).toContain("APP_PATH.PLAN_CALENDAR");
     expect(hub).toContain("APP_PATH.PLAN_RITUAL");
     expect(hub).not.toContain("getHouseholdCalendar");
     expect(hub).not.toContain("listRecurring");
     expect(hub).not.toContain("getMonthlyReview");
-    expect(TABS).toHaveLength(5);
+    expect(TABS).toHaveLength(4);
   });
 
   it("uses locale weekday names in Recurring copy, not 0=Sun developer labels", () => {

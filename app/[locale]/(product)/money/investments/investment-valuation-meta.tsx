@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import {
   InvestmentAssetClass,
+  InvestmentValuationMetaVariant,
   MarketPricingMode,
   MarketPriceType,
   MarketValuationQuality,
@@ -17,15 +18,7 @@ import { Text } from "@/shared/ui/text";
 const CRYPTO_DECIMAL_DIGITS = 8;
 const STANDARD_DECIMAL_DIGITS = 2;
 
-/** Rendering depth: badge stack (detail), wrapping line (hero), or compact row. */
-export const InvestmentValuationMetaVariant = {
-  BADGE: "badge",
-  INLINE: "inline",
-  ROW: "row",
-} as const;
-
-export type InvestmentValuationMetaVariant =
-  (typeof InvestmentValuationMetaVariant)[keyof typeof InvestmentValuationMetaVariant];
+export { InvestmentValuationMetaVariant } from "@/modules/investments/application/investment-constants";
 
 function dateLabel(value: string, locale: string) {
   return formatDate(new Date(`${value}T00:00:00`), locale, {

@@ -5,6 +5,10 @@ import {
   FinancialAmountTone,
 } from "@/shared/ui/financial-amount";
 import { ProviderLogo } from "./provider-row";
+import {
+  FinancialNumberKind,
+  type FinancialNumberKind as FinancialNumberKindValue,
+} from "./financial-number-kind";
 import { BaseRow, type BaseRowDivider, BaseRowMinHeight } from "./base-row";
 
 export type AccountKind = "asset" | "credit";
@@ -23,14 +27,19 @@ export type AccountRowProps = {
   logoSrc?: string | null;
   /** Primary monetary figure (Asset balance or Credit outstanding). */
   balance: number | string;
+  balanceKind?: FinancialNumberKindValue;
   /** Credit limit if this is a credit card. */
   creditLimit?: number | string;
+  /** Optional precomposed subtitle for concise overview rows. */
+  subtitle?: ReactNode;
+  subtitleClassName?: string;
   currency?: string;
   secondaryAction?: ReactNode;
   href?: string;
   onClick?: () => void;
   onPress?: () => void;
   disabled?: boolean;
+  minHeight?: BaseRowMinHeight;
   divider?: BaseRowDivider;
   className?: string;
   "aria-label"?: string;
@@ -51,7 +60,10 @@ export function AccountRow({
   institutionName,
   logo,
   logoSrc,
+  subtitle,
+  subtitleClassName,
   balance,
+  balanceKind = FinancialNumberKind.CURRENT_STATE,
   creditLimit,
   currency = "₫",
   secondaryAction,
@@ -59,6 +71,7 @@ export function AccountRow({
   onClick,
   onPress,
   disabled = false,
+  minHeight = BaseRowMinHeight.INSTRUMENT,
   divider = "inset",
   className,
   "aria-label": ariaLabel,
@@ -77,9 +90,10 @@ export function AccountRow({
 
   const leadingSlot = logo ?? <ProviderLogo src={logoSrc} name={nameString} />;
 
-  const subtitleText = [institutionName, accountNumberMask]
-    .filter(Boolean)
-    .join(" · ");
+  const subtitleText =
+    subtitle ??
+    ([institutionName, accountNumberMask].filter(Boolean).join(" · ") ||
+      undefined);
 
   const trailingSlot = (
     <div className="flex flex-col items-end gap-0.5 max-w-[50%]">
@@ -89,6 +103,7 @@ export function AccountRow({
         currency={currency}
         size={FinancialAmountSize.ROW_AMOUNT}
         tone={isCredit ? FinancialAmountTone.DEBT : FinancialAmountTone.NEUTRAL}
+        kind={balanceKind}
         privacyAware
       />
       {isCredit && creditLimit !== undefined ? (
@@ -113,10 +128,11 @@ export function AccountRow({
     <BaseRow
       leading={leadingSlot}
       title={resolvedName}
-      subtitle={subtitleText || undefined}
+      subtitle={subtitleText}
+      subtitleClassName={subtitleClassName}
       trailing={trailingSlot}
       action={secondaryAction}
-      minHeight={BaseRowMinHeight.INSTRUMENT}
+      minHeight={minHeight}
       divider={divider}
       href={href}
       onClick={onClick}

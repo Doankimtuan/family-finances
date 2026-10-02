@@ -11,7 +11,6 @@
 ## Home Source Files Expected To Change
 
 - `app/[locale]/(product)/home/page.tsx`
-- `app/[locale]/(product)/home/home-capture-action.tsx`
 - `app/[locale]/(product)/home/home-inbox-cta.tsx`
 - `app/[locale]/(product)/home/home-health-chip.tsx`
 - `app/[locale]/(product)/home/home-day-zero-trio.tsx`

@@ -4,5 +4,9 @@
   "plan": "Plan",
   "inbox": "Inbox",
   "together": "Together",
+  "addTransaction": "Add transaction",
+  "offlineAddTransaction": "Connect to add a transaction",
+  "add": "Add",
+  "record": "Record",
   "health": "Health"
 }

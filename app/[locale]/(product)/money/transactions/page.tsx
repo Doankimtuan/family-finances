@@ -3,7 +3,10 @@ import { hasLocale } from "next-intl";
 import { setLocale } from "@/i18n/set-locale";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  moneyAccountPath,
+} from "@/modules/tenancy/application/app-path";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
@@ -22,18 +25,20 @@ import {
   FinancialPrivacyToggle,
   FinancialPrivacyToggleTone,
 } from "@/shared/patterns/financial-privacy-toggle";
-import { FloatingAction } from "@/shared/patterns/floating-action";
 import { AppIcon, AppIconSize } from "@/shared/ui";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../money-offline-banner";
-import { MoneyCaptureAction } from "../money-capture-action";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
 import { TransactionsActivityList } from "./transactions-activity-list";
-import { transactionsListHref } from "./transactions-list-presentations";
+import {
+  accountTransactionsHref,
+  transactionsListHref,
+} from "./transactions-list-presentations";
 
 type Props = {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{
+    account?: string;
     type?: string;
     tags?: string;
     cursor?: string;
@@ -60,6 +65,7 @@ export default async function TransactionsListPage({
 
   const sp = await searchParams;
   const parsedFilters = transactionEventFilterSchema.safeParse({
+    account: sp.account,
     type: sp.type,
     tags: sp.tags,
     q: sp.q,
@@ -73,6 +79,7 @@ export default async function TransactionsListPage({
     q: filters.q || undefined,
     categoryIds: filters.categoryIds,
     jarIds: filters.jarIds,
+    accountId: filters.accountId,
   });
   if (sp.cursor) redirect({ href: currentHref, locale });
 
@@ -90,6 +97,7 @@ export default async function TransactionsListPage({
   const hasActiveFilter =
     filters.type !== TransactionFilterType.ALL ||
     Boolean(
+      filters.accountId ||
       filters.q ||
       filters.categoryIds.length ||
       filters.jarIds.length ||
@@ -107,20 +115,16 @@ export default async function TransactionsListPage({
         action={
           hasActiveFilter ? (
             <Link
-              href={APP_PATH.MONEY_TRANSACTIONS}
+              href={
+                filters.accountId
+                  ? accountTransactionsHref(filters.accountId)
+                  : APP_PATH.MONEY_TRANSACTIONS
+              }
               className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] border border-border-subtle bg-surface text-sm font-medium text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
             >
               {t("clearFilters")}
             </Link>
-          ) : (
-            <Link
-              href={APP_PATH.MONEY_ADD}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-[var(--radius-control)] bg-accent px-(--space-4) text-sm font-medium text-accent-fg shadow-(--elevation-1) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              data-testid="transactions-empty-add"
-            >
-              {t("add")}
-            </Link>
-          )
+          ) : undefined
         }
       />
     </div>
@@ -133,10 +137,22 @@ export default async function TransactionsListPage({
       topBar={
         <TopAppBar
           variant="detail"
-          title={t("title")}
+          title={
+            filters.accountId
+              ? tMoney("accountDetail.statementTitle")
+              : t("title")
+          }
           subtitle={t("subtitle")}
-          backHref={APP_PATH.MONEY}
-          backLabel={tMoney("backToMoney")}
+          backHref={
+            filters.accountId
+              ? moneyAccountPath(filters.accountId)
+              : APP_PATH.MONEY
+          }
+          backLabel={
+            filters.accountId
+              ? tMoney("accountDetail.title")
+              : tMoney("backToMoney")
+          }
           trailing={
             <FinancialPrivacyToggle
               hideLabel={tMoney("financialPrivacy.hide")}
@@ -150,6 +166,7 @@ export default async function TransactionsListPage({
     >
       <MoneyOfflineBanner />
       <TransactionsFilterBar
+        accountId={filters.accountId}
         type={filters.type}
         query={filters.q ?? ""}
         categoryIds={filters.categoryIds}
@@ -177,6 +194,7 @@ export default async function TransactionsListPage({
         emptyState
       ) : (
         <TransactionsActivityList
+          accountId={filters.accountId}
           key={currentHref}
           listKey={currentHref}
           initialActivities={result.activities}
@@ -190,9 +208,6 @@ export default async function TransactionsListPage({
           emptyState={emptyState}
         />
       )}
-      <FloatingAction>
-        <MoneyCaptureAction testId="transactions-add" />
-      </FloatingAction>
     </Page>
   );
 }

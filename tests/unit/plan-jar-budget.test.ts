@@ -13,6 +13,7 @@ import {
   calculateJarSpentAmount,
   calculatePeriodIncome,
   resolveJarPlanForPeriod,
+  summarizeJarBudgets,
 } from "@/modules/plan/application/jar-budget";
 import { calculateRolloverCreditFromPreviousState } from "@/modules/plan/application/jar-rollover";
 
@@ -26,6 +27,46 @@ const percentJar = {
 };
 
 describe("Plan V2 jar budgets", () => {
+  it("summarizes only complete live jar budgets", () => {
+    const metrics = calculateJarBudgetMetrics(
+      fixedJar,
+      "jar-a",
+      [
+        {
+          type: TransactionLedgerType.EXPENSE,
+          amount: 20_000_000,
+          status: TransactionStatus.POSTED,
+          jar_id: "jar-a",
+        },
+      ],
+      { periodIncome: 0 },
+    );
+    const withinBudget = calculateJarBudgetMetrics(fixedJar, "jar-b", [], {
+      periodIncome: 0,
+    });
+
+    expect(
+      summarizeJarBudgets(["jar-a", "jar-b"], {
+        "jar-a": metrics,
+        "jar-b": withinBudget,
+      }),
+    ).toEqual({
+      budgetAmount: 30_000_000,
+      spentAmount: 20_000_000,
+      remainingAmount: 10_000_000,
+      usagePercent: 67,
+    });
+    expect(
+      summarizeJarBudgets(["jar-a", "missing"], { "jar-a": metrics }),
+    ).toBe(null);
+    expect(summarizeJarBudgets([], {})).toEqual({
+      budgetAmount: 0,
+      spentAmount: 0,
+      remainingAmount: 0,
+      usagePercent: null,
+    });
+  });
+
   it("uses the edited live plan for the current period", () => {
     const editedPlan = {
       kind: JarPlanKind.FIXED,

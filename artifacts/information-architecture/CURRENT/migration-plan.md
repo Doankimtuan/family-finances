@@ -4,7 +4,7 @@ Architecture-only migration plan. No implementation steps are prescribed beyond 
 
 ## Phase B to Phase C Handoff
 
-1. Treat the five-tab model as fixed.
+1. Preserve Home, Money, Plan, and Inbox as bottom route tabs; place transaction creation in the center action and use Home's household shortcut for Together.
 2. Treat Health and Settings as secondary surfaces.
 3. Use the screen catalog as the canonical UX redesign input.
 4. Use route taxonomy when creating UX flows.
@@ -106,4 +106,3 @@ Affected audit issues:
 - No financial invariant changes.
 - No UI layout or visual redesign.
 - No implementation.
-

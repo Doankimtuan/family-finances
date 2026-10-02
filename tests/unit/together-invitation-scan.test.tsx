@@ -217,10 +217,12 @@ describe("Together terminology localization (B15)", () => {
       "app/[locale]/(product)/together/together-loading-skeleton.tsx",
     );
 
-    expect(overview).toContain('eyebrow={t("header.eyebrow")}');
-    expect(loading).toContain('eyebrow={t("header.eyebrow")}');
-    expect(overview).not.toContain('eyebrow="Together"');
-    expect(loading).not.toContain('eyebrow="Together"');
+    expect(overview).toContain('title={t("header.headline")}');
+    expect(overview).toContain('label={tNavigation("together")}');
+    expect(loading).toContain('subtitle={t("header.supporting")}');
+    expect(loading).toContain('label={tNavigation("together")}');
+    expect(overview).not.toContain('title="Together"');
+    expect(loading).not.toContain('title="Together"');
   });
 
   it("localizes Together terminology in Vietnamese Together surfaces", () => {
@@ -290,8 +292,8 @@ describe("Together terminology localization (B15)", () => {
     expect(overview).toContain("TOGETHER_PATH.MEMBERS");
     expect(overview).toContain("TOGETHER_PATH.INVITATIONS");
     expect(overview).toContain("TOGETHER_PATH.POLICIES");
-    expect(overview).toContain("TOGETHER_PATH.SETTINGS");
-    expect(overview).not.toContain("TOGETHER_PATH.PREFERENCES");
+    expect(overview).toContain("TOGETHER_PATH.PREFERENCES");
+    expect(overview).not.toContain("TOGETHER_PATH.SETTINGS");
     expect(overview).toContain('description={t("membersDescription")}');
     expect(accept).toContain('t("goHome")');
     expect(accept).toContain("APP_PATH.WELCOME");

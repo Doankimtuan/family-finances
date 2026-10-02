@@ -9,6 +9,7 @@ export const IconContainerTone = {
   TRANSFER: "transfer",
   INVESTMENT: "investment",
   SAVINGS: "savings",
+  WARNING: "warning",
   DEBT: "debt",
   INFO: "info",
   REFUND: "refund",
@@ -20,7 +21,7 @@ export type IconContainerTone =
 export type IconContainerProps = {
   children: ReactNode;
   tone?: IconContainerTone;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
   className?: string;
 };
 
@@ -32,6 +33,7 @@ const toneClassName: Record<IconContainerTone, string> = {
   transfer: "bg-transfer-soft text-transfer",
   investment: "bg-investment-soft text-investment",
   savings: "bg-savings-soft text-savings",
+  warning: "bg-warning/10 text-warning",
   info: "bg-info/10 text-info",
   debt: "bg-debt-soft text-debt",
   refund: "bg-refund-soft text-refund",
@@ -49,7 +51,11 @@ export function IconContainer({
       aria-hidden
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)]",
-        size === "sm" ? "size-8" : "size-10",
+        size === "xs"
+          ? "size-7 rounded-(--radius-sm)"
+          : size === "sm"
+            ? "size-8"
+            : "size-10",
         toneClassName[tone],
         className,
       )}

@@ -2,21 +2,25 @@
 
 ## Bottom Navigation
 
-Canonical bottom tabs:
+Canonical bottom navigation:
 
-| Tab | Route | Responsibility |
+| Slot | Route | Responsibility |
 |---|---|---|
 | Home | `/home` | Household dashboard and next actions. |
 | Money | `/money` | Financial reality, money inventory, transaction history. |
+| Record | `/money/transactions/new` | Start a transaction capture; this is an action, not a selected route. |
 | Plan | `/plan` | Household intentions and planning workflows. |
 | Inbox | `/inbox` | Review queue and decisions. |
-| Together | `/together` | Household members, access, policies, preferences, settings. |
+| Home household shortcut | `/together` | Household identity, members, invitations, and shared rules. |
 
 Rules:
 
-- Bottom navigation has exactly five items.
+- Bottom navigation has five equal slots: Home, Money, Record, Plan, and Inbox.
+- Record opens transaction capture and has no selected-route state.
+- Together remains the `/together` top-level route, reached through Home's household shortcut; its existing nested routes stay within the Together destination.
+- Money, Plan, and Inbox do not show a Together header button. The Together screen may mark its own destination current.
 - Bottom navigation never contains Health, Settings, or object-specific routes.
-- Active tab is based on the top-level product section.
+- Active route tabs are based on the top-level product section; the Record action has no selected-tab state.
 - Cross-module deep links preserve the active top-level destination after navigation.
 
 ## Top Navigation
@@ -32,7 +36,8 @@ Rules:
 - Hubs have titles and optional primary action.
 - Detail screens have back navigation to their parent list or originating screen.
 - Action screens have cancel/back and submit/confirm.
-- Top navigation does not duplicate bottom navigation.
+- Home's household action opens `/together`; Money, Plan, and Inbox omit this shortcut from their headers.
+- Top navigation does not duplicate the Home, Money, Plan, or Inbox route tabs.
 - Top navigation should not expose more than one primary action.
 
 ## Secondary Navigation
@@ -169,4 +174,3 @@ Completion rules:
 - Edit object: return to object detail.
 - Correct/refund/payment/action: return to object detail or review item if launched from Inbox.
 - Onboarding complete: go to Home.
-

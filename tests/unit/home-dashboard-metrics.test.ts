@@ -4,7 +4,10 @@ import {
   calculatePeriodComparison,
   getHomeDashboardDateRange,
 } from "@/modules/home/application";
-import { HomeDashboardPeriod } from "@/modules/home/application/home-constants";
+import {
+  HOME_DASHBOARD_MAX_CATEGORY_COUNT,
+  HomeDashboardPeriod,
+} from "@/modules/home/application/home-constants";
 import {
   TransactionLedgerType,
   TransactionStatus,
@@ -152,6 +155,28 @@ describe("Home financial metrics", () => {
     expect(metrics.expenseComparison).toEqual({
       amount: -1_000_000,
       ratio: -0.2,
+    });
+  });
+
+  it("aggregates spending beyond the four visible categories into a remainder", () => {
+    const metrics = calculateHomeFinancialMetrics({
+      range,
+      transactions: [
+        transaction({ id: "housing", amount: 400, categoryId: "housing" }),
+        transaction({ id: "food", amount: 250, categoryId: "food" }),
+        transaction({ id: "transport", amount: 150, categoryId: "transport" }),
+        transaction({ id: "shopping", amount: 100, categoryId: "shopping" }),
+        transaction({ id: "health", amount: 100, categoryId: "health" }),
+      ],
+    });
+
+    expect(metrics.spendingCategories).toHaveLength(
+      HOME_DASHBOARD_MAX_CATEGORY_COUNT,
+    );
+    expect(metrics.spendingRemainder).toEqual({
+      amount: 100,
+      proportion: 0.1,
+      progressPercent: 10,
     });
   });
 

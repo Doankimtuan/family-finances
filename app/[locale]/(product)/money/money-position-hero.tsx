@@ -7,14 +7,13 @@ import { Balance } from "@/shared/patterns/balance";
 import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import { Card } from "@/shared/patterns/card";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
-import { HeroPillLink } from "@/shared/patterns/hero-pill-link";
 import { FinancialPrivacyToggle } from "@/shared/patterns/financial-privacy-toggle";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { Heading } from "@/shared/ui/heading";
-import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
-import { ACTION_ICONS, FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import { Link } from "@/i18n/navigation";
+import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 
 type MoneyPositionAllocationSegment = {
   key: MoneyAssetAllocationKeyValue;
@@ -32,6 +31,7 @@ type MoneyPrivacyLabels = {
 type Props = {
   ownedMoneyLabel: string;
   ownedMoneyValue: string | null;
+  ownedMoneyKind: FinancialNumberKind;
   ownedMoneyHint?: string;
   positionUnavailableLabel: string;
   heroAccessibleLabel?: string;
@@ -45,37 +45,17 @@ type Props = {
   privacy?: MoneyPrivacyLabels;
 };
 
-const ASSET_ALLOCATION_VISUAL = {
-  [MoneyAssetAllocationKey.ACCOUNTS]: {
-    icon: FINANCE_ICONS.account,
-    tone: IconContainerTone.PRIMARY,
-  },
-  [MoneyAssetAllocationKey.SAVINGS]: {
-    icon: FINANCE_ICONS.savings,
-    tone: IconContainerTone.SAVINGS,
-  },
-  [MoneyAssetAllocationKey.INVESTMENTS]: {
-    icon: FINANCE_ICONS.investment,
-    tone: IconContainerTone.INVESTMENT,
-  },
-} as const;
-
 const ALLOCATION_SEGMENT_CLASS: Record<MoneyAssetAllocationKeyValue, string> = {
   [MoneyAssetAllocationKey.ACCOUNTS]: "bg-primary",
-  [MoneyAssetAllocationKey.SAVINGS]: "bg-saving",
+  [MoneyAssetAllocationKey.SAVINGS]: "bg-success",
   [MoneyAssetAllocationKey.INVESTMENTS]: "bg-investment",
 };
 
-/**
- * The Money position summary: one brand hero answering "how much accessible
- * money is in active liquid accounts" with the transactions entry, and an
- * attached allocation strip answering "where it sits". Money stays an
- * inventory surface — the allocation strip is the analytics ceiling here,
- * never charts.
- */
+/** Consolidated asset snapshot with the existing allocation and privacy rules. */
 export function MoneyPositionHero({
   ownedMoneyLabel,
   ownedMoneyValue,
+  ownedMoneyKind,
   ownedMoneyHint,
   positionUnavailableLabel,
   heroAccessibleLabel,
@@ -89,16 +69,26 @@ export function MoneyPositionHero({
   privacy,
 }: Props) {
   return (
-    <div className="flex flex-col gap-(--space-3)">
-      <Card
-        tone="hero"
-        className="gap-0 p-(--space-4)"
-        data-testid="money-real-position-summary"
-      >
-        <div className="flex items-center justify-between gap-(--space-3)">
-          <Text size="sm" weight="medium" className="text-hero-muted">
-            {ownedMoneyLabel}
-          </Text>
+    <Card
+      tone="elevated"
+      className="gap-0 overflow-hidden rounded-2xl border border-border-subtle bg-linear-to-br from-surface via-surface to-primary-soft/20 p-(--space-5)"
+      data-testid="money-real-position-summary"
+    >
+      <div>
+        <div className="mb-(--space-2) flex items-center justify-between gap-(--space-3) text-text-muted">
+          <div className="flex min-w-0 items-center gap-(--space-2)">
+            <span
+              className="size-(--space-2) shrink-0 rounded-full bg-income"
+              aria-hidden="true"
+            />
+            <Text
+              size="xs"
+              weight="semibold"
+              className="tracking-wider uppercase text-text-muted"
+            >
+              {ownedMoneyLabel}
+            </Text>
+          </div>
           {privacy ? (
             <FinancialPrivacyToggle
               hideLabel={privacy.hideLabel}
@@ -107,8 +97,9 @@ export function MoneyPositionHero({
             />
           ) : null}
         </div>
+
         <div
-          className="mt-(--space-2)"
+          className="my-(--space-1) min-w-0"
           role="group"
           aria-label={heroAccessibleLabel ?? ownedMoneyLabel}
         >
@@ -116,7 +107,7 @@ export function MoneyPositionHero({
             <Text
               size="lg"
               weight="semibold"
-              className="text-hero-fg"
+              className="text-text-primary"
               data-testid="money-position-unavailable"
             >
               {positionUnavailableLabel}
@@ -125,110 +116,109 @@ export function MoneyPositionHero({
             <Balance
               amountLabel={ownedMoneyValue}
               size={BalanceSize.HERO}
-              amountClassName="text-hero-fg"
+              kind={ownedMoneyKind}
+              amountClassName="text-text-primary"
             />
           )}
           {ownedMoneyHint ? (
             <Text
               size="xs"
-              className="mt-(--space-2) text-pretty text-hero-muted"
+              className="mt-(--space-1) text-pretty text-text-muted leading-relaxed"
             >
               {ownedMoneyHint}
             </Text>
           ) : null}
         </div>
-        <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-white/15 pt-(--space-3)">
-          {metaLine}
-          <HeroPillLink href={activityHref} data-testid="money-see-activity">
-            {activityLabel}
-            <AppIcon icon={ACTION_ICONS.forward} size="xs" />
-          </HeroPillLink>
-        </div>
-      </Card>
-      {allocation.length > 0 || allocationUnavailableLabel != null ? (
-        <Card
-          tone="elevated"
-          className="gap-0 p-(--space-4)"
-          data-testid="money-asset-allocation-summary"
-        >
-          <Heading
-            level={3}
-            className="text-sm font-semibold tracking-tight text-text-primary"
-            data-slot="section-title"
+
+        {allocation.length > 0 ? (
+          <div
+            data-testid="money-asset-allocation-summary"
+            className="mt-(--space-4)"
           >
-            {allocationLabel}
-          </Heading>
-          {allocationHint ? (
-            <Text size="xs" tone="secondary" className="mt-(--space-1)">
-              {allocationHint}
-            </Text>
-          ) : null}
-          {allocation.length > 0 ? (
-            <>
-              <div
-                className="mt-(--space-3) flex h-2 w-full overflow-hidden rounded-full bg-surface-muted"
-                aria-hidden="true"
-                data-testid="money-asset-allocation-strip"
-              >
-                {allocation.map((segment) => (
+            <div
+              className="flex h-(--space-2) w-full overflow-hidden rounded-full bg-surface-muted"
+              aria-hidden="true"
+              data-testid="money-asset-allocation-strip"
+            >
+              {allocation.map((segment) => (
+                <span
+                  key={segment.key}
+                  className={ALLOCATION_SEGMENT_CLASS[segment.key] + " min-w-1"}
+                  style={{ width: segment.percentage + "%" }}
+                />
+              ))}
+            </div>
+
+            <div
+              className="mt-(--space-3) flex flex-wrap items-center gap-(--space-2)"
+              aria-label={allocationLabel}
+              data-testid="money-asset-allocation-legend"
+            >
+              {allocation.map((segment) => (
+                <div
+                  key={segment.key}
+                  className="inline-flex items-center gap-(--space-2) rounded-full border border-border-subtle bg-surface-muted/60 px-(--space-3) py-(--space-1) text-xs text-text-secondary"
+                >
                   <span
-                    key={segment.key}
-                    className={`min-w-1 ${ALLOCATION_SEGMENT_CLASS[segment.key]}`}
-                    style={{ width: `${segment.percentage}%` }}
+                    className={
+                      ALLOCATION_SEGMENT_CLASS[segment.key] +
+                      " size-(--space-2) rounded-full"
+                    }
                   />
-                ))}
-              </div>
-              <ul
-                className="mt-(--space-4) flex flex-col gap-y-(--space-2)"
-                aria-label={allocationLabel}
-                data-testid="money-asset-allocation-legend"
-              >
-                {allocation.map((segment) => {
-                  const visual = ASSET_ALLOCATION_VISUAL[segment.key];
-                  return (
-                    <li
-                      key={segment.key}
-                      className="flex min-w-0 items-center justify-between gap-(--space-3)"
-                    >
-                      <div className="flex min-w-0 items-center gap-(--space-2)">
-                        <IconContainer tone={visual.tone} size="sm">
-                          <AppIcon icon={visual.icon} size="xs" />
-                        </IconContainer>
-                        <div className="min-w-0">
-                          <span className="block text-sm font-medium text-text-primary">
-                            {segment.label}
-                          </span>
-                          <span className="block text-xs tabular-nums text-text-secondary">
-                            {segment.percentageLabel}
-                          </span>
-                        </div>
-                      </div>
-                      <span
-                        className={
-                          segment.key === MoneyAssetAllocationKey.INVESTMENTS
-                            ? "shrink-0 text-sm font-medium tabular-nums tracking-tight text-text-primary"
-                            : "shrink-0 text-sm font-semibold tabular-nums tracking-tight text-text-primary"
-                        }
-                        data-financial-kind={
-                          segment.key === MoneyAssetAllocationKey.INVESTMENTS
-                            ? FinancialNumberKind.ESTIMATE
-                            : FinancialNumberKind.CURRENT_STATE
-                        }
-                      >
-                        <FinancialValue>{segment.balanceLabel}</FinancialValue>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
-          ) : (
-            <Text size="sm" tone="secondary" className="mt-(--space-3)">
+                  <span className="font-medium text-text-primary">
+                    {segment.label}
+                  </span>
+                  <span>:</span>
+                  <strong
+                    className="font-medium text-text-primary tabular-nums"
+                    data-financial-kind={
+                      segment.key === MoneyAssetAllocationKey.INVESTMENTS
+                        ? FinancialNumberKind.ESTIMATE
+                        : FinancialNumberKind.CURRENT_STATE
+                    }
+                  >
+                    <FinancialValue>{segment.balanceLabel}</FinancialValue>
+                  </strong>
+                  <span>({segment.percentageLabel})</span>
+                </div>
+              ))}
+            </div>
+            {allocationHint ? (
+              <Text size="xs" tone="secondary" className="mt-(--space-2)">
+                {allocationHint}
+              </Text>
+            ) : null}
+          </div>
+        ) : allocationUnavailableLabel != null ? (
+          <div
+            data-testid="money-asset-allocation-summary"
+            className="mt-(--space-3)"
+          >
+            <Text size="xs" tone="secondary">
               {allocationUnavailableLabel}
             </Text>
-          )}
-        </Card>
-      ) : null}
-    </div>
+          </div>
+        ) : null}
+
+        <div className="mt-(--space-4) flex flex-wrap items-center justify-between gap-x-(--space-3) gap-y-(--space-2) border-t border-border-subtle/80 pt-(--space-3)">
+          {metaLine ? (
+            <div className="text-xs text-text-secondary">{metaLine}</div>
+          ) : null}
+          <Link
+            href={activityHref}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            data-testid="money-see-activity"
+            className="group inline-flex min-h-11 min-w-11 items-center gap-(--space-2) text-xs font-medium text-primary transition-colors hover:text-primary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            {activityLabel}
+            <AppIcon
+              icon={ACTION_ICONS.forward}
+              size="xs"
+              className="transition-transform group-hover:translate-x-0.5"
+            />
+          </Link>
+        </div>
+      </div>
+    </Card>
   );
 }

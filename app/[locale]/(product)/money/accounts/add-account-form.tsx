@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -9,12 +10,24 @@ import { IconPickerField, SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { Text } from "@/shared/ui/text";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { AmountField } from "@/shared/patterns/amount-field";
+import { CurrencyInput } from "@/shared/ui/form";
 import { Dialog, DialogContent } from "@/shared/patterns/dialog";
 import { Sheet } from "@/shared/patterns/sheet";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
+import {
+  ChoiceTile,
+  ChoiceTileGroup,
+  ChoiceTileLayout,
+} from "@/shared/patterns/choice-tile";
+import { FormSection } from "@/shared/ui/form/form-section";
+import { FieldGroup } from "@/shared/ui/form/field-group";
+import { InlineAlert } from "@/shared/ui/inline-alert";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { cn } from "@/shared/utils/cn";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import {
   CLIENT_ACTION_ERROR_CODE,
@@ -33,7 +46,10 @@ import {
   createAccountInputSchema,
   type CreateAccountInput,
 } from "@/modules/ledger/application/commands/create-account.schema";
-import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
+import {
+  APP_PATH,
+  moneyAccountPath,
+} from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
@@ -66,7 +82,11 @@ type Props = {
    * Present form as inline card, centered dialog, or bottom sheet.
    * Money hub create CTA uses sheet (UX: short sheet).
    */
-  presentation?: "card" | "dialog" | "sheet";
+  presentation?: "card" | "dialog" | "sheet" | "page";
+  /** Locks the form to a route-specific account type. */
+  fixedType?: AccountTypeValue;
+  /** Keep credit-card creation on its dedicated route. */
+  hideCreditCardType?: boolean;
 };
 
 /**
@@ -80,12 +100,16 @@ export function AddAccountForm({
   onOpenChange,
   hideDefaultTrigger = false,
   presentation = "card",
+  fixedType,
+  hideCreditCardType = false,
 }: Props) {
   const t = useTranslations("money.accountsPage");
   const tTypes = useTranslations("money.types");
+  const tForms = useTranslations("forms");
   const tIcons = useTranslations("common.iconPicker");
   const locale = useLocale();
   const { online } = useOnlineStatusClient();
+  const router = useRouter();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = openProp !== undefined;
   const open = isControlled ? openProp : uncontrolledOpen;
@@ -114,11 +138,19 @@ export function AddAccountForm({
     resolver: zodResolver(createAccountInputSchema),
     defaultValues: {
       name: "",
-      type: AccountType.CASH,
-      iconKey: DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[AccountType.CASH],
+      type: fixedType ?? AccountType.CASH,
+      iconKey: DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[fixedType ?? AccountType.CASH],
       openingBalance: 0,
       financialScope: FINANCIAL_SCOPE.HOUSEHOLD,
-      creditCard: undefined,
+      creditCard:
+        fixedType === AccountType.CREDIT_CARD
+          ? {
+              creditLimit: null,
+              statementDay: DEFAULT_CARD_STATEMENT_DAY,
+              dueDay: DEFAULT_CARD_DUE_DAY,
+              linkedBankAccountId: null,
+            }
+          : undefined,
     },
   });
   const type = useWatch({ control, name: "type" }) ?? AccountType.CASH;
@@ -130,7 +162,33 @@ export function AddAccountForm({
     setReceipt(null);
   };
 
+  const typeOptions = hideCreditCardType
+    ? TYPES.filter((value) => value !== AccountType.CREDIT_CARD)
+    : TYPES;
+
+  const selectType = (nextType: AccountTypeValue) => {
+    setValue("type", nextType, { shouldValidate: true });
+    setValue("iconKey", DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[nextType]);
+    setValue(
+      "creditCard",
+      nextType === AccountType.CREDIT_CARD
+        ? {
+            creditLimit: null,
+            statementDay: DEFAULT_CARD_STATEMENT_DAY,
+            dueDay: DEFAULT_CARD_DUE_DAY,
+            linkedBankAccountId: null,
+          }
+        : undefined,
+    );
+    setValue("openingBalance", 0);
+  };
+
   const close = () => {
+    if (presentation === "page") {
+      reset();
+      router.push(APP_PATH.MONEY_ACCOUNTS);
+      return;
+    }
     setOpen(false);
     reset();
   };
@@ -285,9 +343,308 @@ export function AddAccountForm({
     return receiptContent;
   }
 
+  const accountNameField = (
+    <TextField
+      id="account-name"
+      label={isCard ? t("creditNameLabel") : t("nameLabel")}
+      placeholder={isCard ? t("creditNamePlaceholder") : t("namePlaceholder")}
+      className={
+        presentation === "page"
+          ? "dark:border-divider-subtle dark:bg-canvas"
+          : undefined
+      }
+      registration={register("name")}
+      error={errors.name ? t("errors.invalid") : undefined}
+      required
+    />
+  );
+
+  const accountIconField = (
+    <Controller
+      control={control}
+      name="iconKey"
+      render={({ field, fieldState }) => (
+        <IconPickerField
+          id="account-icon"
+          label={tIcons("label")}
+          value={field.value ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[type]}
+          onChange={field.onChange}
+          options={ACCOUNT_ICON_KEYS.map((key) => ({
+            key,
+            label: tIcons(`choices.${key}`),
+            icon: ACCOUNT_ICON_BY_KEY[key],
+          }))}
+          searchLabel={tIcons("search")}
+          emptyLabel={tIcons("empty")}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          data-testid="account-icon"
+        />
+      )}
+    />
+  );
+
+  const identityFields = (
+    <FieldGroup columns={1}>
+      {!fixedType ? (
+        <SelectField
+          id="account-type"
+          label={t("typeLabel")}
+          value={type}
+          options={typeOptions.map((value) => ({
+            id: value,
+            label: tTypes(value),
+          }))}
+          onChange={(next) => selectType(next as AccountTypeValue)}
+          required
+          data-testid="account-type"
+        />
+      ) : null}
+      {accountNameField}
+      {accountIconField}
+    </FieldGroup>
+  );
+
+  const openingBalanceField = (
+    <Controller
+      control={control}
+      name="openingBalance"
+      render={({ field, fieldState }) => (
+        <CurrencyInput
+          id="account-opening-balance"
+          label={t("openingBalanceLabel")}
+          value={field.value ?? null}
+          onValueChange={field.onChange}
+          onBlur={field.onBlur}
+          showWordsPreview={false}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          data-testid="account-opening-balance"
+        />
+      )}
+    />
+  );
+
+  const creditLimitField = (
+    <Controller
+      control={control}
+      name="creditCard.creditLimit"
+      render={({ field, fieldState }) => (
+        <CurrencyInput
+          id="account-credit-limit"
+          label={t("creditLimitLabel")}
+          labelAccessory={
+            presentation === "page" ? (
+              <StatusBadge tone={StatusBadgeTone.SELECTED}>
+                {t("creditLimitAvailable")}
+              </StatusBadge>
+            ) : undefined
+          }
+          value={field.value ?? null}
+          onValueChange={field.onChange}
+          onBlur={field.onBlur}
+          showWordsPreview={false}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          data-testid="account-credit-limit"
+        />
+      )}
+    />
+  );
+
+  const creditDebtNotice = (
+    <InlineAlert
+      variant="warning"
+      title={<span className="text-debt">{t("creditDebtNoticeTitle")}</span>}
+      className="border-debt/20 bg-debt-soft text-debt dark:border-debt/40 dark:bg-debt-soft/80"
+    >
+      <span className="text-debt">{t("creditCardHint")}</span>
+    </InlineAlert>
+  );
+
+  const billingDayFields = (
+    <FieldGroup>
+      <Controller
+        control={control}
+        name="creditCard.statementDay"
+        render={({ field, fieldState }) => (
+          <SelectField
+            id="account-statement-day"
+            label={t("statementDayLabel")}
+            labelClassName="block min-[390px]:min-h-12"
+            value={String(field.value)}
+            onChange={(value) => field.onChange(Number(value))}
+            onBlur={field.onBlur}
+            options={CARD_DAY_OPTIONS}
+            required
+            error={fieldState.error ? t("errors.invalid") : undefined}
+            data-testid="account-statement-day"
+          />
+        )}
+      />
+      <Controller
+        control={control}
+        name="creditCard.dueDay"
+        render={({ field, fieldState }) => (
+          <SelectField
+            id="account-due-day"
+            label={t("dueDayLabel")}
+            labelClassName="block min-[390px]:min-h-12"
+            value={String(field.value)}
+            onChange={(value) => field.onChange(Number(value))}
+            onBlur={field.onBlur}
+            options={CARD_DAY_OPTIONS}
+            required
+            error={fieldState.error ? t("errors.invalid") : undefined}
+            data-testid="account-due-day"
+          />
+        )}
+      />
+    </FieldGroup>
+  );
+
+  const linkedBankField = (
+    <Controller
+      control={control}
+      name="creditCard.linkedBankAccountId"
+      render={({ field, fieldState }) => (
+        <SelectField
+          id="account-linked-bank"
+          label={t("linkedBankLabel")}
+          description={t("linkedBankDescription")}
+          placeholder={t("linkedBankNone")}
+          value={field.value ?? ""}
+          onChange={(next) => field.onChange(next || null)}
+          onBlur={field.onBlur}
+          options={[
+            { id: "", label: t("linkedBankNone") },
+            ...liquidAccounts.map((account) => ({
+              id: account.id,
+              label: account.name,
+            })),
+          ]}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          data-testid="account-linked-bank"
+        />
+      )}
+    />
+  );
+
+  const creditCardHint =
+    presentation === "page" ? (
+      <InlineAlert
+        variant="info"
+        className="border-primary/20 bg-primary-soft text-primary dark:border-divider-subtle dark:bg-canvas"
+      >
+        {t("creditInitialDebtHint")}
+      </InlineAlert>
+    ) : (
+      <Text size="sm" tone="secondary">
+        {t("creditCardHint")}
+      </Text>
+    );
+
+  const creditCardFields = (
+    <div
+      className={cn(
+        "flex flex-col gap-(--space-3)",
+        presentation === "page" &&
+          "[&_[data-slot=select-trigger]]:dark:border-divider-subtle [&_[data-slot=select-trigger]]:dark:bg-canvas",
+      )}
+      data-testid="account-credit-card-settings"
+    >
+      {creditLimitField}
+      {presentation === "page" ? creditDebtNotice : null}
+      {billingDayFields}
+      {linkedBankField}
+      {creditCardHint}
+    </div>
+  );
+
+  const scopeField = (
+    <Controller
+      control={control}
+      name="financialScope"
+      render={({ field, fieldState }) => (
+        <FinancialScopeField
+          value={field.value ?? FINANCIAL_SCOPE.HOUSEHOLD}
+          onChange={field.onChange}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          testId="account-financial-scope"
+        />
+      )}
+    />
+  );
+
   const fields = (
     <div
-      className="flex flex-col gap-(--space-3)"
+      className="flex flex-col gap-(--space-4)"
+      data-testid="account-add-form"
+    >
+      {errorCode ? (
+        <StatusAlert
+          variant="danger"
+          title={isCard ? t("addCreditCard") : t("add")}
+          description={t(`errors.${errorCode}`)}
+        />
+      ) : null}
+      <FormSection
+        title={t(isCard ? "creditIdentitySection" : "identitySection")}
+        variant={presentation === "page" ? "surface" : "plain"}
+        className={
+          presentation === "page"
+            ? "bg-surface dark:border-divider-subtle"
+            : undefined
+        }
+      >
+        {identityFields}
+      </FormSection>
+      {isCard ? (
+        <FormSection
+          title={t("creditSettingsSection")}
+          description={
+            presentation === "page" ? undefined : t("creditInitialDebtHint")
+          }
+          variant={presentation === "page" ? "surface" : "plain"}
+          className={
+            presentation === "page"
+              ? "bg-surface dark:border-divider-subtle"
+              : undefined
+          }
+        >
+          {creditCardFields}
+        </FormSection>
+      ) : (
+        <FormSection
+          title={t("openingBalanceSection")}
+          description={t("openingBalanceHint")}
+        >
+          {openingBalanceField}
+        </FormSection>
+      )}
+      <FormSection
+        title={t("scopeSection")}
+        variant={presentation === "page" ? "surface" : "plain"}
+        className={
+          presentation === "page"
+            ? "bg-surface dark:border-divider-subtle"
+            : undefined
+        }
+      >
+        {scopeField}
+      </FormSection>
+    </div>
+  );
+
+  const stepTitle = (number: number, label: string) => (
+    <span className="flex items-center gap-(--space-2)">
+      <span className="rounded-(--radius-sm) bg-primary-soft px-(--space-2) py-(--space-1) text-xs font-medium text-primary">
+        {t("stepLabel", { number })}
+      </span>
+      <span>{label}</span>
+    </span>
+  );
+
+  const pageFields = (
+    <div
+      className="flex flex-col gap-(--space-4)"
       data-testid="account-add-form"
     >
       {errorCode ? (
@@ -297,173 +654,193 @@ export function AddAccountForm({
           description={t(`errors.${errorCode}`)}
         />
       ) : null}
-      <SelectField
-        id="account-type"
-        label={t("typeLabel")}
-        value={type}
-        options={TYPES.map((value) => ({ id: value, label: tTypes(value) }))}
-        onChange={(next) => {
-          const nextType = next as AccountTypeValue;
-          setValue("type", nextType, { shouldValidate: true });
-          setValue("iconKey", DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[nextType]);
-          setValue(
-            "creditCard",
-            nextType === AccountType.CREDIT_CARD
-              ? {
-                  creditLimit: null,
-                  statementDay: DEFAULT_CARD_STATEMENT_DAY,
-                  dueDay: DEFAULT_CARD_DUE_DAY,
-                  linkedBankAccountId: null,
-                }
-              : undefined,
-          );
-          setValue("openingBalance", 0);
-        }}
-        required
-        data-testid="account-type"
-      />
-      <TextField
-        id="account-name"
-        label={t("nameLabel")}
-        placeholder={t("namePlaceholder")}
-        registration={register("name")}
-        error={errors.name ? t("errors.invalid") : undefined}
-      />
-      <Controller
-        control={control}
-        name="iconKey"
-        render={({ field, fieldState }) => (
-          <IconPickerField
-            id="account-icon"
-            label={tIcons("label")}
-            value={field.value ?? DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[type]}
-            onChange={field.onChange}
-            options={ACCOUNT_ICON_KEYS.map((key) => ({
-              key,
-              label: tIcons(`choices.${key}`),
-              icon: ACCOUNT_ICON_BY_KEY[key],
-            }))}
-            searchLabel={tIcons("search")}
-            emptyLabel={tIcons("empty")}
-            error={fieldState.error ? t("errors.invalid") : undefined}
-            data-testid="account-icon"
-          />
-        )}
-      />
-      {!isCard ? (
-        <div className="flex flex-col gap-(--space-1)">
-          <Controller
-            control={control}
-            name="openingBalance"
-            render={({ field, fieldState }) => (
-              <AmountField
-                id="account-opening-balance"
-                label={t("openingBalanceLabel")}
-                value={field.value ?? null}
-                onValueChange={field.onChange}
-                onBlur={field.onBlur}
-                description={t("openingBalanceHint")}
-                error={fieldState.error ? t("errors.invalid") : undefined}
-                data-testid="account-opening-balance"
-              />
-            )}
-          />
-        </div>
-      ) : null}
-      {isCard ? (
-        <div
-          className="flex flex-col gap-(--space-3) rounded-(--radius-card) bg-surface-muted/70 p-(--space-3)"
-          data-testid="account-credit-card-settings"
+      <InlineAlert
+        variant="info"
+        className="bg-primary-soft border-primary/20 text-primary dark:bg-primary-soft/80 dark:border-primary/50"
+      >
+        {t("accountMeaningHint")}
+      </InlineAlert>
+      {!fixedType ? (
+        <FormSection
+          title={stepTitle(1, t("typeLabel"))}
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
         >
-          <Controller
-            control={control}
-            name="creditCard.creditLimit"
-            render={({ field, fieldState }) => (
-              <AmountField
-                id="account-credit-limit"
-                label={t("creditLimitLabel")}
-                value={field.value ?? null}
-                onValueChange={field.onChange}
-                onBlur={field.onBlur}
-                error={fieldState.error ? t("errors.invalid") : undefined}
-                data-testid="account-credit-limit"
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="creditCard.statementDay"
-            render={({ field, fieldState }) => (
-              <SelectField
-                id="account-statement-day"
-                label={t("statementDayLabel")}
-                value={String(field.value)}
-                onChange={(value) => field.onChange(Number(value))}
-                onBlur={field.onBlur}
-                options={CARD_DAY_OPTIONS}
-                required
-                error={fieldState.error ? t("errors.invalid") : undefined}
-                data-testid="account-statement-day"
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="creditCard.dueDay"
-            render={({ field, fieldState }) => (
-              <SelectField
-                id="account-due-day"
-                label={t("dueDayLabel")}
-                value={String(field.value)}
-                onChange={(value) => field.onChange(Number(value))}
-                onBlur={field.onBlur}
-                options={CARD_DAY_OPTIONS}
-                required
-                error={fieldState.error ? t("errors.invalid") : undefined}
-                data-testid="account-due-day"
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="creditCard.linkedBankAccountId"
-            render={({ field, fieldState }) => (
-              <SelectField
-                id="account-linked-bank"
-                label={t("linkedBankLabel")}
-                description={t("linkedBankDescription")}
-                value={field.value ?? ""}
-                onChange={(next) => field.onChange(next || null)}
-                onBlur={field.onBlur}
-                options={[
-                  { id: "", label: t("linkedBankNone") },
-                  ...liquidAccounts.map((account) => ({
-                    id: account.id,
-                    label: account.name,
-                  })),
-                ]}
-                error={fieldState.error ? t("errors.invalid") : undefined}
-                data-testid="account-linked-bank"
-              />
-            )}
-          />
-          <Text size="sm" tone="secondary">
-            {t("creditCardHint")}
-          </Text>
-        </div>
+          <div
+            role="group"
+            aria-label={t("typeLabel")}
+            data-testid="account-type"
+          >
+            <ChoiceTileGroup>
+              {typeOptions.map((value) => {
+                const isSelected = type === value;
+                return (
+                  <ChoiceTile
+                    key={value}
+                    label={tTypes(value)}
+                    layout={ChoiceTileLayout.STACKED}
+                    icon={
+                      <IconContainer
+                        tone={isSelected ? "primary" : "neutral"}
+                        size="sm"
+                        className={
+                          isSelected
+                            ? "border border-primary/20 bg-surface dark:border-transparent dark:bg-primary/20"
+                            : "border border-border-subtle bg-surface dark:border-transparent dark:bg-surface-muted"
+                        }
+                      >
+                        <AppIcon
+                          icon={
+                            ACCOUNT_ICON_BY_KEY[
+                              DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[value]
+                            ]
+                          }
+                          size={AppIconSize.SM}
+                        />
+                      </IconContainer>
+                    }
+                    selected={isSelected}
+                    onPress={() => selectType(value)}
+                    className={
+                      isSelected
+                        ? "min-h-16 border-2 border-primary bg-primary-soft/40 shadow-none ring-0 dark:bg-primary-soft/50"
+                        : "min-h-16 border border-border-subtle bg-surface dark:border-divider-subtle dark:hover:border-border-subtle"
+                    }
+                  />
+                );
+              })}
+            </ChoiceTileGroup>
+          </div>
+        </FormSection>
       ) : null}
-      <Controller
-        control={control}
-        name="financialScope"
-        render={({ field, fieldState }) => (
-          <FinancialScopeField
-            value={field.value ?? FINANCIAL_SCOPE.HOUSEHOLD}
-            onChange={field.onChange}
-            error={fieldState.error ? t("errors.invalid") : undefined}
-            testId="account-financial-scope"
-          />
+      <FormSection
+        title={stepTitle(
+          2,
+          t(isCard ? "creditIdentitySection" : "identitySection"),
         )}
-      />
+        variant="surface"
+        className="bg-surface dark:border-divider-subtle"
+      >
+        {accountNameField}
+        {accountIconField}
+        <div className="border-t border-border-subtle pt-(--space-3)">
+          {scopeField}
+        </div>
+      </FormSection>
+      {isCard ? (
+        <FormSection
+          title={stepTitle(3, t("creditSettingsSection"))}
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
+        >
+          {creditCardFields}
+        </FormSection>
+      ) : (
+        <FormSection
+          title={stepTitle(3, t("openingBalanceSection"))}
+          description={t("openingBalanceHint")}
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
+        >
+          {openingBalanceField}
+        </FormSection>
+      )}
+    </div>
+  );
+
+  const creditTypeSummary = (
+    <div
+      role="group"
+      aria-label={t("typeLabel")}
+      className="flex items-center gap-(--space-3) rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) py-(--space-2) dark:border-divider-subtle"
+      data-testid="account-credit-type-summary"
+    >
+      <IconContainer
+        tone="primary"
+        size="sm"
+        className="border border-primary/20 bg-primary-soft/40 dark:border-transparent"
+      >
+        <AppIcon
+          icon={
+            ACCOUNT_ICON_BY_KEY[
+              DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE[AccountType.CREDIT_CARD]
+            ]
+          }
+          size={AppIconSize.SM}
+        />
+      </IconContainer>
+      <div className="flex min-w-0 flex-col">
+        <Text size="xs" tone="secondary">
+          {t("typeLabel")}
+        </Text>
+        <Text size="sm">{tTypes(AccountType.CREDIT_CARD)}</Text>
+      </div>
+    </div>
+  );
+
+  const creditPageFields = (
+    <div
+      className="flex flex-col gap-(--space-4) [&_[data-slot=select-trigger]]:dark:border-divider-subtle [&_[data-slot=select-trigger]]:dark:bg-canvas"
+      data-testid="account-credit-page-fields"
+    >
+      {errorCode ? (
+        <StatusAlert
+          variant="danger"
+          title={t("addCreditCard")}
+          description={t(`errors.${errorCode}`)}
+        />
+      ) : null}
+      {creditTypeSummary}
+      {creditDebtNotice}
+      <FormSection
+        title={stepTitle(1, t("creditIdentitySection"))}
+        variant="surface"
+        className="bg-surface dark:border-divider-subtle"
+        testId="account-credit-step-identity"
+      >
+        <FieldGroup columns={1}>
+          {accountNameField}
+          {accountIconField}
+        </FieldGroup>
+        <div className="border-t border-border-subtle pt-(--space-3)">
+          {scopeField}
+        </div>
+      </FormSection>
+      <div
+        className="flex flex-col gap-(--space-4)"
+        data-testid="account-credit-card-settings"
+      >
+        <FormSection
+          title={stepTitle(2, t("creditSettingsSection"))}
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
+          testId="account-credit-step-limit"
+        >
+          {creditLimitField}
+          {creditCardHint}
+        </FormSection>
+        <FormSection
+          title={stepTitle(3, t("creditBillingSection"))}
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
+          testId="account-credit-step-billing"
+        >
+          {billingDayFields}
+        </FormSection>
+        <FormSection
+          title={stepTitle(4, t("creditPaymentSection"))}
+          action={
+            <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
+              {tForms("optional")}
+            </StatusBadge>
+          }
+          variant="surface"
+          className="bg-surface dark:border-divider-subtle"
+          testId="account-credit-step-payment"
+        >
+          {linkedBankField}
+        </FormSection>
+      </div>
     </div>
   );
 
@@ -488,6 +865,13 @@ export function AddAccountForm({
       </Button>
     </div>
   );
+
+  const resolvePageFields = () => {
+    if (!fixedType) return pageFields;
+    if (!isCard) return fields;
+    return creditPageFields;
+  };
+  const stickySubmitLabel = isCard ? t("addCreditCard") : t("add");
 
   if (presentation === "dialog" || presentation === "sheet") {
     if (!open) return null;
@@ -554,6 +938,26 @@ export function AddAccountForm({
           </Dialog.Footer>
         </DialogContent>
       </Dialog>
+    );
+  }
+
+  if (presentation === "page") {
+    return (
+      <form
+        onSubmit={onSubmit}
+        className="flex flex-1 flex-col gap-(--space-4)"
+        data-testid="account-add-page-form"
+      >
+        {resolvePageFields()}
+        <Button
+          type="submit"
+          fullWidth
+          isDisabled={isPending || !online}
+          data-testid="account-add-submit"
+        >
+          {isPending ? t("adding") : stickySubmitLabel}
+        </Button>
+      </form>
     );
   }
 

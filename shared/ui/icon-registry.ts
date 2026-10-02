@@ -2,6 +2,7 @@ import {
   Add01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
+  ArrowDown01Icon,
   BankIcon,
   Building02Icon,
   Coins01Icon,
@@ -33,6 +34,7 @@ import {
   ShoppingBag01Icon,
   Tick01Icon,
   TravelBagIcon,
+  UserIcon,
   UserGroupIcon,
   Wallet02Icon,
 } from "@/shared/ui/stitch-icon-compat";
@@ -53,24 +55,49 @@ import {
   StitchFoodIcon,
   StitchGoalIcon,
   StitchIncomeIcon,
+  StitchHomeInvestmentIcon,
+  StitchHomeSummaryLoanIcon,
+  StitchHomePersonalDebtIcon,
+  StitchHomeSavingsIcon,
   StitchInvestmentIcon,
   StitchJarIcon,
+  StitchLockIcon,
   StitchLoanIcon,
+  StitchLedgerIcon,
   StitchMoneyIcon,
+  StitchNavigationHomeIcon,
+  StitchNavigationPlanIcon,
   StitchPlanIcon,
   StitchRecurringPaymentIcon,
+  StitchHistoryIcon,
+  StitchInboxIcon,
+  StitchSortIcon,
   StitchRefundIcon,
   StitchSavingsIcon,
   StitchTransferIcon,
+  StitchWalletIcon,
+  StitchStockIcon,
+  StitchFundIcon,
+  StitchGoldIcon,
+  StitchCryptoIcon,
+  StitchProviderShieldIcon,
 } from "./stitch-icon-artwork";
 
-/** Stable icons for the five-tab household shell. */
+/** Stable icons for the household destinations and header links. */
 export const NAVIGATION_ICONS = {
   home: Home01Icon,
   money: StitchMoneyIcon,
   plan: StitchPlanIcon,
   inbox: InboxIcon,
   together: UserGroupIcon,
+} as const;
+
+/** Stitch icons for the five bottom navigation destinations. */
+export const BOTTOM_NAVIGATION_ICONS = {
+  home: StitchNavigationHomeIcon,
+  money: StitchWalletIcon,
+  plan: StitchNavigationPlanIcon,
+  inbox: StitchInboxIcon,
 } as const;
 
 /** Finance concepts are semantic roles, not presentation-specific icon names. */
@@ -101,7 +128,31 @@ export const FINANCE_ICONS = {
   savings: StitchSavingsIcon,
   debt: StitchDebtIcon,
   loan: StitchLoanIcon,
+  ledger: StitchLedgerIcon,
   refund: StitchRefundIcon,
+} as const;
+
+/** Canonical Stitch artwork for investment asset identities and household rules. */
+export const INVESTMENT_ICONS = {
+  stock: StitchStockIcon,
+  fund: StitchFundIcon,
+  gold: StitchGoldIcon,
+  crypto: StitchCryptoIcon,
+  bond: StitchFundIcon,
+  rules: StitchProviderShieldIcon,
+} as const;
+
+/** Icons selected for the canonical Home product summary rows. */
+export const HOME_PRODUCT_SUMMARY_ICONS = {
+  savings: StitchHomeSavingsIcon,
+  investments: StitchHomeInvestmentIcon,
+  loans: StitchHomeSummaryLoanIcon,
+  debt: StitchHomePersonalDebtIcon,
+} as const;
+
+/** Exact domain artwork used by the canonical Stitch Money Overview rows. */
+export const MONEY_OVERVIEW_ICONS = {
+  savings: StitchLockIcon,
 } as const;
 
 /** Stable Plan-domain icons. Intention envelopes, not bank balances. */
@@ -110,6 +161,7 @@ export const PLAN_ICONS = {
   goal: StitchGoalIcon,
   recurring: StitchRecurringPaymentIcon,
   calendar: Calendar03Icon,
+  monthlyReview: StitchHistoryIcon,
   ritual: CheckmarkCircle02Icon,
 } as const;
 
@@ -241,19 +293,23 @@ export function categoryVisualFor(input: {
 export const ACTION_ICONS = {
   search: Search01Icon,
   filter: FilterIcon,
+  sort: StitchSortIcon,
   edit: Edit02Icon,
   delete: Delete02Icon,
   add: Add01Icon,
   more: MoreHorizontalIcon,
   back: ArrowLeft01Icon,
   forward: ArrowRight01Icon,
+  expand: ArrowDown01Icon,
   check: Tick01Icon,
   success: CheckmarkCircle02Icon,
 } as const;
 export const UTILITY_ICONS = {
   calendar: Calendar03Icon,
   notification: Notification03Icon,
+  profile: UserIcon,
   settings: Settings01Icon,
+  shield: Shield01Icon,
   financialVisible: EyeIcon,
   financialHidden: EyeOffIcon,
   info: InformationCircleIcon,
@@ -272,6 +328,7 @@ export const FinanceIconKey = {
   SAVINGS: "savings",
   DEBT: "debt",
   LOAN: "loan",
+  LEDGER: "ledger",
   REFUND: "refund",
 } as const;
 

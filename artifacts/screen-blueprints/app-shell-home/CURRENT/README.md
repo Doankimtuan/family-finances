@@ -16,4 +16,4 @@ Verdict: `COMMANDCODE_HANDOFF_READY_WITH_CONDITIONS`.
 
 This package is the canonical implementation source for App Shell, Home, and Home-owned lightweight interactions. The original design-calibration copy may remain for traceability, but implementation agents should use this package.
 
-Do not redesign the blueprint during Phase F1. Implement the approved structure, preserve the five-tab IA, and report any state that cannot be safely produced in browser verification.
+Implement the approved Home structure with the current shared navigation contract: four bottom route tabs, a centered transaction action, and the Home household shortcut to Together. Report any state that cannot be safely produced in browser verification.

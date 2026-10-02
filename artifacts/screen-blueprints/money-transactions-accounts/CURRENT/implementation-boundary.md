@@ -8,7 +8,6 @@ Likely screen files:
 
 - `app/[locale]/(product)/money/page.tsx`
 - `app/[locale]/(product)/money/money-hub-accounts.tsx`
-- `app/[locale]/(product)/money/money-capture-action.tsx`
 - `app/[locale]/(product)/money/accounts/add-account-form.tsx`
 - `app/[locale]/(product)/money/accounts/[id]/page.tsx`
 - `app/[locale]/(product)/money/accounts/[id]/account-detail-actions.tsx`

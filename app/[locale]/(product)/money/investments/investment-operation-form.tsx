@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -19,6 +20,7 @@ import {
   InvestmentInputCurrency,
   InvestmentInputRateSource,
   InvestmentInputRateStatus,
+  InvestmentValuationMetaVariant,
   INVESTMENT_OPERATION_TYPE_VALUES,
   INVESTMENT_CREATE_IDEMPOTENCY_KEY_PREFIX,
   positiveUnitPriceVndSchema,
@@ -42,6 +44,7 @@ import {
   buildPurchasePreview,
   buildUnitPricePreview,
   normalizeAvailableQuantity,
+  quantityAtPercentage,
 } from "@/modules/investments/application/investment-operation-view-model";
 import {
   convertInvestmentInputUnitPriceToVnd,
@@ -63,7 +66,7 @@ import {
 } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
 import { StatusAlert } from "@/shared/ui/status-alert";
-import { Text } from "@/shared/ui/text";
+import { Text, type TextProps } from "@/shared/ui/text";
 import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { DecimalField } from "@/shared/patterns/decimal-field";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
@@ -80,6 +83,19 @@ import {
   recordInvestmentValuationAction,
 } from "./investment-actions";
 import { getInvestmentInputCurrencyRateAction } from "./investment-input-currency-actions";
+import { Card } from "@/shared/patterns/card";
+import { InlineAlert, InlineAlertVariant } from "@/shared/ui/inline-alert";
+import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
+import { UTILITY_ICONS } from "@/shared/ui/icon-registry";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
+import { investmentAssetIcon } from "./investment-asset-icon";
+import { addQuantities } from "@/modules/investments/application/decimal-quantity";
+import {
+  INVESTMENT_BUY_QUANTITY_INCREMENTS,
+  INVESTMENT_SELL_QUANTITY_PERCENTAGES,
+  INVESTMENT_VALUATION_PRICE_INCREMENTS,
+} from "@/modules/investments/application/investment-constants";
+import { formatPercent } from "@/shared/i18n/formatters";
 import { InvestmentValuationMeta } from "./investment-valuation-meta";
 
 type AccountOption = { id: string; name: string; balance?: number };
@@ -285,6 +301,22 @@ const createDefaultValues = (
     feeHoldingId: holdings[0]?.id ?? "",
   }) satisfies FormValues;
 
+function resultTone(value: number | null): TextProps["tone"] {
+  if (value == null) return "secondary";
+  return value < 0 ? "danger" : "success";
+}
+
+function InvestmentInputCard({ children }: { children: ReactNode }) {
+  return (
+    <Card
+      tone="elevated"
+      className="gap-(--space-2) p-(--space-3) focus-within:border-primary [&_label]:text-xs [&_input]:border-0 [&_input]:bg-transparent [&_input]:px-0 [&_input]:shadow-none [&_input]:text-xl [&_input]:font-semibold [&_p]:text-xs"
+    >
+      {children}
+    </Card>
+  );
+}
+
 export function InvestmentOperationForm({
   mode,
   holding,
@@ -328,8 +360,9 @@ export function InvestmentOperationForm({
   const destinationHolding = holdings.find((item) => item.id === destinationId);
   const hasCryptoLeg =
     holding.assetClass === InvestmentAssetClass.CRYPTO ||
-    sourceHolding?.assetClass === InvestmentAssetClass.CRYPTO ||
-    destinationHolding?.assetClass === InvestmentAssetClass.CRYPTO;
+    (mode === InvestmentFormMode.CONVERSION &&
+      (sourceHolding?.assetClass === InvestmentAssetClass.CRYPTO ||
+        destinationHolding?.assetClass === InvestmentAssetClass.CRYPTO));
   const usesQuotedCurrency =
     hasCryptoLeg && inputCurrency !== InvestmentInputCurrency.VND;
   const [resolvedInputRate, setResolvedInputRate] = useState<{
@@ -466,6 +499,13 @@ export function InvestmentOperationForm({
     mode === InvestmentFormMode.BUY
       ? buildPurchasePreview({
           quantity: quantity ?? "",
+          position:
+            !hasFee || feeSource === InvestmentFeeSource.CASH
+              ? {
+                  quantity: holding.quantity,
+                  remainingCostBasis: holding.remainingTotalCostBasis,
+                }
+              : undefined,
           executionPricePerUnit: usesUnitPrice ? unitPriceVnd : null,
           totalValue: usesUnitPrice ? null : valueVnd,
           cashFeeAmount: hasFee ? feeAmountVnd : null,
@@ -486,8 +526,7 @@ export function InvestmentOperationForm({
       : formatCurrency(value, DEFAULT_CURRENCY, locale, {
           maximumFractionDigits: 0,
         });
-  const display = (value: number | null | undefined) =>
-    value == null ? t("unknown") : value.toLocaleString();
+  const display = (value: number | null | undefined) => money(value);
   const fieldError = (field: keyof FormValues) =>
     errors[field] ? t("errors.invalid") : undefined;
   const feeSources = (
@@ -529,7 +568,7 @@ export function InvestmentOperationForm({
       return;
     }
     if (!idempotencyKey) {
-      setError("invalid");
+      setError(INVESTMENT_ERROR_CODE.INVALID);
       return;
     }
     const fee = submitted.hasFee
@@ -669,14 +708,14 @@ export function InvestmentOperationForm({
           return;
         }
         if (insufficientBuyBalance) {
-          setError("invalid");
+          setError(INVESTMENT_ERROR_CODE.INVALID);
           return;
         }
         if (
           mode === InvestmentFormMode.SELL &&
           !disposalPreview?.remainingQuantity
         ) {
-          setError("insufficient_quantity");
+          setError(INVESTMENT_ERROR_CODE.INSUFFICIENT_QUANTITY);
           return;
         }
         setError(null);
@@ -687,17 +726,26 @@ export function InvestmentOperationForm({
         );
         setConfirming(true);
       },
-      () => setError("invalid"),
+      () => setError(INVESTMENT_ERROR_CODE.INVALID),
     )();
 
   return (
-    <ActionSheetLayout>
-      <ActionSheetLayout.Header>
-        <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
-          {title}
-        </Sheet.Heading>
+    <ActionSheetLayout className="max-h-dvh">
+      <ActionSheetLayout.Header className="flex-row items-center justify-between gap-(--space-2) border-b border-border-subtle">
+        <div className="min-w-0">
+          <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
+            {title}
+          </Sheet.Heading>
+          <Text size="xs" tone="secondary" className="text-pretty">
+            {holding.instrument?.symbol || holding.symbol || holding.name} ·{" "}
+            {holding.providerCustodian || t("unknown")}
+          </Text>
+        </div>
+        <Button variant="tertiary" onPress={() => router.back()}>
+          {t("design.cancel")}
+        </Button>
       </ActionSheetLayout.Header>
-      <ActionSheetLayout.Body className="flex flex-col gap-(--space-4)">
+      <ActionSheetLayout.Body className="flex flex-col gap-(--space-3) bg-canvas">
         <div
           className="flex flex-col gap-(--space-4)"
           data-testid={`investment-operation-${mode}`}
@@ -842,16 +890,50 @@ export function InvestmentOperationForm({
           ) : (
             <>
               {mode === InvestmentFormMode.VALUATION ? (
-                <section className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)">
-                  <div className="text-sm font-medium">
-                    {holding.symbol || holding.name}
-                  </div>
-                  <div className="text-sm text-text-secondary">
-                    {holding.quantity} {tUx(ux.unitSuffixKey)}
-                  </div>
-                  <InvestmentValuationMeta holding={holding} variant="inline" />
-                </section>
+                <InlineAlert variant={InlineAlertVariant.WARNING}>
+                  <span className="text-xs text-warning">
+                    {t("design.valuationNotice")}
+                  </span>
+                </InlineAlert>
               ) : null}
+              <Card tone="elevated" className="gap-(--space-3) p-(--space-3)">
+                <div className="flex items-start gap-(--space-3)">
+                  <IconContainer tone={IconContainerTone.INVESTMENT}>
+                    <AppIcon
+                      icon={investmentAssetIcon(holding.assetClass)}
+                      size={AppIconSize.MD}
+                    />
+                  </IconContainer>
+                  <div className="min-w-0 flex-1">
+                    <Text size="sm" weight="semibold">
+                      {holding.instrument?.symbol ||
+                        holding.symbol ||
+                        holding.name}
+                    </Text>
+                    <Text size="xs" tone="secondary" className="text-pretty">
+                      {holding.name} ·{" "}
+                      {holding.providerCustodian || t("unknown")}
+                    </Text>
+                  </div>
+                  <div className="text-right">
+                    <Text size="xs" tone="secondary">
+                      {t("design.holdingQuantity")}
+                    </Text>
+                    <Text size="sm" weight="semibold" tabular>
+                      <FinancialValue>
+                        {formatNumber(Number(holding.quantity), locale, {
+                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                        })}{" "}
+                        {tUx(ux.unitSuffixKey)}
+                      </FinancialValue>
+                    </Text>
+                  </div>
+                </div>
+                <InvestmentValuationMeta
+                  holding={holding}
+                  variant={InvestmentValuationMetaVariant.INLINE}
+                />
+              </Card>
               {mode === InvestmentFormMode.CONVERSION ? (
                 <>
                   <Controller
@@ -976,20 +1058,42 @@ export function InvestmentOperationForm({
                   ) : null}
                 </section>
               ) : null}
-              {mode === InvestmentFormMode.BUY ||
-              mode === InvestmentFormMode.SELL ? (
-                <section className="flex flex-col gap-(--space-2) rounded-(--radius-card) bg-surface-muted p-(--space-3)">
-                  {holding.instrument?.autoPriceSupported ? (
-                    <InvestmentValuationMeta holding={holding} />
-                  ) : null}
-                  <p className="text-sm text-text-secondary">
-                    {t("marketPriceValuationOnly")}
-                  </p>
-                </section>
-              ) : null}
               {showQuantity ? (
-                mode === InvestmentFormMode.SELL ? (
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-(--space-2)">
+                <InvestmentInputCard>
+                  {mode === InvestmentFormMode.SELL ? (
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-(--space-2)">
+                      <Controller
+                        name="quantity"
+                        control={control}
+                        render={({ field }) => (
+                          <DecimalField
+                            id="investment-operation-quantity"
+                            label={tUx(ux.quantityLabelKey)}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            error={fieldError("quantity")}
+                          />
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="min-h-11 px-(--space-3)"
+                        onPress={() =>
+                          setValue(
+                            "quantity",
+                            normalizeAvailableQuantity(holding.quantity),
+                          )
+                        }
+                        aria-label={t("sellAllAccessible", {
+                          quantity: holding.quantity,
+                          unit: tUx(ux.unitSuffixKey),
+                        })}
+                      >
+                        {t("sellAll")}
+                      </Button>
+                    </div>
+                  ) : (
                     <Controller
                       name="quantity"
                       control={control}
@@ -1003,39 +1107,60 @@ export function InvestmentOperationForm({
                         />
                       )}
                     />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="min-h-11 px-(--space-3)"
-                      onPress={() =>
-                        setValue(
-                          "quantity",
-                          normalizeAvailableQuantity(holding.quantity),
-                        )
-                      }
-                      aria-label={t("sellAllAccessible", {
-                        quantity: holding.quantity,
-                        unit: tUx(ux.unitSuffixKey),
-                      })}
-                    >
-                      {t("sellAll")}
-                    </Button>
-                  </div>
-                ) : (
-                  <Controller
-                    name="quantity"
-                    control={control}
-                    render={({ field }) => (
-                      <DecimalField
-                        id="investment-operation-quantity"
-                        label={tUx(ux.quantityLabelKey)}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        error={fieldError("quantity")}
-                      />
-                    )}
-                  />
-                )
+                  )}
+                  {mode === InvestmentFormMode.SELL ? (
+                    <div className="flex flex-wrap items-center gap-(--space-1)">
+                      <Text size="xs" tone="secondary">
+                        {t("design.quickQuantity")}
+                      </Text>
+                      {INVESTMENT_SELL_QUANTITY_PERCENTAGES.map((percent) => (
+                        <Button
+                          key={percent}
+                          variant="tertiary"
+                          className="min-w-0 px-(--space-2) text-xs"
+                          onPress={() =>
+                            setValue(
+                              "quantity",
+                              quantityAtPercentage(holding.quantity, percent),
+                              { shouldDirty: true },
+                            )
+                          }
+                        >
+                          {formatPercent(percent / 100, locale)}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {mode === InvestmentFormMode.BUY ? (
+                    <div className="flex flex-wrap items-center gap-(--space-1)">
+                      <Text size="xs" tone="secondary">
+                        {t("design.quickQuantity")}
+                      </Text>
+                      {INVESTMENT_BUY_QUANTITY_INCREMENTS.map((increment) => (
+                        <Button
+                          key={increment}
+                          variant="tertiary"
+                          className="min-w-0 px-(--space-2) text-xs"
+                          isDisabled={Boolean(
+                            quantity &&
+                            !investmentBuyInputSchema.shape.boughtQuantity.safeParse(
+                              quantity,
+                            ).success,
+                          )}
+                          onPress={() =>
+                            setValue(
+                              "quantity",
+                              addQuantities(quantity || "0", increment),
+                              { shouldDirty: true },
+                            )
+                          }
+                        >
+                          +{formatNumber(Number(increment), locale)}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : null}
+                </InvestmentInputCard>
               ) : null}
               {mode === InvestmentFormMode.CONVERSION ? (
                 <TextField
@@ -1045,242 +1170,175 @@ export function InvestmentOperationForm({
                   error={fieldError("destinationQuantity")}
                 />
               ) : null}
-              {usesUnitPrice &&
-              (mode === InvestmentFormMode.VALUATION ||
-                mode === InvestmentFormMode.SELL ||
-                mode === InvestmentFormMode.BUY) ? (
-                usesQuotedCurrency ? (
-                  <ControlledField
-                    control={control}
-                    field={{
-                      type: "number",
-                      name: "unitPrice",
-                      id: "investment-operation-unit-price",
-                      label: `${operationPriceLabel} (${inputCurrency})`,
-                      description:
-                        mode === InvestmentFormMode.VALUATION
-                          ? `${inputCurrency} / ${tUx(ux.unitSuffixKey)}`
-                          : `${t("actualExecutionPrice")} · ${inputCurrency} / ${tUx(ux.unitSuffixKey)}`,
-                      minValue: 0,
-                      step: 0.00000001,
-                      formatOptions: {
-                        style: "decimal",
-                        maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
-                      },
-                      error: fieldError("unitPrice"),
-                    }}
-                  />
+              <InvestmentInputCard>
+                {usesUnitPrice &&
+                (mode === InvestmentFormMode.VALUATION ||
+                  mode === InvestmentFormMode.SELL ||
+                  mode === InvestmentFormMode.BUY) ? (
+                  usesQuotedCurrency ? (
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "number",
+                        name: "unitPrice",
+                        id: "investment-operation-unit-price",
+                        label: `${operationPriceLabel} (${inputCurrency})`,
+                        description:
+                          mode === InvestmentFormMode.VALUATION
+                            ? `${inputCurrency} / ${tUx(ux.unitSuffixKey)}`
+                            : `${t("actualExecutionPrice")} · ${inputCurrency} / ${tUx(ux.unitSuffixKey)}`,
+                        minValue: 0,
+                        step: 0.00000001,
+                        formatOptions: {
+                          style: "decimal",
+                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                        },
+                        error: fieldError("unitPrice"),
+                      }}
+                    />
+                  ) : (
+                    <ControlledField
+                      control={control}
+                      field={{
+                        type: "amount",
+                        name: "unitPrice",
+                        id: "investment-operation-unit-price",
+                        label: operationPriceLabel,
+                        description:
+                          mode === InvestmentFormMode.VALUATION
+                            ? `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`
+                            : `${t("actualExecutionPrice")} · ${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
+                        error: fieldError("unitPrice"),
+                      }}
+                    />
+                  )
                 ) : (
                   <ControlledField
                     control={control}
                     field={{
-                      type: "amount",
-                      name: "unitPrice",
-                      id: "investment-operation-unit-price",
-                      label: operationPriceLabel,
-                      description:
-                        mode === InvestmentFormMode.VALUATION
-                          ? `${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`
-                          : `${t("actualExecutionPrice")} · ${tUx(ux.priceCurrencyKey)} / ${tUx(ux.unitSuffixKey)}`,
-                      error: fieldError("unitPrice"),
+                      type: usesQuotedCurrency ? "number" : "amount",
+                      name: "value",
+                      id: "investment-operation-value",
+                      label: usesQuotedCurrency
+                        ? `${t("executedValue")} (${inputCurrency})`
+                        : t("executedValue"),
+                      minValue: usesQuotedCurrency ? 0 : undefined,
+                      step: usesQuotedCurrency ? 0.00000001 : undefined,
+                      formatOptions: usesQuotedCurrency
+                        ? {
+                            style: "decimal",
+                            maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                          }
+                        : undefined,
+                      error: fieldError("value"),
                     }}
                   />
-                )
-              ) : (
-                <ControlledField
-                  control={control}
-                  field={{
-                    type: usesQuotedCurrency ? "number" : "amount",
-                    name: "value",
-                    id: "investment-operation-value",
-                    label: usesQuotedCurrency
-                      ? `${t("executedValue")} (${inputCurrency})`
-                      : t("executedValue"),
-                    minValue: usesQuotedCurrency ? 0 : undefined,
-                    step: usesQuotedCurrency ? 0.00000001 : undefined,
-                    formatOptions: usesQuotedCurrency
-                      ? {
-                          style: "decimal",
-                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                )}
+                {mode === InvestmentFormMode.VALUATION &&
+                usesUnitPrice &&
+                !usesQuotedCurrency ? (
+                  <div className="flex flex-wrap items-center gap-(--space-1)">
+                    <Text size="xs" tone="secondary">
+                      {t("design.quickPrice")}
+                    </Text>
+                    {INVESTMENT_VALUATION_PRICE_INCREMENTS.map((increment) => (
+                      <Button
+                        key={increment}
+                        variant="tertiary"
+                        className="min-w-0 px-(--space-2) text-xs"
+                        onPress={() =>
+                          setValue("unitPrice", (unitPrice ?? 0) + increment, {
+                            shouldDirty: true,
+                          })
                         }
-                      : undefined,
-                    error: fieldError("value"),
-                  }}
-                />
-              )}
-              {purchasePreview ? (
-                <section
-                  data-testid="investment-buy-live-preview"
-                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
-                  aria-live="polite"
-                >
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between gap-(--space-3)">
-                      <span>
-                        {t("inputTotalValue", { currency: inputCurrency })}
-                      </span>
-                      <FinancialValue>
-                        {inputDisplay(inputTransactionTotal)}
-                      </FinancialValue>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between gap-(--space-3)">
-                    <span>{t("investedPrincipal")}</span>
-                    <FinancialValue>
-                      {money(purchasePreview.investedPrincipal)}
-                    </FinancialValue>
+                      >
+                        +{formatNumber(increment, locale)}
+                      </Button>
+                    ))}
                   </div>
-                  <div className="flex justify-between gap-(--space-3)">
-                    <span>{t("feeValue")}</span>
-                    <FinancialValue>
-                      {money(purchasePreview.feeValue)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between gap-(--space-3) font-medium">
-                    <span>{t("cashLeavingAccount")}</span>
-                    <FinancialValue>
-                      {money(purchasePreview.cashLeavingAccount)}
-                    </FinancialValue>
-                  </div>
-                  {insufficientBuyBalance ? (
-                    <StatusAlert
-                      variant="danger"
-                      title={t("errors.insufficient_balance")}
-                    />
-                  ) : null}
-                </section>
-              ) : null}
-              {valuationPreview ? (
-                <section
-                  data-testid="investment-valuation-live-preview"
-                  className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
-                  aria-live="polite"
-                >
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between text-sm">
-                      <span>
-                        {t("inputTotalValue", { currency: inputCurrency })}
-                      </span>
-                      <FinancialValue>
-                        {inputDisplay(inputTransactionTotal)}
-                      </FinancialValue>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between text-sm">
-                    <span>{t("derivedCurrentValue")}</span>
-                    <FinancialValue>
-                      {money(valuationPreview.totalValue)}
-                    </FinancialValue>
-                  </div>
-                </section>
-              ) : null}
-              {disposalPreview ? (
-                <section
-                  data-testid="investment-disposal-live-preview"
-                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
-                  aria-live="polite"
-                >
-                  {usesQuotedCurrency ? (
-                    <div className="flex justify-between">
-                      <span>
-                        {t("inputTotalValue", { currency: inputCurrency })}
-                      </span>
-                      <FinancialValue>
-                        {inputDisplay(inputTransactionTotal)}
-                      </FinancialValue>
-                    </div>
-                  ) : null}
-                  <div className="flex justify-between">
-                    <span>{t("grossProceeds")}</span>
-                    <FinancialValue>
-                      {money(disposalPreview.grossProceeds)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t("feesAndTax")}</span>
-                    <FinancialValue>
-                      {money(disposalPreview.feeValue)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t("netProceeds")}</span>
-                    <FinancialValue>
-                      {money(disposalPreview.netProceeds)}
-                    </FinancialValue>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t("realizedPnl")}</span>
-                    <FinancialValue>
-                      {money(disposalPreview.realizedPnl)}
-                    </FinancialValue>
-                  </div>
-                  {disposalPreview.remainingQuantity != null ? (
-                    <div className="flex justify-between">
-                      <span>{t("remainingUnitsLabel")}</span>
-                      <FinancialValue>{remainingUnitsText}</FinancialValue>
-                    </div>
-                  ) : null}
-                </section>
-              ) : null}
+                ) : null}
+                <Text size="xs" tone="secondary">
+                  {t("marketPriceValuationOnly")}
+                </Text>
+              </InvestmentInputCard>
               {showQuantity && mode !== InvestmentFormMode.SELL ? (
-                <ControlledField
-                  control={control}
-                  field={{
-                    type: usesQuotedCurrency ? "number" : "amount",
-                    name: "quote",
-                    id: "investment-operation-quote",
-                    label: usesQuotedCurrency
-                      ? `${t("quotedValue")} (${inputCurrency})`
-                      : t("quotedValue"),
-                    minValue: usesQuotedCurrency ? 0 : undefined,
-                    step: usesQuotedCurrency ? 0.00000001 : undefined,
-                    formatOptions: usesQuotedCurrency
-                      ? {
-                          style: "decimal",
-                          maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
-                        }
-                      : undefined,
-                  }}
-                />
+                <details className="rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-3)">
+                  <summary className="cursor-pointer text-xs text-text-secondary">
+                    {t("quotedValue")}
+                  </summary>
+                  <ControlledField
+                    control={control}
+                    field={{
+                      type: usesQuotedCurrency ? "number" : "amount",
+                      name: "quote",
+                      id: "investment-operation-quote",
+                      label: usesQuotedCurrency
+                        ? `${t("quotedValue")} (${inputCurrency})`
+                        : t("quotedValue"),
+                      minValue: usesQuotedCurrency ? 0 : undefined,
+                      step: usesQuotedCurrency ? 0.00000001 : undefined,
+                      formatOptions: usesQuotedCurrency
+                        ? {
+                            style: "decimal",
+                            maximumFractionDigits: CRYPTO_DECIMAL_DIGITS,
+                          }
+                        : undefined,
+                    }}
+                  />
+                </details>
               ) : null}
               {showAccount ? (
-                <Controller
-                  name="accountId"
-                  control={control}
-                  render={({ field }) => (
-                    <SelectField
-                      id="investment-operation-account"
-                      label={
-                        mode === InvestmentFormMode.BUY
-                          ? holding.assetClass === InvestmentAssetClass.CRYPTO
-                            ? t("sourceAccountCrypto")
-                            : t("sourceAccountBuy")
-                          : mode === InvestmentFormMode.SELL
-                            ? t("destinationAccountSell")
-                            : t("account")
-                      }
-                      value={field.value}
-                      options={accountsOptions}
-                      onChange={field.onChange}
-                    />
-                  )}
-                />
+                <InvestmentInputCard>
+                  <Controller
+                    name="accountId"
+                    control={control}
+                    render={({ field }) => (
+                      <SelectField
+                        id="investment-operation-account"
+                        label={
+                          mode === InvestmentFormMode.BUY
+                            ? holding.assetClass === InvestmentAssetClass.CRYPTO
+                              ? t("sourceAccountCrypto")
+                              : t("sourceAccountBuy")
+                            : mode === InvestmentFormMode.SELL
+                              ? t("destinationAccountSell")
+                              : t("account")
+                        }
+                        value={field.value}
+                        options={accountsOptions}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {selectedAccount?.balance != null ? (
+                    <Text size="xs" tone="secondary">
+                      {t("design.availableBalance")}:{" "}
+                      <FinancialValue>
+                        {money(selectedAccount.balance)}
+                      </FinancialValue>
+                    </Text>
+                  ) : null}
+                </InvestmentInputCard>
               ) : null}
-              <ControlledField
-                control={control}
-                field={{
-                  type: "date",
-                  name: "date",
-                  id: "investment-operation-date",
-                  label: t("effectiveDate"),
-                  error: fieldError("date"),
-                }}
-              />
-              <TextField
-                id="investment-operation-notes"
-                label={t("notes")}
-                registration={register("notes")}
-              />
+              <InvestmentInputCard>
+                <ControlledField
+                  control={control}
+                  field={{
+                    type: "date",
+                    name: "date",
+                    id: "investment-operation-date",
+                    label: t("effectiveDate"),
+                    error: fieldError("date"),
+                  }}
+                />
+              </InvestmentInputCard>
+              <InvestmentInputCard>
+                <TextField
+                  id="investment-operation-notes"
+                  label={t("notes")}
+                  registration={register("notes")}
+                />
+              </InvestmentInputCard>
               {showFee ? (
                 <section className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4)">
                   <CheckboxField
@@ -1379,11 +1437,210 @@ export function InvestmentOperationForm({
                   ) : null}
                 </section>
               ) : null}
+              {purchasePreview ? (
+                <section
+                  data-testid="investment-buy-live-preview"
+                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="uppercase tracking-wide"
+                  >
+                    {t("design.calculations")}
+                  </Text>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between gap-(--space-3)">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between gap-(--space-3)">
+                    <span>{t("investedPrincipal")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.investedPrincipal)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between gap-(--space-3)">
+                    <span>{t("feeValue")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.feeValue)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between gap-(--space-3) font-medium">
+                    <span>{t("cashLeavingAccount")}</span>
+                    <FinancialValue>
+                      {money(purchasePreview.cashLeavingAccount)}
+                    </FinancialValue>
+                  </div>
+                  {purchasePreview.positionAfterPurchase ? (
+                    <>
+                      <div className="flex items-start justify-between gap-(--space-3)">
+                        <Text size="xs" tone="secondary">
+                          {t("design.quantityAfterPurchase")}
+                        </Text>
+                        <FinancialValue>
+                          {formatNumber(
+                            Number(
+                              purchasePreview.positionAfterPurchase.quantity,
+                            ),
+                            locale,
+                            { maximumFractionDigits: CRYPTO_DECIMAL_DIGITS },
+                          )}{" "}
+                          {tUx(ux.unitSuffixKey)}
+                        </FinancialValue>
+                      </div>
+                      <div className="flex items-start justify-between gap-(--space-3)">
+                        <Text size="xs" tone="secondary">
+                          {t("design.averageCostAfterPurchase")}
+                        </Text>
+                        <FinancialValue>
+                          {money(
+                            purchasePreview.positionAfterPurchase.averageCost,
+                          )}{" "}
+                          / {tUx(ux.unitSuffixKey)}
+                        </FinancialValue>
+                      </div>
+                    </>
+                  ) : null}
+                  <Text size="xs" tone="secondary" className="text-pretty">
+                    {t("design.purchaseNotice")}
+                  </Text>
+                  {insufficientBuyBalance ? (
+                    <StatusAlert
+                      variant="danger"
+                      title={t("errors.insufficient_balance")}
+                    />
+                  ) : null}
+                </section>
+              ) : null}
+              {valuationPreview ? (
+                <section
+                  data-testid="investment-valuation-live-preview"
+                  className="rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="uppercase tracking-wide"
+                  >
+                    {t("design.calculations")}
+                  </Text>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between text-sm">
+                    <span>{t("derivedCurrentValue")}</span>
+                    <FinancialValue>
+                      {money(valuationPreview.totalValue)}
+                    </FinancialValue>
+                  </div>
+                  <div className="mt-(--space-3) flex items-start justify-between gap-(--space-3) border-t border-border-subtle pt-(--space-3)">
+                    <Text size="xs" tone="secondary">
+                      {t("design.unrealizedPnl")}
+                    </Text>
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      tone={resultTone(valuationPreview.pnl)}
+                      tabular
+                    >
+                      <FinancialValue>
+                        {money(valuationPreview.pnl)}
+                        {valuationPreview.pnlPercent != null
+                          ? ` (${formatPercent(valuationPreview.pnlPercent, locale)})`
+                          : ""}
+                      </FinancialValue>
+                    </Text>
+                  </div>
+                  <Text size="xs" tone="secondary" className="mt-(--space-3)">
+                    {t("design.valuationNotice")}
+                  </Text>
+                </section>
+              ) : null}
+              {disposalPreview ? (
+                <section
+                  data-testid="investment-disposal-live-preview"
+                  className="flex flex-col gap-(--space-2) rounded-(--radius-card) border border-border-subtle bg-surface-muted p-(--space-4)"
+                  aria-live="polite"
+                >
+                  <Text
+                    size="xs"
+                    tone="secondary"
+                    className="uppercase tracking-wide"
+                  >
+                    {t("design.calculations")}
+                  </Text>
+                  {usesQuotedCurrency ? (
+                    <div className="flex justify-between">
+                      <span>
+                        {t("inputTotalValue", { currency: inputCurrency })}
+                      </span>
+                      <FinancialValue>
+                        {inputDisplay(inputTransactionTotal)}
+                      </FinancialValue>
+                    </div>
+                  ) : null}
+                  <div className="flex justify-between">
+                    <span>{t("grossProceeds")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.grossProceeds)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("feesAndTax")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.feeValue)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("netProceeds")}</span>
+                    <FinancialValue>
+                      {money(disposalPreview.netProceeds)}
+                    </FinancialValue>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("realizedPnl")}</span>
+                    <Text
+                      size="sm"
+                      weight="semibold"
+                      tone={resultTone(disposalPreview.realizedPnl)}
+                      tabular
+                    >
+                      <FinancialValue>
+                        {money(disposalPreview.realizedPnl)}
+                      </FinancialValue>
+                    </Text>
+                  </div>
+                  <Text size="xs" tone="secondary" className="text-pretty">
+                    {t("design.saleNotice")}
+                  </Text>
+                  {disposalPreview.remainingQuantity != null ? (
+                    <div className="flex justify-between">
+                      <span>{t("remainingUnitsLabel")}</span>
+                      <FinancialValue>{remainingUnitsText}</FinancialValue>
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
             </>
           )}
         </div>
       </ActionSheetLayout.Body>
-      <ActionSheetLayout.Footer>
+      <ActionSheetLayout.Footer className="flex-col">
         {confirming ? (
           <SheetActionFooter
             secondaryLabel={t("edit")}
@@ -1414,6 +1671,14 @@ export function InvestmentOperationForm({
             {t("review")}
           </Button>
         )}
+        <Text
+          size="xs"
+          tone="secondary"
+          className="flex items-center justify-center gap-(--space-1) text-center text-pretty"
+        >
+          <AppIcon icon={UTILITY_ICONS.shield} size={AppIconSize.XS} />
+          {t("design.recordOnly")}
+        </Text>
       </ActionSheetLayout.Footer>
     </ActionSheetLayout>
   );

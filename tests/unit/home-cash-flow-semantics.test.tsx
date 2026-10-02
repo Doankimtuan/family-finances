@@ -52,6 +52,7 @@ function metrics(
       points: [],
     },
     spendingCategories: [],
+    spendingRemainder: null,
     spendingInsight: null,
     hasTransactions: true,
     ...overrides,

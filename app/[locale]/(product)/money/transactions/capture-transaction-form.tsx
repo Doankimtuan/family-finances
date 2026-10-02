@@ -83,6 +83,7 @@ type Props = {
   transactionTags: TransactionTag[];
   currency: string;
   initialDirection?: TransactionDirection;
+  initialAccountId?: string;
 };
 
 const captureTransactionFormSchema = recordTransactionInputSchema
@@ -172,9 +173,13 @@ function formatCaptureConfirmDate(isoDate: string, locale: string) {
 function createDefaultValues(
   accounts: LedgerAccount[],
   initialDirection: TransactionDirection,
+  initialAccountId?: string,
 ): CaptureTransactionFormInput {
   return {
-    accountId: accounts[0]?.id ?? "",
+    accountId:
+      accounts.find((account) => account.id === initialAccountId)?.id ??
+      accounts[0]?.id ??
+      "",
     type: initialDirection,
     amount: null,
     transactionDate: todayIsoDate(),
@@ -197,6 +202,7 @@ export function CaptureTransactionForm({
   transactionTags,
   currency,
   initialDirection = Direction.EXPENSE,
+  initialAccountId,
 }: Props) {
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
@@ -211,7 +217,11 @@ export function CaptureTransactionForm({
   const [receipt, setReceipt] = useState<ReceiptState | null>(null);
   const [pendingSubmission, setPendingSubmission] =
     useState<CaptureTransactionFormValues | null>(null);
-  const defaultValues = createDefaultValues(accounts, initialDirection);
+  const defaultValues = createDefaultValues(
+    accounts,
+    initialDirection,
+    initialAccountId,
+  );
   const {
     control,
     register,
@@ -302,7 +312,7 @@ export function CaptureTransactionForm({
   };
 
   const resetCaptureForm = () => {
-    reset(createDefaultValues(accounts, initialDirection));
+    reset(createDefaultValues(accounts, initialDirection, initialAccountId));
     statusAlert.hide();
   };
 

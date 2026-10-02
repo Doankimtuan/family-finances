@@ -13,7 +13,7 @@ type InboxPrivacyToggleProps = {
 
 /**
  * Same hide/show store as Home, Money, and Plan. Inbox amounts already mask
- * through FinancialValue; this only exposes the control on summary surfaces.
+ * through FinancialValue; this exposes the existing control for Inbox rows.
  */
 export function InboxPrivacyToggle({
   testId,

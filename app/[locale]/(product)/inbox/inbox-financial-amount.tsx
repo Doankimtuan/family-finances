@@ -1,38 +1,42 @@
-import { INBOX_TEST_ID } from "@/modules/inbox/application/inbox-constants";
+import {
+  FinancialAmount,
+  FinancialAmountSize,
+  FinancialAmountTone,
+  type FinancialAmountTone as FinancialAmountToneValue,
+} from "@/shared/ui/financial-amount";
 import {
   FinancialNumberKind,
   type FinancialNumberKind as FinancialNumberKindValue,
 } from "@/shared/patterns/financial-number-kind";
-import { FinancialValue } from "@/shared/patterns/financial-value";
+import { INBOX_TEST_ID } from "@/modules/inbox/application/inbox-constants";
 import { cn } from "@/shared/utils/cn";
 
 type InboxFinancialAmountProps = {
   amountLabel: string;
   kind: FinancialNumberKindValue;
+  tone?: FinancialAmountToneValue;
   className?: string;
 };
 
-/**
- * Inbox money as existing financial-number kind. Missing labels stay omitted
- * at the caller — this never formats a fallback zero.
- */
+/** Inbox source amounts use shared formatting and privacy behavior. */
 export function InboxFinancialAmount({
   amountLabel,
   kind,
+  tone = FinancialAmountTone.NEUTRAL,
   className,
 }: InboxFinancialAmountProps) {
   return (
-    <span
-      data-financial-kind={kind}
+    <FinancialAmount
+      amountLabel={amountLabel}
+      size={FinancialAmountSize.ROW_AMOUNT}
+      kind={kind}
+      tone={tone}
+      privacyAware
+      data-testid={INBOX_TEST_ID.AMOUNT}
       className={cn(
-        "tabular-nums tracking-tight",
         kind === FinancialNumberKind.ESTIMATE ? "font-medium" : "font-semibold",
         className,
       )}
-    >
-      <FinancialValue dataTestId={INBOX_TEST_ID.AMOUNT}>
-        {amountLabel}
-      </FinancialValue>
-    </span>
+    />
   );
 }

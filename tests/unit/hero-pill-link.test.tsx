@@ -173,7 +173,7 @@ describe("Hero pill link touch target (B12)", () => {
     );
   });
 
-  it("keeps the Money hero activity control as a 44px pill link", () => {
+  it("keeps the Money footer activity control as a 44px text link", () => {
     render(
       <MoneyPositionHero
         ownedMoneyLabel="Owned money"
@@ -190,7 +190,8 @@ describe("Hero pill link touch target (B12)", () => {
     const link = screen.getByTestId("money-see-activity");
     expect(link).toHaveAccessibleName(/See activity/);
     expect(link).toHaveAttribute("href", APP_PATH.MONEY_TRANSACTIONS);
-    assertHeroPillTouchTarget(link);
+    expect(link).toHaveClass("min-h-11", "min-w-11");
+    expect(link.querySelector("span.min-h-8")).toBeNull();
     expect(link.querySelector("svg")).not.toBeNull();
   });
 
@@ -210,14 +211,13 @@ describe("Hero pill link touch target (B12)", () => {
     expect(link.querySelector("span.min-h-8")).toBeNull();
   });
 
-  it("wires remaining on-hero pill links through HeroPillLink", () => {
-    const usages = ["app/[locale]/(product)/money/money-position-hero.tsx"];
-
-    for (const relativePath of usages) {
-      const source = readProjectFile(relativePath);
-      expect(source).toContain("HeroPillLink");
-      expect(source).not.toMatch(/min-h-8 items-center gap-\(--space-1\)/);
-    }
+  it("keeps the Money footer activity link outside the on-hero pill pattern", () => {
+    const source = readProjectFile(
+      "app/[locale]/(product)/money/money-position-hero.tsx",
+    );
+    expect(source).toContain("PRODUCT_LINK_PREFETCH");
+    expect(source).toContain("min-h-11 min-w-11");
+    expect(source).not.toContain("HeroPillLink");
 
     const savingsSource = readProjectFile(
       "app/[locale]/(product)/money/savings/page.tsx",

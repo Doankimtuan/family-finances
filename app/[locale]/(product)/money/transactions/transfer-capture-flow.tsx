@@ -55,6 +55,7 @@ import { todayIsoDate } from "@/shared/utils/iso-date";
 type Props = {
   accounts: LedgerAccount[];
   currency: string;
+  initialSourceAccountId?: string;
   onBackToCapture?: () => void;
 };
 
@@ -99,10 +100,17 @@ function isTransferEligible(account: LedgerAccount): boolean {
   );
 }
 
-function createDefaultValues(eligible: LedgerAccount[]): TransferFormInput {
+function createDefaultValues(
+  eligible: LedgerAccount[],
+  initialSourceAccountId?: string,
+): TransferFormInput {
+  const source =
+    eligible.find((account) => account.id === initialSourceAccountId) ??
+    eligible[0];
+  const destination = eligible.find((account) => account.id !== source?.id);
   return {
-    sourceAccountId: eligible[0]?.id ?? "",
-    destinationAccountId: eligible[1]?.id ?? eligible[0]?.id ?? "",
+    sourceAccountId: source?.id ?? "",
+    destinationAccountId: destination?.id ?? source?.id ?? "",
     amount: undefined as never,
     transactionDate: todayIsoDate(),
     note: undefined,
@@ -117,6 +125,7 @@ function createDefaultValues(eligible: LedgerAccount[]): TransferFormInput {
 export function TransferCaptureFlow({
   accounts,
   currency,
+  initialSourceAccountId,
   onBackToCapture,
 }: Props) {
   const t = useTranslations("money.transferForm");
@@ -149,7 +158,7 @@ export function TransferCaptureFlow({
     formState: { errors },
   } = useForm<TransferFormInput, unknown, TransferFormValues>({
     resolver: zodResolver(recordTransferInputSchema),
-    defaultValues: createDefaultValues(eligible),
+    defaultValues: createDefaultValues(eligible, initialSourceAccountId),
   });
   const watchedAmount = useWatch({ control, name: "amount" });
   const amount = typeof watchedAmount === "number" ? watchedAmount : null;
@@ -198,7 +207,7 @@ export function TransferCaptureFlow({
   }
 
   const resetForm = () => {
-    reset(createDefaultValues(eligible));
+    reset(createDefaultValues(eligible, initialSourceAccountId));
     setErrorCode(null);
     setReceipt(null);
     setStep(MoneyPaymentFlowStep.FORM);

@@ -3,8 +3,6 @@ import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { FloatingAction } from "@/shared/patterns/floating-action";
-import { MoneyCaptureAction } from "../money-capture-action";
 
 function FilterSkeleton() {
   return (
@@ -70,9 +68,6 @@ export default async function TransactionsLoading() {
     >
       <FilterSkeleton />
       <ListSkeleton />
-      <FloatingAction>
-        <MoneyCaptureAction testId="transactions-add" />
-      </FloatingAction>
     </Page>
   );
 }

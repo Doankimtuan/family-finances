@@ -76,20 +76,20 @@
 
 ### Component: Bottom Navigation (`<BottomNav>`)
 
-- **Structure**: 5 equal slots (Home, Money, Plan, Inbox, Together).
-- **Height**: 56px + env(safe-area-inset-bottom).
+- **Structure**: Five equal route tabs (Home, Money, Plan, Inbox, Together) with a separate floating transaction action above the bar.
+- **Height**: 64px tab row + env(safe-area-inset-bottom).
 - **Slot Composition**:
   - Icon: 24×24px `AppIcon` (active stroke: 1.9px, inactive stroke: 1.5px).
-  - Label: 11px Medium font.
-  - Active color: `var(--vn-primary)`.
+  - Label: 11px single-line Geist label.
+  - Active state: Primary icon/label emphasis and a small top indicator; no large filled card.
   - Inactive color: `var(--vn-text-muted)`.
-  - Badge: Unread count on Inbox (e.g., pill with `14`).
+  - Badge: Compact Inbox warning count, capped visually at `99+`.
 
-### Component: Floating Add CTA (`<AddTransactionButton>`)
+### Component: Floating Add CTA (`<FloatingActionButton>`)
 
-- **Visual**: Pill shape (`border-radius: 9999px`), background `var(--vn-primary)`, text `#FFFFFF`, icon `plus` 18px.
-- **Position**: Floating 16px above the bottom navigation bar or integrated as an elevated action header.
-- **Action**: Opens the Add Transaction Sheet.
+- **Visual**: 44px-high semantic primary pill with plus icon and localized Add label.
+- **Position**: Trailing aligned above the bottom navigation through the shared floating-action pattern, with scroll clearance.
+- **Action**: Opens the canonical transaction-create route and is disabled while offline.
 
 ---
 

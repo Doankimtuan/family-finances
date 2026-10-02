@@ -4,7 +4,15 @@ import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 import { Text } from "@/shared/ui/text";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { CheckmarkCircle02Icon } from "@/shared/ui/stitch-icon-compat";
+import { Tick01Icon } from "@/shared/ui/stitch-icon-compat";
+
+export const ChoiceTileLayout = {
+  INLINE: "inline",
+  STACKED: "stacked",
+} as const;
+
+export type ChoiceTileLayout =
+  (typeof ChoiceTileLayout)[keyof typeof ChoiceTileLayout];
 
 export type ChoiceTileProps = {
   label?: string;
@@ -16,12 +24,10 @@ export type ChoiceTileProps = {
   isDisabled?: boolean;
   testId?: string;
   className?: string;
+  layout?: ChoiceTileLayout;
 };
 
-/**
- * Compact two-up selector tile. Pair inside ChoiceTileGroup so labels share
- * one baseline and the hint lives under the row, not inside each card.
- */
+/** Selectable row or stacked card with a dedicated selection slot. */
 export function ChoiceTile({
   label,
   children,
@@ -32,28 +38,31 @@ export function ChoiceTile({
   isDisabled = false,
   testId,
   className,
+  layout = ChoiceTileLayout.INLINE,
 }: ChoiceTileProps) {
-  return (
-    <button
-      type="button"
-      role={role}
-      aria-pressed={role ? undefined : selected}
-      aria-checked={role ? selected : undefined}
-      disabled={isDisabled}
-      data-testid={testId}
-      onClick={onPress}
+  const indicator = (
+    <span
+      data-slot="choice-tile-indicator"
+      aria-hidden
       className={cn(
-        "relative flex h-full min-h-11 w-full items-center gap-(--space-2) rounded-(--radius-control) border px-(--space-3) py-(--space-2) pr-(--space-7) text-left",
-        "transition-[background-color,box-shadow] duration-(--duration-fast) ease-(--ease-standard)",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-        "active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100",
-        selected
-          ? "border-primary/25 bg-primary-soft shadow-(--elevation-1) ring-1 ring-primary/20"
-          : "border-transparent bg-surface-muted hover:bg-surface-hover",
-        className,
+        "flex size-5 shrink-0 items-center justify-center rounded-full",
+        layout === ChoiceTileLayout.STACKED && "ml-auto",
+        role ? "border bg-surface" : "bg-primary text-primary-fg",
+        role && (selected ? "border-2 border-primary" : "border-border-strong"),
+        !role && !selected && "invisible",
       )}
     >
-      {icon}
+      {role && selected ? (
+        <span className="size-2 rounded-full bg-primary" />
+      ) : null}
+      {!role ? <AppIcon icon={Tick01Icon} size="sm" /> : null}
+    </span>
+  );
+  const content = (
+    <span
+      data-slot="choice-tile-content"
+      className="block min-w-0 flex-1 break-words"
+    >
       {children ?? (
         <Text
           size="sm"
@@ -63,14 +72,51 @@ export function ChoiceTile({
           {label}
         </Text>
       )}
-      {selected ? (
-        <span
-          className="absolute right-(--space-2) top-(--space-2) flex size-5 items-center justify-center rounded-full bg-primary text-primary-fg"
-          aria-hidden
-        >
-          <AppIcon icon={CheckmarkCircle02Icon} size="xs" />
-        </span>
-      ) : null}
+    </span>
+  );
+
+  return (
+    <button
+      type="button"
+      role={role}
+      aria-pressed={role ? undefined : selected}
+      aria-checked={role ? selected : undefined}
+      disabled={isDisabled}
+      data-testid={testId}
+      data-layout={layout}
+      onClick={onPress}
+      className={cn(
+        "relative flex h-full min-h-11 min-w-0 w-full gap-(--space-2) rounded-(--radius-control) border px-(--space-3) py-(--space-2) text-left",
+        layout === ChoiceTileLayout.STACKED
+          ? "flex-col items-stretch justify-start"
+          : "items-center",
+        "transition-[background-color,box-shadow] duration-(--duration-fast) ease-(--ease-standard)",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
+        "active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100",
+        selected
+          ? "border-primary/25 bg-primary-soft shadow-(--elevation-1) ring-1 ring-primary/20"
+          : "border-transparent bg-surface-muted hover:bg-surface-hover",
+        className,
+      )}
+    >
+      {layout === ChoiceTileLayout.STACKED ? (
+        <>
+          <span
+            data-slot="choice-tile-header"
+            className="flex items-center gap-(--space-2)"
+          >
+            {icon}
+            {indicator}
+          </span>
+          {content}
+        </>
+      ) : (
+        <>
+          {icon}
+          {content}
+          {indicator}
+        </>
+      )}
     </button>
   );
 }

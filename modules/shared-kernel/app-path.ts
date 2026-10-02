@@ -16,6 +16,8 @@ export const APP_PATH = {
   RESET_PASSWORD: "/reset-password",
   MONEY: "/money",
   MONEY_ACCOUNTS: "/money/accounts",
+  MONEY_ACCOUNTS_NEW: "/money/accounts/new",
+  MONEY_ACCOUNTS_NEW_CREDIT: "/money/accounts/new-credit",
   MONEY_ADD: "/money/transactions/new",
   MONEY_TRANSACTIONS: "/money/transactions",
   MONEY_TRANSACTION_TAGS: "/money/transactions/tags",
@@ -32,7 +34,9 @@ export const APP_PATH = {
   MONEY_SAVINGS: "/money/savings",
   MONEY_SAVINGS_NEW: "/money/savings/new",
   MONEY_SAVINGS_PROVIDERS: "/money/savings/providers",
+  MONEY_SAVINGS_PROVIDERS_NEW: "/money/savings/providers/new",
   MONEY_INVESTMENTS: "/money/investments",
+  MONEY_INVESTMENTS_OVERVIEW: "/money/investments/overview",
   MONEY_INVESTMENTS_NEW: "/money/investments/new",
   MONEY_INVESTMENTS_CONVERT: "/money/investments/convert",
   MONEY_LOANS: "/money/loans",
@@ -49,6 +53,12 @@ export const APP_PATH = {
   OFFLINE: "/offline",
   PERMISSION: "/permission",
   MAINTENANCE: "/maintenance",
+} as const;
+
+export const APP_PATH_SEGMENT = {
+  EDIT: "edit",
+  REFUND: "refund",
+  CORRECT: "correct",
 } as const;
 
 /** Root-relative API routes used by browser features and scheduled jobs. */
@@ -71,11 +81,14 @@ export const APP_ROUTE = {
   HOME: "/[locale]/(product)/home",
   MONEY: "/[locale]/(product)/money",
   MONEY_ACCOUNTS: "/[locale]/(product)/money/accounts",
+  MONEY_ACCOUNTS_NEW: "/[locale]/(product)/money/accounts/new",
+  MONEY_ACCOUNTS_NEW_CREDIT: "/[locale]/(product)/money/accounts/new-credit",
   MONEY_ACCOUNT_DETAIL: "/[locale]/(product)/money/accounts/[id]",
   MONEY_TRANSACTIONS: "/[locale]/(product)/money/transactions",
   MONEY_TRANSACTION_DETAIL: "/[locale]/(product)/money/transactions/[id]",
   MONEY_TRANSACTION_TAGS: "/[locale]/(product)/money/transactions/tags",
   MONEY_INVESTMENTS: "/[locale]/(product)/money/investments",
+  MONEY_INVESTMENTS_OVERVIEW: "/[locale]/(product)/money/investments/overview",
   MONEY_INVESTMENT_DETAIL: "/[locale]/(product)/money/investments/[id]",
   PLAN: "/[locale]/(product)/plan",
   PLAN_GOALS: "/[locale]/(product)/plan/goals",
@@ -94,7 +107,7 @@ export type AppRoutePattern = (typeof APP_ROUTE)[keyof typeof APP_ROUTE];
 
 export const INVITE_PATH_SEGMENT = "invite";
 
-/** Query key for Plan calendar/ritual month navigation. */
+/** Query key shared by Plan overview, calendar, and monthly review navigation. */
 export const PLAN_MONTH_QUERY = "month";
 
 /** Locale-relative invite deep link. */
@@ -115,15 +128,15 @@ export function moneyTransactionTagsPath(): string {
 }
 
 export function moneyTransactionEditPath(transactionId: string): string {
-  return `${moneyTransactionPath(transactionId)}/edit`;
+  return `${moneyTransactionPath(transactionId)}/${APP_PATH_SEGMENT.EDIT}`;
 }
 
 export function moneyTransactionRefundPath(transactionId: string): string {
-  return `${moneyTransactionPath(transactionId)}/refund`;
+  return `${moneyTransactionPath(transactionId)}/${APP_PATH_SEGMENT.REFUND}`;
 }
 
 export function moneyTransactionCorrectPath(transactionId: string): string {
-  return `${moneyTransactionPath(transactionId)}/correct`;
+  return `${moneyTransactionPath(transactionId)}/${APP_PATH_SEGMENT.CORRECT}`;
 }
 
 export function planJarPath(jarId: string): string {

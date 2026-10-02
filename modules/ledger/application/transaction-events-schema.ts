@@ -18,6 +18,7 @@ export const transactionEventFilterSchema = z
     type: z
       .enum(TRANSACTION_COMMON_FILTER_OPTIONS)
       .default(TransactionFilterType.ALL),
+    account: z.uuid().optional(),
     tags: z
       .string()
       .optional()
@@ -28,8 +29,9 @@ export const transactionEventFilterSchema = z
     jar: transactionFilterIdsSchema,
     cursor: z.string().max(TRANSACTION_CURSOR_MAX_LENGTH).optional(),
   })
-  .transform(({ tags, category, jar, ...filters }) => ({
+  .transform(({ tags, category, jar, account, ...filters }) => ({
     ...filters,
+    accountId: account,
     tagIds: [...new Set(tags)],
     categoryIds: [...new Set(category)],
     jarIds: [...new Set(jar)],

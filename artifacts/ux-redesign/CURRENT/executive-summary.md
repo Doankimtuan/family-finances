@@ -1,6 +1,6 @@
 # Executive Summary
 
-The Phase C UX contract preserves Phase B's canonical five-tab shell: Home, Money, Plan, Inbox, Together. Health and Settings remain secondary. UX redesign focuses on flow clarity, state behavior, financial confirmations, one-handed mobile interaction, accessibility, and content consistency.
+The Phase C UX contract keeps Home, Money, Plan, and Inbox as bottom route tabs, puts transaction creation in the center action, and opens Together from Home's household shortcut. Health and Settings remain secondary. UX redesign focuses on flow clarity, state behavior, financial confirmations, one-handed mobile interaction, accessibility, and content consistency.
 
 The most important UX change is behavioral consistency: every financial flow must show whether real money moved, whether intention changed, whether a decision was recorded, and what the next safe destination is. Users aged 20-35 should be able to capture familiar money movement quickly, while still seeing clear previews before irreversible or financially meaningful actions.
 
@@ -19,4 +19,3 @@ Investments are included because `artifacts/current/domains/investments/` contai
 ## Final Verdict
 
 UX_READY_WITH_REQUIRED_IMPROVEMENTS
-

@@ -12,7 +12,7 @@ Reusable calibrated parts:
 
 - `AppViewport` already owns the 440px constrained mobile canvas, portal containment, toast host, modal host, top safe area, and desktop centering.
 - `ChromeShell` already separates scrollable main content from product footer chrome.
-- `BottomNavigation` already enforces the five-tab model and uses Phosphor icons, semantic tokens, active state, focus rings, and bottom safe area.
+- `BottomNavigation` provides four route tabs and a centered transaction action using `AppIcon`, semantic tokens, current-route state, focus rings, and bottom safe area.
 - Home already composes `Page`, `TopAppBar`, `KpiBlock`, `Balance`, `QuickAction`, `HealthCard`, `StatusAlert`, and Home-local CTAs.
 - Phase E0 calibrated Home sequence is present: top bar, load/error state, real position, plan pulse, inbox, health, day-zero actions.
 
@@ -32,8 +32,8 @@ Implementation-relevant issues:
 | Viewport boundary | Render product UI inside the constrained `AppViewport` mobile canvas, max 440px and full dynamic viewport height. Desktop centers the same mobile app shell. | `shared/patterns/AppViewport` | Desktop dashboard layouts, full-width product dashboards, duplicated viewport wrappers. |
 | Mobile-first width | Design and verify at 390px and 440px before desktop. Use the same single-column shell on desktop. | `AppViewport`, `Page`, screen owner | Desktop-only responsive assumptions or multi-column Home. |
 | Safe area | Apply top safe area around app content and bottom safe area around fixed navigation/action regions. | `AppViewport`, `BottomNavigation`, `BottomActionBar` when used | Fixed controls touching device edges or covering content. |
-| Bottom navigation | Exactly five tabs: Home, Money, Plan, Inbox, Together. Height remains compact and thumb reachable; each tab has icon plus label. | `shared/patterns/BottomNavigation` | Adding Health, Settings, object routes, or hidden side navigation to the bottom bar. |
-| Active tab state | Active tab is derived from the top-level product route; active item uses semantic accent wash, stronger label, and filled icon weight. | `BottomNavigation` | Module-specific random colors or active state based on last origin instead of current top-level route. |
+| Bottom navigation | Home, Money, Plan, and Inbox route tabs plus one centered transaction action. The Home household shortcut opens Together. | `shared/patterns/BottomNavigation` | Adding Health, Settings, or object routes to the bottom bar; duplicate transaction-create buttons. |
+| Active tab state | Route tab state is derived from the top-level product route; the center action has no selected-tab state. | `BottomNavigation` | Module-specific random colors or active state based on last origin instead of current top-level route. |
 | Inactive tabs | Inactive tabs stay muted, readable, and 44px minimum. Hover/press feedback is subtle and token-driven. | `BottomNavigation` | Icon-only navigation, emoji navigation, or labels that wrap into illegible fragments. |
 | Badge behavior | Badge appears only when a tab has meaningful pending work. Inbox badge announces pending decision count; visual badge must have screen-reader equivalent. | `BottomNavigation`, Inbox/Home data provider | Decorative dots with no count/meaning, color-only urgency, badges for non-actionable facts. |
 | Scroll ownership | `ChromeShell` main is the single vertical scroll container; product footer remains outside scroll. `Page` owns inner spacing and bottom padding. | `ChromeShell`, `Page` | Nested page scroll regions on Home, hidden scrollbars that trap content, sticky regions inside arbitrary cards. |
@@ -61,13 +61,13 @@ Exact vertical order:
 
 | Region | Purpose | Information shown | Priority | Pattern | Primary interaction | Secondary interaction | Destination | Visibility | Responsive behavior |
 |---|---|---|---|---|---|---|---|---|---|
-| Top app bar | Establish household context and screen identity. | ViNha mark, Home title, short contextual subtitle. | P0 | `TopAppBar` inside `Page` | None by default. | Future household switch only if approved by Together. | None. | Always visible at top of page content. | Single row title wraps/truncates only non-critical household name; subtitle wraps naturally. |
+| Top app bar | Establish household context and screen identity. | ViNha mark, Home title, short contextual subtitle. | P0 | `TopAppBar` inside `Page` | None by default. | Household member shortcut to Together. | None. | Always visible at top of page content. | Single row title wraps/truncates only non-critical household name; subtitle wraps naturally. |
 | Status lane | Qualify unavailable, stale, offline, or permission-limited facts before summaries. | Offline/read-only banner, stale timestamp/source, load/recoverable error. | P0 when present | `StatusAlert`, `MutationOfflineBanner`, future stale label | Retry/refresh when safe. | Open owner module for recovery. | Owner route. | Only when state requires qualification. | Full-width, before financial facts, no overlay. |
 | Real position summary | Answer household standing with one dominant real-money fact. | Real balance/position, currency, freshness/source if not current. | P0 | `KpiBlock` or future `MoneySummary`, `Balance` | Capture transaction for returning users. | Open Money for details. | `/money/transactions/new`, `/money` | Always when data can be shown; in day-zero use as empty/zero state, not alarm. | Amount can wrap or scale down; preserve currency and meaning. |
 | Attention summary | Show the one thing that needs a decision now. | Inbox open count and calm decision copy; critical Health only if meaningful. | P1 | `KpiBlock`, `HomeInboxCta`, `ReviewItem` summary if later needed | Open Inbox. | Open specific review item only if single high-priority item is approved. | `/inbox` or `/inbox/[id]` | Only when pending decisions exist, or shown as quiet clear state below Plan when no pending work. | Count remains tabular; copy wraps before count/action. |
 | Planning/progress pulse | Show household intention progress without becoming analytics. | Active jar count, allocation mode, next ritual or plan status when available. | P1 | `KpiBlock`, `Progress` only if it answers setup/progress | Open Plan. | Open Jars/Goals/Ritual if deep link is contextually specific. | `/plan` | Hide advanced plan facts for day-zero until starter plan exists. | One compact grouped row; no chart unless answering a specific plan question. |
 | Health context | Provide a read-only mirror of visible facts. | Health score/level narrative and completeness/stale qualification. | P2 | `HealthCard` / Health module component | Open Health overview. | Open source module from Health, not directly from Home. | `/health` | Hide or soften until enough facts; never primary on day-zero. | Compact tappable summary with text equivalent for score. |
-| Quick actions | Let the household do one valid next thing. | Returning: capture. Day-zero: add money container, choose starter plan, invite partner. | P2 | `QuickAction`, `EmptyState`, future Home launcher if Rule of Three met | State-specific primary action. | Secondary actions visually quieter. | Owner routes only | Returning user: capture near real position. Day-zero: visible after explanation. | 44px rows; no floating action cluster. |
+| Quick actions | Let the household do one valid next thing. | Returning transaction creation lives in the centered navigation action. Day-zero: add money container, choose starter plan, invite partner. | P2 | `QuickAction`, `EmptyState` | State-specific primary action. | Secondary actions visually quieter. | Owner routes only | Day-zero actions are visible after explanation. | 44px rows; no duplicate transaction action. |
 | Recent activity | Show what changed recently when enough facts exist. | 3 to 5 recent transactions or review/activity receipts with source labels. | P3 | `TransactionRow`, `ReviewCard`, `Section` | Open item owner detail. | Open Money/Inbox list. | Owner detail or list route | Only after household has data; absent on day-zero. | Rows keep amount aligned; preserve scroll return. |
 
 ## 4. Home Content Density
@@ -141,11 +141,11 @@ Density rules:
 |---|---|---|---|---|
 | App canvas | None | `AppViewport` | None | None |
 | Product shell scroll/footer | None | `ChromeShell` | None | None |
-| Bottom nav tabs | Link, Phosphor icons | `BottomNavigation`, `TABS` | None | Inbox badge data adapter if count becomes live |
+| Bottom navigation | Link, Button, Stitch icons | `BottomNavigation`, `TABS` | None | None |
 | Home page frame | None | `Page` | None | None |
 | Home header | `Heading`, `Text` | `TopAppBar`, `BrandMark` | None | None |
 | Dominant real position | `Text` | `KpiBlock`, `Balance` | None | Future `MoneySummary` only after repeated use |
-| Capture CTA | `Button` via pattern | `QuickAction` | `HomeCaptureAction` | Canonical route constant rename if desired |
+| Transaction-create action | `Button` | `BottomNavigation` | None | Opens the canonical `APP_PATH.MONEY_ADD` route |
 | Plan pulse | `Text`, Link styling | `KpiBlock` | Inline Home composition | None |
 | Inbox CTA | `Button` | `KpiBlock` | `HomeInboxCta` | Live nav badge count adapter |
 | Health context | None | `HealthCard` | `HomeHealthChip` | Health partial/stale variant if not already supported |
@@ -257,7 +257,6 @@ Overflow policy:
 Files likely to change:
 
 - `app/[locale]/(product)/home/page.tsx`
-- `app/[locale]/(product)/home/home-capture-action.tsx`
 - `app/[locale]/(product)/home/home-inbox-cta.tsx`
 - `app/[locale]/(product)/home/home-health-chip.tsx`
 - `app/[locale]/(product)/home/home-day-zero-trio.tsx`
@@ -273,7 +272,6 @@ Components likely to change:
 
 - `BottomNavigation`
 - `Page`
-- `HomeCaptureAction`
 - `HomeInboxCta`
 - `HomeHealthChip`
 - `HomeDayZeroTrio`
@@ -330,9 +328,9 @@ Hierarchy:
 
 Navigation:
 
-- Bottom navigation contains exactly Home, Money, Plan, Inbox, Together.
+- Bottom navigation contains Home, Money, Plan, and Inbox route tabs plus the centered transaction action; Together is available through Home's household shortcut.
 - Health and Settings do not appear as bottom tabs.
-- Active tab is correct for `/home`, `/money/*`, `/plan/*`, `/inbox/*`, and `/together/*`.
+- Route-tab state is correct for `/home`, `/money/*`, `/plan/*`, and `/inbox/*`; Home's household shortcut opens Together.
 - Home quick actions navigate only to owner routes and do not perform writes directly.
 - Returning from a Home-launched owner route preserves meaningful Home context where supported.
 
@@ -371,7 +369,7 @@ Accessibility:
 Browser verification:
 
 - Capture screenshots for Home at 390px light Vietnamese and 440px dark English.
-- Verify navigation active states for all five tabs in a real browser.
+- Verify all route tabs, the centered transaction action, and the Home household shortcut to Together in a real browser.
 - Verify long Vietnamese copy and large VND amount fixture in a real browser.
 - Verify loading, empty, partial, ready, stale, recoverable error, and permission-limited states through fixtures or targeted mocks before marking implementation complete.
 

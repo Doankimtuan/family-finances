@@ -148,7 +148,7 @@ export function TransactionRow({
   ) : null;
 
   const trailingSlot = (
-    <div className="flex flex-col items-end gap-0.5 max-w-[50%]">
+    <div className="flex max-w-full flex-col items-end gap-0.5">
       <FinancialAmount
         value={numValue}
         amountLabel={labelValue}
@@ -183,6 +183,7 @@ export function TransactionRow({
       title={title}
       subtitle={subtitle}
       trailing={trailingSlot}
+      trailingClassName="max-w-[50%]"
       action={actionSlot}
       divider={divider === "inset" ? "none" : divider}
       href={href}

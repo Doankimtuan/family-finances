@@ -48,6 +48,8 @@ describe("debt domain", () => {
     const summary = buildDebtSummary([lent, borrowed], TODAY);
     expect(summary.totalLent).toBe(10_000_000);
     expect(summary.totalBorrowed).toBe(10_000_000);
+    expect(summary.lentCount).toBe(1);
+    expect(summary.borrowedCount).toBe(1);
   });
 
   it("calculates partial repayment progress without negative remaining money", () => {

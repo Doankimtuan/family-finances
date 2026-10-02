@@ -19,13 +19,13 @@
 
 | Principle | Result |
 |---|---|
-| Simple enough for first-time users. | Five tabs map to household, money reality, planning, review work, and household management. |
+| Simple enough for first-time users. | Four route tabs map to Home, Money, Plan, and Inbox; transaction creation has one centered action, while Together is opened from Home's household shortcut. |
 | Scalable for 5+ years. | Future financial areas fit under Money Products; Health/Settings remain secondary. |
 | Every screen has exactly one responsibility. | Screen catalog assigns one purpose and one owner per screen. |
 | Every module owns one bounded context. | Module ownership matrix preserves bounded-context responsibilities. |
 | No duplicated entry points. | Compatibility routes are redirect-only; capture has one canonical route. |
 | Navigation follows user mental models. | Reality is Money; intention is Plan; decisions are Inbox; people/settings are Together. |
-| Bottom navigation stays minimal. | Bottom nav remains five items. |
+| Bottom navigation stays minimal. | Four route links and one centered transaction action; Together stays outside the bottom bar and opens from Home's household shortcut. |
 | Avoid deep navigation whenever possible. | Product depth target is three levels, with object actions as controlled exceptions. |
 | Money-related flows feel predictable. | Money uses consistent overview/list/detail/new/action taxonomy. |
 | Household-first remains product identity. | Home and Together frame household context; settings stay household-owned. |
@@ -64,4 +64,3 @@
 - Whether Money Products gets its own intermediate screen or appears as a section inside Money Overview.
 - Which create flows are full-page versus sheet presentation.
 - Whether Health Insights later expands into reports/trends/scenarios.
-

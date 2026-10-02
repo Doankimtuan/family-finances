@@ -10,12 +10,12 @@ export default async function SavingsDetailLoading() {
   return (
     <Page
       testId="savings-detail-loading"
-      contentClassName="gap-(--space-5)"
+      contentClassName="gap-(--space-4)"
       topBar={
         <TopAppBar
           variant="detail"
           backHref={APP_PATH.MONEY_SAVINGS}
-          title={t("title")}
+          title={t("detailTitle")}
         />
       }
     >
@@ -33,6 +33,10 @@ export default async function SavingsDetailLoading() {
           </div>
           <Skeleton className="h-9 w-2/3 rounded" />
           <Skeleton className="h-3 w-1/2 rounded" />
+          <div className="grid grid-cols-2 gap-(--space-2)">
+            <Skeleton className="h-16 rounded-(--radius-control)" />
+            <Skeleton className="h-16 rounded-(--radius-control)" />
+          </div>
         </div>
         <div className="flex flex-col gap-(--space-3) rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-4) shadow-(--elevation-1)">
           <div className="flex items-center justify-between gap-(--space-3)">
@@ -48,6 +52,11 @@ export default async function SavingsDetailLoading() {
           <Skeleton className="h-4 w-full rounded" />
           <Skeleton className="h-4 w-2/3 rounded" />
         </div>
+      </div>
+      <div className="grid grid-cols-3 gap-(--space-2)">
+        <Skeleton className="h-20 rounded-(--radius-control)" />
+        <Skeleton className="h-20 rounded-(--radius-control)" />
+        <Skeleton className="h-20 rounded-(--radius-control)" />
       </div>
       <div className="flex flex-col gap-(--space-2)">
         <Skeleton className="h-4 w-28 rounded" />

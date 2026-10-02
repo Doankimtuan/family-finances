@@ -16,6 +16,7 @@ export type BalanceProps = {
   /** Formatted ledger amount (caller formats with formatCurrency). */
   amountLabel: string;
   label?: ReactNode;
+  kind?: FinancialNumberKind;
   size?: BalanceSize;
   className?: string;
   labelClassName?: string;
@@ -28,6 +29,7 @@ export type BalanceProps = {
 export function Balance({
   amountLabel,
   label,
+  kind = FinancialNumberKind.CURRENT_STATE,
   size = BalanceSize.MD,
   className,
   labelClassName,
@@ -47,7 +49,7 @@ export function Balance({
           amountClassName,
         )}
         data-testid="ledger-balance"
-        data-financial-kind={FinancialNumberKind.CURRENT_STATE}
+        data-financial-kind={kind}
       >
         <FinancialValue>{amountLabel}</FinancialValue>
       </p>

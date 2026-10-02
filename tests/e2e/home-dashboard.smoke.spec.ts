@@ -42,10 +42,10 @@ test.describe("Home decision dashboard", () => {
 
       const captureAction = page
         .locator("#app-viewport-root")
-        .getByTestId(HOME_TEST_ID.CAPTURE_ACTION);
+        .getByTestId("money-capture");
       await expect(captureAction).toBeVisible();
       await expect(captureAction).toBeInViewport();
-      await expect(captureAction).toHaveText("Add transaction");
+      await expect(captureAction).toHaveAccessibleName("Add transaction");
     });
   }
 
@@ -91,11 +91,10 @@ test.describe("Home decision dashboard", () => {
       "false",
     );
     await expect(page.getByTestId(HOME_TEST_ID.FINANCIAL_PULSE)).toBeVisible();
-    const captureAction = page.getByTestId(HOME_TEST_ID.CAPTURE_ACTION);
+    const captureAction = page.getByTestId("money-capture");
     await expect(captureAction).toBeVisible();
     await expect(captureAction).toHaveCount(1);
     await expect(page.getByTestId(HOME_TEST_ID.INBOX_BLOCK)).toBeVisible();
-    await expect(page.getByTestId(HOME_TEST_ID.PLAN_PULSE)).toBeVisible();
     await expect(
       page.evaluate(
         () =>

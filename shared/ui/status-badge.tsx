@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactNode } from "react";
 import { cn } from "@/shared/utils/cn";
 
@@ -10,7 +8,6 @@ export const StatusBadgeTone = {
   DANGER: "danger",
   INFO: "info",
   GROWTH: "growth",
-  // Backward compatibility aliases
   SUCCESS: "success",
   ATTENTION: "attention",
   ERROR: "error",
@@ -33,7 +30,7 @@ export const STATUS_BADGE_TONE_VALUES = [
   StatusBadgeTone.SELECTED,
 ] as const;
 
-const TONE_STYLES: Record<string, string> = {
+const TONE_STYLES: Record<StatusBadgeTone, string> = {
   positive: "bg-success/10 text-success border border-income/20",
   success: "bg-success/10 text-success border border-income/20",
   warning: "bg-warning/10 text-warning border border-warning/25",

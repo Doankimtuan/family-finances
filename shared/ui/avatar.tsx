@@ -2,6 +2,8 @@
 
 import {
   Avatar as HeroAvatar,
+  AvatarFallback as HeroAvatarFallback,
+  AvatarImage as HeroAvatarImage,
   type AvatarProps as HeroAvatarProps,
 } from "@heroui/react";
 import { cn } from "@/shared/utils/cn";
@@ -12,5 +14,5 @@ export function Avatar({ className, ...props }: AvatarProps) {
   return <HeroAvatar className={cn(className)} {...props} />;
 }
 
-Avatar.Image = HeroAvatar.Image;
-Avatar.Fallback = HeroAvatar.Fallback;
+export const AvatarImage = HeroAvatarImage;
+export const AvatarFallback = HeroAvatarFallback;

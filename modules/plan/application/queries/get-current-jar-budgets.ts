@@ -5,6 +5,7 @@ import { DEFAULT_CURRENCY } from "@/modules/ledger/application/ledger-constants"
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
 import {
   PLAN_OPERATION,
+  PLAN_PERIOD_MONTH_PATTERN,
   PLAN_QUERY_RPC,
   RecurringDirection,
 } from "../plan-constants";
@@ -24,6 +25,7 @@ import {
 } from "../jar-budget";
 import {
   JarState,
+  JarKind,
   mapIncomeAllocateMode,
   mapJarPlan,
   mapJarRow,
@@ -71,6 +73,7 @@ type JarRuleSnapshotRow = {
 
 const SNAPSHOT_SELECT =
   "id, household_id, jar_id, period_month, jar_name, plan_kind, percent_bps, fixed_amount, rollover_mode, qualifying_income, qualifying_income_source, rule_budget, rollover_credit";
+const JAR_HISTORY_IDENTITY_SELECT = "id, created_at, kind";
 
 export type JarBudgetPeriod = {
   month: string;
@@ -87,6 +90,15 @@ export type CurrentJarBudgetSummary = {
   incomeSource: QualifyingIncomeSource;
   period: JarBudgetPeriod;
   byJarId: Record<string, JarBudgetMetrics>;
+};
+
+export type PlanBudgetHistory = {
+  periodMonth: string;
+  periodIncome: number;
+  currency: string;
+  period: JarBudgetPeriod;
+  missingJarSnapshotCount: number;
+  jars: Array<{ id: string; name: string; metrics: JarBudgetMetrics }>;
 };
 
 export type JarPeriodSnapshotInsertRow = {
@@ -763,6 +775,14 @@ function incomeSource(
     : "none";
 }
 
+function isCanonicalPlanPeriodMonth(periodMonth: string): boolean {
+  if (!PLAN_PERIOD_MONTH_PATTERN.test(periodMonth)) return false;
+  return (
+    new Date(`${periodMonth}T00:00:00.000Z`).toISOString().slice(0, 10) ===
+    periodMonth
+  );
+}
+
 function snapshotRuleBudget(row: JarRuleSnapshotRow): number {
   return calculateJarRuleBudget(
     mapJarPlan(row),
@@ -1044,6 +1064,165 @@ export async function getCurrentJarBudgets(
   } catch (error) {
     logPlanFailure(error, PLAN_OPERATION.GET_JAR_BUDGETS, {
       householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+/** Months with saved rule snapshots that the Plan overview can review. */
+export async function listPlanBudgetHistoryMonths(): Promise<string[] | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const settings = await loadHouseholdSettings(gate.householdId);
+    const currentMonth = jarBudgetPeriodBounds(
+      new Date(),
+      settings.timezone,
+    ).month;
+    const supabase = await createSupabaseServerClient();
+    const snapshotResult = await supabase
+      .from("jar_period_rule_snapshots")
+      .select("period_month")
+      .eq("household_id", gate.householdId)
+      .lt("period_month", currentMonth)
+      .order("period_month", { ascending: false });
+    if (snapshotResult.error) throw snapshotResult.error;
+
+    const months = new Set(
+      (snapshotResult.data ?? [])
+        .map((row) => row.period_month)
+        .filter(isCanonicalPlanPeriodMonth),
+    );
+    months.add(previousPeriodMonth(currentMonth));
+    return [...months].sort((left, right) => right.localeCompare(left));
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.GET_PLAN_BUDGET_HISTORY, {
+      householdId: gate.householdId,
+    });
+    return null;
+  }
+}
+
+/** Read-only history reconstructed from the selected month's frozen snapshots. */
+export async function getPlanBudgetHistory(
+  periodMonth: string,
+): Promise<PlanBudgetHistory | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok || !isCanonicalPlanPeriodMonth(periodMonth)) return null;
+  try {
+    const settings = await loadHouseholdSettings(gate.householdId);
+    const currentMonth = jarBudgetPeriodBounds(
+      new Date(),
+      settings.timezone,
+    ).month;
+    if (periodMonth >= currentMonth) return null;
+
+    const supabase = await createSupabaseServerClient();
+    const [snapshotResult, jarIdentityResult] = await Promise.all([
+      supabase
+        .from("jar_period_rule_snapshots")
+        .select(SNAPSHOT_SELECT)
+        .eq("household_id", gate.householdId)
+        .eq("period_month", periodMonth)
+        .order("jar_name", { ascending: true }),
+      supabase
+        .from("jars")
+        .select(JAR_HISTORY_IDENTITY_SELECT)
+        .eq("household_id", gate.householdId),
+    ]);
+    if (snapshotResult.error) throw snapshotResult.error;
+    if (jarIdentityResult.error) throw jarIdentityResult.error;
+    const snapshots = snapshotResult.data;
+    if (!snapshots?.length) return null;
+
+    const expectedJarIds = new Set(
+      (jarIdentityResult.data ?? [])
+        .filter(
+          (jar) =>
+            currentPeriodMonth(new Date(jar.created_at), settings.timezone) <=
+            periodMonth,
+        )
+        .map((jar) => jar.id),
+    );
+    const snapshotJarIds = new Set(snapshots.map((row) => row.jar_id));
+    const hasUnexpectedSnapshots = [...snapshotJarIds].some(
+      (jarId) => !expectedJarIds.has(jarId),
+    );
+    if (hasUnexpectedSnapshots) {
+      return null;
+    }
+    const missingJarSnapshotCount = expectedJarIds.size - snapshotJarIds.size;
+
+    const period: JarBudgetPeriod = {
+      month: periodMonth,
+      start: periodMonth,
+      end: periodMonthEndDate(periodMonth),
+      endExclusive: periodMonthExclusiveEnd(periodMonth),
+      timezone: settings.timezone,
+    };
+    const jarIds = [...snapshotJarIds];
+    const [transactions, adjustments] = await Promise.all([
+      loadPeriodTransactions(gate.householdId, period),
+      loadAdjustments(gate.householdId, jarIds, periodMonth),
+    ]);
+    const jarKindsById = new Map(
+      (jarIdentityResult.data ?? []).map((jar) => [jar.id, jar.kind]),
+    );
+    const snapshotRows = snapshots as JarRuleSnapshotRow[];
+    const periodIncome = Number(snapshotRows[0]?.qualifying_income) || 0;
+    const incomeSourceValue = incomeSource(
+      snapshotRows[0]?.qualifying_income_source,
+    );
+    if (
+      snapshotRows.some(
+        (row) =>
+          (Number(row.qualifying_income) || 0) !== periodIncome ||
+          incomeSource(row.qualifying_income_source) !== incomeSourceValue,
+      )
+    ) {
+      return null;
+    }
+
+    const jars = snapshotRows.flatMap((snapshot) => {
+      if (jarKindsById.get(snapshot.jar_id) === JarKind.INCOME) {
+        return [];
+      }
+      const plan = mapJarPlan(snapshot);
+      if (!plan) return [];
+      return [
+        {
+          id: snapshot.jar_id,
+          name: snapshot.jar_name,
+          metrics: calculateJarBudgetMetrics(
+            { plan },
+            snapshot.jar_id,
+            transactions,
+            {
+              periodIncome: Number(snapshot.qualifying_income) || 0,
+              incomeSource: incomeSource(snapshot.qualifying_income_source),
+              rolloverCredit: Math.max(
+                0,
+                Number(snapshot.rollover_credit) || 0,
+              ),
+              adjustment: adjustments[snapshot.jar_id] ?? 0,
+            },
+          ),
+        },
+      ];
+    });
+
+    return {
+      periodMonth,
+      periodIncome,
+      currency: settings.currency,
+      period,
+      missingJarSnapshotCount,
+      jars,
+    };
+  } catch (error) {
+    logPlanFailure(error, PLAN_OPERATION.GET_PLAN_BUDGET_HISTORY, {
+      householdId: gate.householdId,
+      periodMonth,
     });
     return null;
   }

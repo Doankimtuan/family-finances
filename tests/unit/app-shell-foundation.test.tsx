@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { INBOX_BADGE_MAX_DISPLAY_COUNT } from "@/modules/inbox/application/inbox-constants";
 import { BottomNavigation } from "@/shared/patterns/bottom-navigation";
 import {
   BottomActionBar,
@@ -25,15 +26,18 @@ function readProjectFile(relativePath: string) {
 const navigationState = vi.hoisted(() => ({
   pathname: "",
   linkPending: false,
+  push: vi.fn(),
 }));
 
 vi.mock("next-intl", () => ({
-  useTranslations: (namespace: string) => (key: string) =>
-    `${namespace}.${key}`,
+  useTranslations:
+    (namespace: string) => (key: string, values?: { count?: number }) =>
+      `${namespace}.${key}${values?.count === undefined ? "" : ` ${values.count}`}`,
 }));
 
 vi.mock("@/i18n/navigation", () => ({
   usePathname: () => navigationState.pathname,
+  useRouter: () => ({ push: navigationState.push }),
   Link: ({
     href,
     children,
@@ -61,6 +65,10 @@ vi.mock("@/i18n/navigation", () => ({
   },
 }));
 
+vi.mock("@/shared/hooks/use-online-status", () => ({
+  useOnlineStatusClient: () => ({ online: true }),
+}));
+
 vi.mock("next/link", () => ({
   useLinkStatus: () => ({ pending: navigationState.linkPending }),
 }));
@@ -74,10 +82,11 @@ vi.mock("@/shared/motion", () => ({
 beforeEach(() => {
   navigationState.pathname = APP_PATH.HOME;
   navigationState.linkPending = false;
+  navigationState.push.mockClear();
 });
 
 describe("Phase 2 app-shell foundation", () => {
-  it("marks the Home tab current and keeps 44px targets on all five tabs", () => {
+  it("marks Home current and centers capture between four route tabs", () => {
     render(<BottomNavigation />);
 
     const nav = screen.getByRole("navigation", { name: "a11y.primaryNav" });
@@ -85,19 +94,69 @@ describe("Phase 2 app-shell foundation", () => {
     expect(nav).not.toHaveClass("min-[481px]:rounded-[var(--radius-overlay)]");
 
     const tabs = screen.getAllByRole("link");
-    expect(tabs).toHaveLength(5);
+    expect(tabs).toHaveLength(4);
     for (const tab of tabs) {
       expect(tab).toHaveClass("min-h-14");
     }
+    const createAction = screen.getByRole("button", {
+      name: "navigation.addTransaction",
+    });
+    expect(createAction).toHaveClass("size-(--space-12)");
 
     const homeTab = screen.getByRole("link", { name: /navigation.home/ });
     expect(homeTab).toHaveAttribute("aria-current", "page");
     expect(homeTab).toHaveAttribute("data-active", "true");
     expect(homeTab).toHaveClass("text-primary");
     expect(
-      homeTab.querySelector('[data-slot="nav-tab-active-indicator"]'),
-    ).toHaveClass("bg-primary-soft");
+      homeTab.querySelector('[data-slot="nav-tab-active-dot"]'),
+    ).toHaveClass("bg-current");
   });
+
+  it("opens the canonical transaction route from the center action", () => {
+    render(<BottomNavigation />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "navigation.addTransaction" }),
+    );
+
+    expect(navigationState.push).toHaveBeenCalledWith(APP_PATH.MONEY_ADD);
+  });
+
+  it("caps the visual Inbox badge and announces the full count", () => {
+    const count = INBOX_BADGE_MAX_DISPLAY_COUNT + 1;
+    render(<BottomNavigation inboxCount={count} />);
+
+    expect(screen.getByTestId("inbox-badge")).toHaveTextContent(
+      `${INBOX_BADGE_MAX_DISPLAY_COUNT}+`,
+    );
+    expect(screen.getByTestId("inbox-badge")).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+    expect(
+      screen.getByRole("link", {
+        name: new RegExp(`a11y\\.inboxBadge ${count}`),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    APP_PATH.MONEY_SAVINGS,
+    APP_PATH.MONEY_INVESTMENTS,
+    APP_PATH.MONEY_DEBTS,
+    APP_PATH.MONEY_LOANS,
+  ])(
+    "hides the center action when %s already has a contextual create action",
+    (pathname) => {
+      navigationState.pathname = pathname;
+
+      render(<BottomNavigation />);
+
+      expect(
+        screen.queryByRole("button", { name: "navigation.addTransaction" }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it("selects the destination optimistically without changing current-page semantics", () => {
     render(<BottomNavigation />);
