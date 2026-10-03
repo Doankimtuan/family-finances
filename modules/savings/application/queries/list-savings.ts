@@ -23,28 +23,49 @@ import { logSavingsFailure } from "../savings-error";
 
 const SAVING_CYCLE_SELECT =
   "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, settlement_result, renewal_decision, status, funding_transaction_id, settlement_transaction_id, previous_cycle_id, next_cycle_id, created_at";
-const SAVING_DETAIL_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
+const SAVING_CYCLES_SAVING_FK = "saving_cycles_saving_id_fkey";
+const SAVING_CYCLE_EMBED = `saving_cycles!${SAVING_CYCLES_SAVING_FK}(${SAVING_CYCLE_SELECT})`;
+const SAVING_BASE_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
          provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
          funding_accounts:funding_account_id(name),
          settlement_accounts:settlement_account_id(name),
          saving_providers:provider_id(display_name, provider_key, saving_type)`;
-const SAVING_CYCLES_SAVING_FK = "saving_cycles_saving_id_fkey";
-const SAVING_CYCLE_EMBED = `saving_cycles!${SAVING_CYCLES_SAVING_FK}(${SAVING_CYCLE_SELECT})`;
-const SAVING_LIST_SELECT = `id, household_id, status, funding_account_id, settlement_account_id,
-         provider_id, product_name, product_snapshot, renewal_policy, renewal_config, maturity_instruction, created_at, financial_scope, owner_membership_id,
-         funding_accounts:funding_account_id(name),
-         settlement_accounts:settlement_account_id(name),
-         saving_providers:provider_id(display_name, provider_key, saving_type),
-         ${SAVING_CYCLE_EMBED}`;
+
+const SAVING_DETAIL_SELECT = `${SAVING_BASE_SELECT}, ${SAVING_CYCLE_EMBED}`;
+// List selection needs lifecycle/interest inputs, not settlement or activity history.
+const SAVING_LIST_CYCLE_SELECT =
+  "id, saving_id, cycle_number, start_date, end_date, principal, locked_rate, package_snapshot, accrued_interest, status, created_at";
+const SAVING_LIST_SELECT = `${SAVING_BASE_SELECT},
+         saving_cycles!${SAVING_CYCLES_SAVING_FK}(${SAVING_LIST_CYCLE_SELECT})`;
+
+const SAVINGS_OWNER_MEMBERSHIP_FK = "savings_owner_membership_fk";
+const SAVING_LIST_WITH_OWNERS_SELECT = `${SAVING_LIST_SELECT},
+         owner_membership:household_members!${SAVINGS_OWNER_MEMBERSHIP_FK}(id, household_id, is_active)`;
 
 type SavingCycleRow = Parameters<typeof mapSavingCycleRow>[0];
-type SavingListRow = Parameters<typeof mapSavingRow>[0] & {
+type SavingDetailRow = Parameters<typeof mapSavingRow>[0] & {
   saving_cycles?: SavingCycleRow[] | SavingCycleRow | null;
 };
 
-function embeddedCycleRows(
-  value: SavingListRow["saving_cycles"],
-): SavingCycleRow[] {
+type SavingListCycleRow = Omit<
+  SavingCycleRow,
+  | "settlement_result"
+  | "renewal_decision"
+  | "funding_transaction_id"
+  | "settlement_transaction_id"
+  | "previous_cycle_id"
+  | "next_cycle_id"
+>;
+type SavingListWithOwnerRow = Parameters<typeof mapSavingRow>[0] & {
+  saving_cycles?: SavingListCycleRow[] | SavingListCycleRow | null;
+  owner_membership: {
+    id: string;
+    household_id: string;
+    is_active: boolean;
+  } | null;
+};
+
+function embeddedCycleRows<Row>(value: Row[] | Row | null | undefined): Row[] {
   if (value == null) return [];
   return Array.isArray(value) ? value : [value];
 }
@@ -77,9 +98,13 @@ async function loadSavings(): Promise<Saving[] | null> {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from("savings")
-      .select(SAVING_LIST_SELECT)
+      .select(SAVING_LIST_WITH_OWNERS_SELECT)
       .eq("household_id", gate.householdId)
-      .order("created_at", { ascending: false });
+      .eq("owner_membership.is_active", true)
+      .eq("owner_membership.household_id", gate.householdId)
+      .order("created_at", { ascending: false })
+      // Deployed composite FK is many-to-one; the untyped client infers arrays.
+      .overrideTypes<SavingListWithOwnerRow[], { merge: false }>();
 
     if (error) {
       logSavingsFailure(error, SAVINGS_OPERATION.LIST_SAVINGS, {
@@ -88,27 +113,35 @@ async function loadSavings(): Promise<Saving[] | null> {
       return null;
     }
 
-    const rows = (data ?? []) as SavingListRow[];
-    const activeOwnerMembershipIds = await listActiveMembershipIds(
-      supabase,
-      gate.householdId,
-      rows
-        .map((row) => row.owner_membership_id)
-        .filter((id): id is string => id != null),
+    const rows = data ?? [];
+    // The left embed retains Savings with absent/inactive owners. Only scoped,
+    // active membership evidence may grant personal mutation capability.
+    const activeOwnerMembershipIds = new Set(
+      rows.flatMap((row) => {
+        const owner = row.owner_membership;
+        return owner?.is_active === true &&
+          owner.household_id === gate.householdId &&
+          owner.id === row.owner_membership_id
+          ? [owner.id]
+          : [];
+      }),
     );
     const savings = rows.map((row) =>
-      mapSavingRow(
-        row,
-        gate.membershipId,
-        activeOwnerMembershipIds ?? undefined,
-      ),
+      mapSavingRow(row, gate.membershipId, activeOwnerMembershipIds),
     );
 
     const cyclesBySavingId = new Map<string, SavingCycle[]>();
     for (const row of rows) {
       cyclesBySavingId.set(
         row.id,
-        embeddedCycleRows(row.saving_cycles).map(mapSavingCycleRow),
+        embeddedCycleRows(row.saving_cycles).map((cycle) =>
+          mapSavingCycleRow({
+            ...cycle,
+            settlement_result: null,
+            funding_transaction_id: null,
+            settlement_transaction_id: null,
+          }),
+        ),
       );
     }
 
@@ -181,35 +214,18 @@ async function loadSavingDetail(
     }
     if (!data) return null;
 
-    const [activeOwnerMembershipIds, cycleResult] = await Promise.all([
-      listActiveMembershipIds(
-        supabase,
-        gate.householdId,
-        data.owner_membership_id ? [data.owner_membership_id] : [],
-      ),
-      supabase
-        .from("saving_cycles")
-        .select(SAVING_CYCLE_SELECT)
-        .eq("saving_id", data.id)
-        .order("cycle_number", { ascending: true }),
-    ]);
+    const row = data as SavingDetailRow;
+    const activeOwnerMembershipIds = await listActiveMembershipIds(
+      supabase,
+      gate.householdId,
+      row.owner_membership_id ? [row.owner_membership_id] : [],
+    );
     const saving = mapSavingRow(
-      data,
+      row,
       gate.membershipId,
       activeOwnerMembershipIds ?? undefined,
     );
-
-    if (cycleResult.error) {
-      logSavingsFailure(
-        cycleResult.error,
-        SAVINGS_OPERATION.LIST_SAVING_CYCLES,
-        {
-          householdId: gate.householdId,
-          savingId,
-        },
-      );
-    }
-    const cycles = (cycleResult.data ?? []).map(mapSavingCycleRow);
+    const cycles = embeddedCycleRows(row.saving_cycles).map(mapSavingCycleRow);
 
     if (cycles.length > 0) {
       // Compute current accrued interest for active cycles
@@ -256,11 +272,8 @@ export async function getSaving(savingId: string): Promise<Saving | null> {
   return detail?.saving ?? null;
 }
 
-export async function getSavingDetail(
-  savingId: string,
-): Promise<SavingDetailRead | null> {
-  return loadSavingDetail(savingId);
-}
+// Page and deferred activity share one authorized read within this RSC request.
+export const getSavingDetail = cache(loadSavingDetail);
 
 export async function listSavingCycles(
   savingId: string,
@@ -335,20 +348,18 @@ export async function listSavingCycles(
 
 export async function listSavingsFinancialActivities(
   savingId: string,
-  cycles: readonly SavingCycle[],
 ): Promise<SavingsFinancialActivity[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: saving } = await supabase
-      .from("savings")
-      .select("id")
-      .eq("id", savingId)
-      .eq("household_id", gate.householdId)
-      .maybeSingle();
-    if (!saving) return null;
+    // Resolve trusted cycles from the household-authorized server read, never
+    // from a client-supplied assertion or transaction list. React cache reuses
+    // the page's read without skipping the Money gate or household validation.
+    const detail = await getSavingDetail(savingId);
+    if (!detail) return null;
+    const { cycles } = detail;
 
     const ids = new Set<string>();
     for (const cycle of cycles) {

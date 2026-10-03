@@ -417,4 +417,61 @@ describe("Savings command error boundary", () => {
       expect.objectContaining({ p_idempotency_key: idempotencyKey }),
     );
   });
+
+  it("revalidates settlement authority when a previously offered account becomes invalid", async () => {
+    const validCycleId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    const savingId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const settlementAccountId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    let accountEligible = true;
+    const rpc = vi.fn(async (name: string) => {
+      if (name !== SAVINGS_RPC.SETTLE) return { data: null, error: null };
+      if (!accountEligible)
+        return {
+          data: null,
+          error: {
+            code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+            message: "Invalid settlement account",
+          },
+        };
+      return {
+        data: { ok: true, savingId, cycleId: validCycleId, netAmount: 100 },
+        error: null,
+      };
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      supabaseWithCycleLookup(rpc) as never,
+    );
+    expect(
+      await settleSaving({ cycleId: validCycleId, settlementAccountId }),
+    ).toMatchObject({
+      ok: true,
+    });
+    accountEligible = false;
+    expect(
+      await settleSaving({ cycleId: validCycleId, settlementAccountId }),
+    ).toEqual({
+      ok: false,
+      code: PRODUCT_ACTION_ERROR_CODE.INVALID,
+    });
+    expect(assertMoneyActionAllowed).toHaveBeenCalledTimes(2);
+    expect(
+      rpc.mock.calls.filter(([name]) => name === SAVINGS_RPC.SETTLE),
+    ).toHaveLength(2);
+  });
+
+  it("rejects renewal when the selected package is no longer active", async () => {
+    vi.mocked(resolvePackageSnapshot).mockResolvedValue(null);
+    const rpc = vi.fn();
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      supabaseWithCycleLookup(rpc) as never,
+    );
+    expect(
+      await renewSaving({
+        cycleId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        action: SettlementAction.ROLL_PRINCIPAL_INTEREST,
+        packageId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      }),
+    ).toEqual({ ok: false, code: PRODUCT_ACTION_ERROR_CODE.INVALID });
+    expect(rpc).not.toHaveBeenCalled();
+  });
 });

@@ -1,0 +1,1398 @@
+{
+  "date": "2026-10-03",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "methodology": {
+    "environment": "Disposable production Next.js 16.3.1 / React 19.2.3 copies; local port 3102; existing hosted Supabase ap-southeast-2; same authenticated existing Saving; headed Chromium 440x900; normal motion; no throttling; quiet host.",
+    "passes": "Fresh server and browser per arm; Money -> Savings; one cold-ish Detail pass plus three warm Detail repetitions; existing Detail app Back link between repetitions; 1200 ms idle spacing.",
+    "milestones": {
+      "A": "Summary identity/financial content + cycle/rate/date facts mounted; all identity ancestors >=0.95 opacity; two animation frames.",
+      "B": "Resolved activity and history sections mounted with nonzero geometry; two frames; readiness does not require scrolling them into view.",
+      "C": "Both reference-dependent renewal editor controls mounted and enabled; two frames.",
+      "D": "max(B,C): all current Detail data consumers resolved; distinct from reveal readability."
+    },
+    "historicalComparison": "Phase 1 1628 ms used DOM arrival plus two frames, without checking reveal opacity. Compare current readable A with the same-run control; historical figure is contextual, not an equivalent paint definition.",
+    "diagnosticRuns": "Earlier diagnostic blocks were excluded before locking the final pair after discovering opacity-zero DOM arrival. Both final arms used the same readable-summary selector, same data, fresh browser/server, and all four samples; no individual timing sample was excluded."
+  },
+  "historicalWarmMs": {
+    "prePhase1": 2435,
+    "postPhase1": 1628
+  },
+  "before": {
+    "samples": [
+      {
+        "pass": 0,
+        "epoch": 1790967094884.2,
+        "B": 1875.7000000476837,
+        "C": 1875.8000001907349,
+        "A": 2176.5,
+        "summaryOpacity": 0.974442,
+        "D": 1875.8000001907349,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 66,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 14.8,
+            "durationMs": 0,
+            "endMs": 14.8
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 19.8,
+            "durationMs": 538,
+            "endMs": 557.8
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 14.8,
+            "durationMs": 543,
+            "endMs": 557.8
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 557.8,
+            "durationMs": 529,
+            "endMs": 1086.8
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 1087.8,
+            "durationMs": 332,
+            "endMs": 1419.8
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 1087.8,
+            "durationMs": 645,
+            "endMs": 1732.8
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 1087.8,
+            "durationMs": 754,
+            "endMs": 1841.8
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 16.8,
+            "durationMs": 409,
+            "endMs": 425.8,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 20.8,
+            "durationMs": 536,
+            "endMs": 556.8,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 558.8,
+            "durationMs": 266,
+            "endMs": 824.8,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 825.8,
+            "durationMs": 260,
+            "endMs": 1085.8,
+            "status": 200
+          },
+          {
+            "operation": "Saving recheck",
+            "startMs": 1088.8,
+            "durationMs": 330,
+            "endMs": 1418.8,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 1088.8,
+            "durationMs": 410,
+            "endMs": 1498.8,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 1089.8,
+            "durationMs": 420,
+            "endMs": 1509.8,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 1088.8,
+            "durationMs": 643,
+            "endMs": 1731.8,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1510.8,
+            "durationMs": 258,
+            "endMs": 1768.8,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1510.8,
+            "durationMs": 330,
+            "endMs": 1840.8,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "epoch": 1790967100148.8,
+        "B": 1711,
+        "C": 1711,
+        "A": 2011.7999999523163,
+        "summaryOpacity": 0.975787,
+        "D": 1711,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 71,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 11.2,
+            "durationMs": 1,
+            "endMs": 12.2
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 18.2,
+            "durationMs": 271,
+            "endMs": 289.2
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 11.2,
+            "durationMs": 284,
+            "endMs": 295.2
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 295.2,
+            "durationMs": 524,
+            "endMs": 819.2
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 819.2,
+            "durationMs": 264,
+            "endMs": 1083.2
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 819.2,
+            "durationMs": 342,
+            "endMs": 1161.2
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 819.2,
+            "durationMs": 864,
+            "endMs": 1683.2
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "active membership",
+            "startMs": 18.2,
+            "durationMs": 270,
+            "endMs": 288.2,
+            "status": 200
+          },
+          {
+            "operation": "user",
+            "startMs": 14.2,
+            "durationMs": 281,
+            "endMs": 295.2,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 296.2,
+            "durationMs": 262,
+            "endMs": 558.2,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 559.2,
+            "durationMs": 259,
+            "endMs": 818.2,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 820.2,
+            "durationMs": 262,
+            "endMs": 1082.2,
+            "status": 200
+          },
+          {
+            "operation": "Saving recheck",
+            "startMs": 820.2,
+            "durationMs": 341,
+            "endMs": 1161.2,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 821.2,
+            "durationMs": 415,
+            "endMs": 1236.2,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 821.2,
+            "durationMs": 519,
+            "endMs": 1340.2,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1341.2,
+            "durationMs": 255,
+            "endMs": 1596.2,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1342.2,
+            "durationMs": 340,
+            "endMs": 1682.2,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "epoch": 1790967104751,
+        "B": 1825.5,
+        "C": 1825.5,
+        "A": 2125.5999999046326,
+        "summaryOpacity": 0.976593,
+        "D": 1825.5,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 76,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 11,
+            "durationMs": 1,
+            "endMs": 12
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 18,
+            "durationMs": 334,
+            "endMs": 352
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 11,
+            "durationMs": 342,
+            "endMs": 353
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 353,
+            "durationMs": 561,
+            "endMs": 914
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 914,
+            "durationMs": 265,
+            "endMs": 1179
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 914,
+            "durationMs": 265,
+            "endMs": 1179
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 914,
+            "durationMs": 871,
+            "endMs": 1785
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 14,
+            "durationMs": 264,
+            "endMs": 278,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 18,
+            "durationMs": 333,
+            "endMs": 351,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 354,
+            "durationMs": 297,
+            "endMs": 651,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 652,
+            "durationMs": 260,
+            "endMs": 912,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 916,
+            "durationMs": 260,
+            "endMs": 1176,
+            "status": 200
+          },
+          {
+            "operation": "Saving recheck",
+            "startMs": 916,
+            "durationMs": 262,
+            "endMs": 1178,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 916,
+            "durationMs": 443,
+            "endMs": 1359,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 917,
+            "durationMs": 524,
+            "endMs": 1441,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1443,
+            "durationMs": 257,
+            "endMs": 1700,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1444,
+            "durationMs": 340,
+            "endMs": 1784,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "epoch": 1790967109465.2,
+        "B": 1727.9000000953674,
+        "C": 1727.9000000953674,
+        "A": 2028.6000001430511,
+        "summaryOpacity": 0.974442,
+        "D": 1727.9000000953674,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 81,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 8.8,
+            "durationMs": 0,
+            "endMs": 8.8
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 12.8,
+            "durationMs": 333,
+            "endMs": 345.8
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 8.8,
+            "durationMs": 337,
+            "endMs": 345.8
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 345.8,
+            "durationMs": 572,
+            "endMs": 917.8
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 917.8,
+            "durationMs": 265,
+            "endMs": 1182.8
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 917.8,
+            "durationMs": 339,
+            "endMs": 1256.8
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 917.8,
+            "durationMs": 786,
+            "endMs": 1703.8
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 9.8,
+            "durationMs": 257,
+            "endMs": 266.8,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 12.8,
+            "durationMs": 332,
+            "endMs": 344.8,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 346.8,
+            "durationMs": 308,
+            "endMs": 654.8,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 655.8,
+            "durationMs": 261,
+            "endMs": 916.8,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 918.8,
+            "durationMs": 263,
+            "endMs": 1181.8,
+            "status": 200
+          },
+          {
+            "operation": "Saving recheck",
+            "startMs": 918.8,
+            "durationMs": 337,
+            "endMs": 1255.8,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 918.8,
+            "durationMs": 415,
+            "endMs": 1333.8,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 919.8,
+            "durationMs": 437,
+            "endMs": 1356.8,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1357.8,
+            "durationMs": 345,
+            "endMs": 1702.8,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1357.8,
+            "durationMs": 346,
+            "endMs": 1703.8,
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "demands": [
+      {
+        "at": 1790967094890,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967097105,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967100152,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967102206,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967104755,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967106923,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967109468,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967111539,
+        "path": "/en/money/savings",
+        "prefetch": false
+      }
+    ]
+  },
+  "after": {
+    "samples": [
+      {
+        "pass": 0,
+        "epoch": 1790967260551.9001,
+        "B": 1009.2000000476837,
+        "A": 1310.6000001430511,
+        "summaryOpacity": 0.977024,
+        "C": 1742.5,
+        "D": 1742.5,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 66,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 14.1,
+            "durationMs": 1,
+            "endMs": 15.1
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 20.1,
+            "durationMs": 420,
+            "endMs": 440.1
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 14.1,
+            "durationMs": 426,
+            "endMs": 440.1
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 440.1,
+            "durationMs": 527,
+            "endMs": 967.1
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 968.1,
+            "durationMs": 2,
+            "endMs": 970.1
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 968.1,
+            "durationMs": 265,
+            "endMs": 1233.1
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 968.1,
+            "durationMs": 741,
+            "endMs": 1709.1
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 16.1,
+            "durationMs": 407,
+            "endMs": 423.1,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 20.1,
+            "durationMs": 419,
+            "endMs": 439.1,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 441.1,
+            "durationMs": 266,
+            "endMs": 707.1,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 708.1,
+            "durationMs": 258,
+            "endMs": 966.1,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 970.1,
+            "durationMs": 257,
+            "endMs": 1227.1,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 970.1,
+            "durationMs": 261,
+            "endMs": 1231.1,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 971.1,
+            "durationMs": 456,
+            "endMs": 1427.1,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1431.1,
+            "durationMs": 261,
+            "endMs": 1692.1,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1432.1,
+            "durationMs": 275,
+            "endMs": 1707.1,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "epoch": 1790967264868.3,
+        "B": 842.7999999523163,
+        "A": 1144.5,
+        "summaryOpacity": 0.977185,
+        "C": 1375.8999998569489,
+        "D": 1375.8999998569489,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 71,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 10.7,
+            "durationMs": 0,
+            "endMs": 10.7
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 16.7,
+            "durationMs": 265,
+            "endMs": 281.7
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 10.7,
+            "durationMs": 271,
+            "endMs": 281.7
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 281.7,
+            "durationMs": 522,
+            "endMs": 803.7
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 804.7,
+            "durationMs": 1,
+            "endMs": 805.7
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 804.7,
+            "durationMs": 264,
+            "endMs": 1068.7
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 804.7,
+            "durationMs": 535,
+            "endMs": 1339.7
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 13.7,
+            "durationMs": 261,
+            "endMs": 274.7,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 17.7,
+            "durationMs": 263,
+            "endMs": 280.7,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 281.7,
+            "durationMs": 261,
+            "endMs": 542.7,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 544.7,
+            "durationMs": 259,
+            "endMs": 803.7,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 806.7,
+            "durationMs": 257,
+            "endMs": 1063.7,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 806.7,
+            "durationMs": 258,
+            "endMs": 1064.7,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 806.7,
+            "durationMs": 259,
+            "endMs": 1065.7,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1068.7,
+            "durationMs": 262,
+            "endMs": 1330.7,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1067.7,
+            "durationMs": 271,
+            "endMs": 1338.7,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "epoch": 1790967268819.4001,
+        "B": 1041.7000000476837,
+        "A": 1343.2999999523163,
+        "summaryOpacity": 0.974819,
+        "C": 1608.2999999523163,
+        "D": 1608.2999999523163,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 76,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 13.6,
+            "durationMs": 1,
+            "endMs": 14.6
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 18.6,
+            "durationMs": 269,
+            "endMs": 287.6
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 13.6,
+            "durationMs": 274,
+            "endMs": 287.6
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 287.6,
+            "durationMs": 729,
+            "endMs": 1016.6
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 1016.6,
+            "durationMs": 1,
+            "endMs": 1017.6
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 1016.6,
+            "durationMs": 261,
+            "endMs": 1277.6
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 1016.6,
+            "durationMs": 562,
+            "endMs": 1578.6
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 16.6,
+            "durationMs": 260,
+            "endMs": 276.6,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 19.6,
+            "durationMs": 267,
+            "endMs": 286.6,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 288.6,
+            "durationMs": 467,
+            "endMs": 755.6,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 756.6,
+            "durationMs": 259,
+            "endMs": 1015.6,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 1018.6,
+            "durationMs": 257,
+            "endMs": 1275.6,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 1018.6,
+            "durationMs": 266,
+            "endMs": 1284.6,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 1018.6,
+            "durationMs": 283,
+            "endMs": 1301.6,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1303.6,
+            "durationMs": 258,
+            "endMs": 1561.6,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1304.6,
+            "durationMs": 272,
+            "endMs": 1576.6,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "epoch": 1790967273003.9001,
+        "B": 1240.5,
+        "A": 1540.2999999523163,
+        "summaryOpacity": 0.975356,
+        "C": 2040.4000000953674,
+        "D": 2040.4000000953674,
+        "summaryUnchanged": true,
+        "summaryNodeRetained": true,
+        "mainRetained": true,
+        "viewportRetained": true,
+        "rid": 81,
+        "serverSpans": [
+          {
+            "operation": "createSupabaseServerClientUncached",
+            "startMs": 12.1,
+            "durationMs": 1,
+            "endMs": 13.1
+          },
+          {
+            "operation": "loadActiveMembership",
+            "startMs": 17.1,
+            "durationMs": 272,
+            "endMs": 289.1
+          },
+          {
+            "operation": "loadSessionMembership",
+            "startMs": 12.1,
+            "durationMs": 277,
+            "endMs": 289.1
+          },
+          {
+            "operation": "loadSavingDetail",
+            "startMs": 289.1,
+            "durationMs": 922,
+            "endMs": 1211.1
+          },
+          {
+            "operation": "listSavingsFinancialActivities",
+            "startMs": 1212.1,
+            "durationMs": 1,
+            "endMs": 1213.1
+          },
+          {
+            "operation": "loadProviderPackages",
+            "startMs": 1212.1,
+            "durationMs": 260,
+            "endMs": 1472.1
+          },
+          {
+            "operation": "loadAccounts",
+            "startMs": 1212.1,
+            "durationMs": 802,
+            "endMs": 2014.1
+          }
+        ],
+        "remoteRequests": [
+          {
+            "operation": "user",
+            "startMs": 15.1,
+            "durationMs": 269,
+            "endMs": 284.1,
+            "status": 200
+          },
+          {
+            "operation": "active membership",
+            "startMs": 18.1,
+            "durationMs": 270,
+            "endMs": 288.1,
+            "status": 200
+          },
+          {
+            "operation": "Saving",
+            "startMs": 289.1,
+            "durationMs": 264,
+            "endMs": 553.1,
+            "status": 200
+          },
+          {
+            "operation": "saving_cycles",
+            "startMs": 554.1,
+            "durationMs": 657,
+            "endMs": 1211.1,
+            "status": 200
+          },
+          {
+            "operation": "saving_packages",
+            "startMs": 1214.1,
+            "durationMs": 257,
+            "endMs": 1471.1,
+            "status": 200
+          },
+          {
+            "operation": "households",
+            "startMs": 1214.1,
+            "durationMs": 259,
+            "endMs": 1473.1,
+            "status": 200
+          },
+          {
+            "operation": "accounts",
+            "startMs": 1214.1,
+            "durationMs": 524,
+            "endMs": 1738.1,
+            "status": 200
+          },
+          {
+            "operation": "owner membership",
+            "startMs": 1742.1,
+            "durationMs": 267,
+            "endMs": 2009.1,
+            "status": 200
+          },
+          {
+            "operation": "get_account_ledger_balances",
+            "startMs": 1743.1,
+            "durationMs": 270,
+            "endMs": 2013.1,
+            "status": 200
+          }
+        ]
+      }
+    ],
+    "demands": [
+      {
+        "at": 1790967260558,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967262335,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967264871,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967266282,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967268822,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967270468,
+        "path": "/en/money/savings",
+        "prefetch": false
+      },
+      {
+        "at": 1790967273007,
+        "path": "/en/money/savings/:id",
+        "prefetch": false
+      },
+      {
+        "at": 1790967275084,
+        "path": "/en/money/savings",
+        "prefetch": false
+      }
+    ]
+  },
+  "warmMediansMs": {
+    "before": {
+      "A": 2028.6,
+      "B": 1727.9,
+      "C": 1727.9,
+      "D": 1727.9
+    },
+    "after": {
+      "A": 1343.3,
+      "B": 1041.7,
+      "C": 1608.3,
+      "D": 1608.3
+    }
+  },
+  "visualChecks": [
+    {
+      "locale": "en",
+      "width": 390,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 390,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 390,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 440,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 440,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 768,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 768,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 1280,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "en",
+      "width": 1280,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 390,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 390,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 390,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 390,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 440,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 440,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 768,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 768,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 1280,
+      "theme": "light",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    },
+    {
+      "locale": "vi",
+      "width": 1280,
+      "theme": "dark",
+      "noOverflow": true,
+      "shellWidth": 440,
+      "reduced": {
+        "matches": true,
+        "transform": "",
+        "opacity": "1"
+      }
+    }
+  ],
+  "behaviorChecks": [
+    {
+      "locale": "vi",
+      "keyboardOpen": true,
+      "focus": {
+        "insideDialog": true,
+        "outline": "solid"
+      },
+      "ephemeralReset": true
+    },
+    {
+      "locale": "en",
+      "keyboardOpen": true,
+      "focus": {
+        "insideDialog": true,
+        "outline": "solid"
+      },
+      "ephemeralReset": true
+    },
+    {
+      "activityPresent": true
+    },
+    {
+      "missingSaving": true,
+      "noFinancialSummary": true
+    },
+    {
+      "personalSaving": true,
+      "canAct": false
+    },
+    {
+      "moneySavingsCreateSmoke": true,
+      "createEarlyNameEditable": true,
+      "backHistoryRestored": true
+    },
+    {
+      "detailBrowserBack": true
+    }
+  ],
+  "serverSecurityInspection": {
+    "readOnly": true,
+    "savingsSelect": "active_membership_id(household_id) IS NOT NULL",
+    "savingsUpdate": "can_mutate_financial_resource in USING and WITH CHECK",
+    "cyclesAndTransactions": "existing membership/mutation RLS retained",
+    "settlementRPC": [
+      "auth.uid",
+      "can_mutate_financial_resource",
+      "savings_is_eligible_liquid_account"
+    ],
+    "rolloverRPC": [
+      "auth.uid",
+      "can_mutate_financial_resource",
+      "savings_is_eligible_liquid_account",
+      "renewable_available"
+    ],
+    "liveLimitations": "No second-household or persisted matured Saving fixture; unit/deployed-policy evidence for these cases."
+  },
+  "validation": {
+    "lint": "passed",
+    "typecheck": "2 existing Home TS2322 errors; no Phase 4 errors",
+    "unit": "1645 passed / 6 existing failed; 246 files passed / 4 failed",
+    "changedFocused": "42 passed",
+    "authenticatedE2ESmoke": "2 passed with fixture-free disposable config",
+    "formatCheck": "193 existing/style files; changed source/test files pass",
+    "productionBuild": "both disposable builds passed with baseline strict-type errors ignored and root workaround; repository config unchanged"
+  }
+}

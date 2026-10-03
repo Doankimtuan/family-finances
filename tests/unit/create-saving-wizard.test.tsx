@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -110,14 +111,28 @@ const packagesByProvider = {
   ],
 };
 
-function renderWizard() {
-  return render(
-    <CreateSavingWizard
-      accounts={accounts}
-      providers={providers}
-      packagesByProvider={packagesByProvider}
-    />,
+const unavailable = {
+  title: "No accounts",
+  actionHref: "/money/accounts",
+  actionLabel: "Create account",
+};
+async function renderWizard() {
+  let result!: ReturnType<typeof render>;
+  await act(async () => {
+    result = render(
+      <CreateSavingWizard
+        data={Promise.resolve({ accounts, providers, packagesByProvider })}
+        unavailable={unavailable}
+      />,
+    );
+  });
+  await waitFor(() =>
+    expect(screen.getByTestId("savings-create-wizard")).toHaveAttribute(
+      "data-ready",
+      "true",
+    ),
   );
+  return result;
 }
 
 function reachReview() {
@@ -134,8 +149,8 @@ describe("CreateSavingWizard", () => {
     vi.clearAllMocks();
   });
 
-  it("starts with manual savings and updates the package when the provider changes", () => {
-    renderWizard();
+  it("starts with manual savings and updates the package when the provider changes", async () => {
+    await renderWizard();
 
     expect(screen.getByTestId("savings-type-manual")).toHaveAttribute(
       "aria-checked",
@@ -166,8 +181,8 @@ describe("CreateSavingWizard", () => {
     expect(screen.getByDisplayValue("Family nest egg")).toBeInTheDocument();
   });
 
-  it("omits the source account for historical savings", () => {
-    renderWizard();
+  it("omits the source account for historical savings", async () => {
+    await renderWizard();
     expect(screen.getByTestId("savings-create-mode-live")).toBeInTheDocument();
     expect(
       screen.getByTestId("savings-create-mode-historical"),
@@ -180,8 +195,8 @@ describe("CreateSavingWizard", () => {
     expect(screen.getByText("historicalNoSource")).toBeInTheDocument();
   });
 
-  it("retains valid values when moving back from review", () => {
-    renderWizard();
+  it("retains valid values when moving back from review", async () => {
+    await renderWizard();
     reachReview();
 
     expect(screen.getByTestId("savings-review-summary")).toHaveTextContent(
@@ -198,7 +213,7 @@ describe("CreateSavingWizard", () => {
 
   it("submits the selected maturity strategy and resets the wizard on success", async () => {
     createSavingMock.mockResolvedValue({ status: "success", id: "saving-1" });
-    renderWizard();
+    await renderWizard();
     reachReview();
     fireEvent.click(screen.getByTestId("savings-wizard-back"));
 
@@ -248,7 +263,7 @@ describe("CreateSavingWizard", () => {
       status: "error",
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
-    renderWizard();
+    await renderWizard();
     reachReview();
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
 
@@ -270,7 +285,7 @@ describe("CreateSavingWizard", () => {
       status: "error",
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
-    renderWizard();
+    await renderWizard();
     reachReview();
 
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
@@ -301,7 +316,7 @@ describe("CreateSavingWizard", () => {
       code: PRODUCT_ACTION_ERROR_CODE.INVALID,
     });
 
-    const { unmount } = renderWizard();
+    const { unmount } = await renderWizard();
     reachReview();
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
     await waitFor(() =>
@@ -311,7 +326,7 @@ describe("CreateSavingWizard", () => {
     );
     unmount();
 
-    renderWizard();
+    await renderWizard();
     reachReview();
     fireEvent.click(screen.getByTestId("savings-wizard-confirm"));
     await waitFor(() =>
@@ -323,25 +338,30 @@ describe("CreateSavingWizard", () => {
     randomUuid.mockRestore();
   });
 
-  it("disables confirmation when the selected source account is no longer available", () => {
-    const { rerender } = renderWizard();
+  it("disables confirmation when the selected source account is no longer available", async () => {
+    const { rerender } = await renderWizard();
     reachReview();
 
-    rerender(
-      <CreateSavingWizard
-        accounts={[
-          accounts[1],
-          {
-            id: REPLACEMENT_ACCOUNT_ID,
-            name: "Savings",
-            type: "savings",
-            balance: 5_000_000,
-          },
-        ]}
-        providers={providers}
-        packagesByProvider={packagesByProvider}
-      />,
-    );
+    await act(async () => {
+      rerender(
+        <CreateSavingWizard
+          data={Promise.resolve({
+            accounts: [
+              accounts[1],
+              {
+                id: REPLACEMENT_ACCOUNT_ID,
+                name: "Savings",
+                type: "savings",
+                balance: 5_000_000,
+              },
+            ],
+            providers,
+            packagesByProvider,
+          })}
+          unavailable={unavailable}
+        />,
+      );
+    });
 
     expect(screen.getByTestId("savings-review-summary")).toHaveTextContent(
       "unknown",
@@ -350,8 +370,8 @@ describe("CreateSavingWizard", () => {
     expect(createSavingMock).not.toHaveBeenCalled();
   });
 
-  it("blocks review when payout and source accounts are the same", () => {
-    renderWizard();
+  it("blocks review when payout and source accounts are the same", async () => {
+    await renderWizard();
     reachReview();
     fireEvent.click(screen.getByTestId("savings-wizard-back"));
 
@@ -370,8 +390,8 @@ describe("CreateSavingWizard hierarchy", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the canonical wizard shell with a combined setup step", () => {
-    renderWizard();
+  it("renders the canonical wizard shell with a combined setup step", async () => {
+    await renderWizard();
 
     expect(screen.getByTestId("savings-create-wizard")).toBeInTheDocument();
     expect(screen.getByTestId("savings-step-indicator")).toBeInTheDocument();
@@ -395,8 +415,8 @@ describe("CreateSavingWizard hierarchy", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows setup details together and advances directly to review", () => {
-    renderWizard();
+  it("shows setup details together and advances directly to review", async () => {
+    await renderWizard();
 
     fireEvent.click(screen.getByTestId("savings-type-platform"));
     expect(screen.getByTestId(`savings-package-${PACKAGE_ID}`)).toBeVisible();
@@ -414,8 +434,8 @@ describe("CreateSavingWizard hierarchy", () => {
     expect(screen.queryByTestId("savings-wizard-next")).not.toBeInTheDocument();
   });
 
-  it("keeps shared field composition on the combined setup step", () => {
-    renderWizard();
+  it("keeps shared field composition on the combined setup step", async () => {
+    await renderWizard();
 
     expect(screen.getByTestId("savings-provider")).toBeInTheDocument();
     expect(

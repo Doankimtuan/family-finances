@@ -1,0 +1,4420 @@
+{
+  "date": "2026-10-03",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "scope": "Savings list projection only",
+  "decision": "PHASE 7 PARTIAL \u2014 INVESTIGATE BEFORE PHASE 8",
+  "payload": {
+    "control": 151285,
+    "selected": 122661,
+    "absoluteReduction": 28624,
+    "percentReduction": 18.920580361569225,
+    "savings": 34,
+    "cycles": 50,
+    "statusCounts": {
+      "active": 34,
+      "rolled": 16
+    },
+    "rolledNarrowCompactObjectBytes": 13482
+  },
+  "metrics": {
+    "series": {
+      "control": [
+        {
+          "pass_number": 0,
+          "session_ready": 315,
+          "gate": 294,
+          "start": 315,
+          "headers": 834,
+          "header_duration": 519,
+          "body": 840.48046875,
+          "model": 846.8173828125,
+          "mapping": 3.923208000000159,
+          "bytes": 151285,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 924.5,
+          "remote": 3
+        },
+        {
+          "pass_number": 1,
+          "session_ready": 304,
+          "gate": 290,
+          "start": 305,
+          "headers": 825,
+          "header_duration": 520,
+          "body": 831.11083984375,
+          "model": 831.985595703125,
+          "mapping": 0.1464589999995951,
+          "bytes": 151285,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 909.2000000476837,
+          "remote": 3
+        },
+        {
+          "pass_number": 2,
+          "session_ready": 316.699951171875,
+          "gate": 303,
+          "start": 317.699951171875,
+          "headers": 1047.699951171875,
+          "header_duration": 730,
+          "body": 1052.544921875,
+          "model": 1054.309326171875,
+          "mapping": 0.29891700000007404,
+          "bytes": 151285,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 1124.5,
+          "remote": 3
+        },
+        {
+          "pass_number": 3,
+          "session_ready": 388.199951171875,
+          "gate": 376,
+          "start": 388.199951171875,
+          "headers": 916.199951171875,
+          "header_duration": 528,
+          "body": 923.4384765625,
+          "model": 925.432861328125,
+          "mapping": 0.3485000000000582,
+          "bytes": 151285,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 994.6999998092651,
+          "remote": 3
+        }
+      ],
+      "after": [
+        {
+          "pass_number": 0,
+          "session_ready": 298.800048828125,
+          "gate": 278,
+          "start": 300.800048828125,
+          "headers": 792.800048828125,
+          "header_duration": 492,
+          "body": 796.415283203125,
+          "model": 799.6943359375,
+          "mapping": 1.7554159999999683,
+          "bytes": 122661,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 873.0999999046326,
+          "remote": 3
+        },
+        {
+          "pass_number": 1,
+          "session_ready": 289.60009765625,
+          "gate": 276,
+          "start": 289.60009765625,
+          "headers": 776.60009765625,
+          "header_duration": 487,
+          "body": 779.60205078125,
+          "model": 781.2490234375,
+          "mapping": 0.4381250000005821,
+          "bytes": 122661,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 855.5,
+          "remote": 3
+        },
+        {
+          "pass_number": 2,
+          "session_ready": 283.800048828125,
+          "gate": 270,
+          "start": 284.800048828125,
+          "headers": 776.800048828125,
+          "header_duration": 492,
+          "body": 778.521728515625,
+          "model": 779.89208984375,
+          "mapping": 0.2714579999956186,
+          "bytes": 122661,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 856.2999999523163,
+          "remote": 3
+        },
+        {
+          "pass_number": 3,
+          "session_ready": 326.10009765625,
+          "gate": 312,
+          "start": 327.10009765625,
+          "headers": 817.10009765625,
+          "header_duration": 490,
+          "body": 819.189697265625,
+          "model": 820.5654296875,
+          "mapping": 0.2660840000025928,
+          "bytes": 122661,
+          "rows": 34,
+          "cycles": 50,
+          "visible": 891.6000001430511,
+          "remote": 3
+        }
+      ]
+    },
+    "warmMedians": {
+      "control": {
+        "session_ready": 316.699951171875,
+        "gate": 303,
+        "start": 317.699951171875,
+        "headers": 916.199951171875,
+        "header_duration": 528,
+        "body": 923.4384765625,
+        "model": 925.432861328125,
+        "mapping": 0.29891700000007404,
+        "bytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "visible": 994.6999998092651,
+        "remote": 3
+      },
+      "after": {
+        "session_ready": 289.60009765625,
+        "gate": 276,
+        "start": 289.60009765625,
+        "headers": 776.800048828125,
+        "header_duration": 490,
+        "body": 779.60205078125,
+        "model": 781.2490234375,
+        "mapping": 0.2714579999956186,
+        "bytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "visible": 856.2999999523163,
+        "remote": 3
+      }
+    },
+    "headerToBodyWarmMedians": {
+      "control": 6.11083984375,
+      "after": 2.089599609375
+    }
+  },
+  "primary": {
+    "control": {
+      "medians": {
+        "Savings": {
+          "useful": 994.6999998092651,
+          "full": 994.6999998092651
+        },
+        "Create": {
+          "useful": 378.5,
+          "full": 1328.5
+        },
+        "Back": {
+          "useful": 44.09999990463257,
+          "full": 44.09999990463257
+        },
+        "Detail": {
+          "useful": 1022.3999998569489,
+          "full": 1355.5
+        }
+      },
+      "samples": [
+        {
+          "pass": 0,
+          "transition": "Savings",
+          "epoch": 1790995971774,
+          "useful": 924.5,
+          "full": 924.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "user",
+              "start": 23,
+              "duration": 281,
+              "status": 200
+            },
+            {
+              "label": "active membership",
+              "start": 32,
+              "duration": 282,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 315,
+              "duration": 519,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 91,
+            "end": 1790995972614.4805,
+            "bytes": 151285
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 91,
+            "end": 1790995972620.8174,
+            "ms": 3.923208000000159,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 21,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 31,
+              "duration": 284
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 21,
+              "duration": 294
+            },
+            {
+              "name": "loadSavings",
+              "start": 315,
+              "duration": 532
+            }
+          ]
+        },
+        {
+          "pass": 0,
+          "transition": "Create",
+          "epoch": 1790995973953.3,
+          "useful": 411.39999985694885,
+          "full": 1211.3999998569489,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 10.699951171875,
+              "duration": 333,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 8.699951171875,
+              "duration": 336,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 348.699951171875,
+              "duration": 269,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 347.699951171875,
+              "duration": 314,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 348.699951171875,
+              "duration": 518,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 869.699951171875,
+              "duration": 277,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 868.699951171875,
+              "duration": 280,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 7.699951171875,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 10.699951171875,
+              "duration": 335
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 7.699951171875,
+              "duration": 338
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 346.699951171875,
+              "duration": 318
+            },
+            {
+              "name": "loadAccounts",
+              "start": 346.699951171875,
+              "duration": 803
+            }
+          ]
+        },
+        {
+          "pass": 0,
+          "transition": "Back",
+          "epoch": 1790995976422.3,
+          "useful": 42.09999990463257,
+          "full": 42.09999990463257,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 0,
+          "transition": "Detail",
+          "epoch": 1790995977706.8,
+          "useful": 1791.6999998092651,
+          "full": 2224.699999809265,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 23.199951171875,
+              "duration": 267,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 13.199951171875,
+              "duration": 297,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 312.199951171875,
+              "duration": 1143,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 1459.199951171875,
+              "duration": 284,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 1459.199951171875,
+              "duration": 372,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 1459.199951171875,
+              "duration": 434,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 1895.199951171875,
+              "duration": 282,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 1895.199951171875,
+              "duration": 283,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 121,
+            "end": 1790995979162.8464,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 11.199951171875,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 23.199951171875,
+              "duration": 268
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 11.199951171875,
+              "duration": 300
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 311.199951171875,
+              "duration": 1145
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 1456.199951171875,
+              "duration": 2
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 1457.199951171875,
+              "duration": 375
+            },
+            {
+              "name": "loadAccounts",
+              "start": 1457.199951171875,
+              "duration": 722
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Savings",
+          "epoch": 1790995983839,
+          "useful": 909.2000000476837,
+          "full": 909.2000000476837,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 21,
+              "duration": 276,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 18,
+              "duration": 285,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 305,
+              "duration": 520,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 129,
+            "end": 1790995984670.1108,
+            "bytes": 151285
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 129,
+            "end": 1790995984670.9856,
+            "ms": 0.1464589999995951,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 14,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 20,
+              "duration": 278
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 14,
+              "duration": 290
+            },
+            {
+              "name": "loadSavings",
+              "start": 304,
+              "duration": 528
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Create",
+          "epoch": 1790995986002.9001,
+          "useful": 395.2000000476837,
+          "full": 1328.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 14.099853515625,
+              "duration": 337,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 10.099853515625,
+              "duration": 342,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 356.099853515625,
+              "duration": 266,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 356.099853515625,
+              "duration": 291,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 355.099853515625,
+              "duration": 300,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 649.099853515625,
+              "duration": 277,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 650.099853515625,
+              "duration": 624,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 8.099853515625,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 14.099853515625,
+              "duration": 339
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 8.099853515625,
+              "duration": 345
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 353.099853515625,
+              "duration": 304
+            },
+            {
+              "name": "loadAccounts",
+              "start": 353.099853515625,
+              "duration": 923
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Back",
+          "epoch": 1790995988571,
+          "useful": 43.90000009536743,
+          "full": 43.90000009536743,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 1,
+          "transition": "Detail",
+          "epoch": 1790995989855,
+          "useful": 1725.7000000476837,
+          "full": 2309.800000190735,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 19,
+              "duration": 280,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 15,
+              "duration": 678,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 695,
+              "duration": 688,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 1387,
+              "duration": 267,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 1387,
+              "duration": 355,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 1387,
+              "duration": 360,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 1745,
+              "duration": 274,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 1745,
+              "duration": 521,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 136,
+            "end": 1790995991238.6667,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 12,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 18,
+              "duration": 282
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 12,
+              "duration": 682
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 694,
+              "duration": 690
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 1384,
+              "duration": 1
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 1384,
+              "duration": 365
+            },
+            {
+              "name": "loadAccounts",
+              "start": 1384,
+              "duration": 884
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Savings",
+          "epoch": 1790995996590.3,
+          "useful": 1124.5,
+          "full": 1124.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "user",
+              "start": 18.699951171875,
+              "duration": 296,
+              "status": 200
+            },
+            {
+              "label": "active membership",
+              "start": 20.699951171875,
+              "duration": 295,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 317.699951171875,
+              "duration": 730,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 144,
+            "end": 1790995997642.845,
+            "bytes": 151285
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 144,
+            "end": 1790995997644.6094,
+            "ms": 0.29891700000007404,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 13.699951171875,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 20.699951171875,
+              "duration": 296
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 13.699951171875,
+              "duration": 303
+            },
+            {
+              "name": "loadSavings",
+              "start": 316.699951171875,
+              "duration": 738
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Create",
+          "epoch": 1790995998969.9001,
+          "useful": 361.40000009536743,
+          "full": 1628.0999999046326,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 11.099853515625,
+              "duration": 268,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 8.099853515625,
+              "duration": 287,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 300.099853515625,
+              "duration": 265,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 300.099853515625,
+              "duration": 303,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 300.099853515625,
+              "duration": 497,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 801.099853515625,
+              "duration": 285,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 802.099853515625,
+              "duration": 774,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 7.099853515625,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 10.099853515625,
+              "duration": 271
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 7.099853515625,
+              "duration": 290
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 298.099853515625,
+              "duration": 306
+            },
+            {
+              "name": "loadAccounts",
+              "start": 298.099853515625,
+              "duration": 1281
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Back",
+          "epoch": 1790996001828.1,
+          "useful": 54.299999952316284,
+          "full": 54.299999952316284,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 2,
+          "transition": "Detail",
+          "epoch": 1790996003124.1,
+          "useful": 940.5999999046326,
+          "full": 1240.7000000476837,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 15.89990234375,
+              "duration": 281,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 11.89990234375,
+              "duration": 308,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 321.89990234375,
+              "duration": 290,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 614.89990234375,
+              "duration": 268,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 614.89990234375,
+              "duration": 289,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 614.89990234375,
+              "duration": 306,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 905.89990234375,
+              "duration": 271,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 905.89990234375,
+              "duration": 294,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 151,
+            "end": 1790996003736.7522,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 9.89990234375,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 14.89990234375,
+              "duration": 283
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 9.89990234375,
+              "duration": 311
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 320.89990234375,
+              "duration": 292
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 612.89990234375,
+              "duration": 1
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 612.89990234375,
+              "duration": 309
+            },
+            {
+              "name": "loadAccounts",
+              "start": 612.89990234375,
+              "duration": 589
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Savings",
+          "epoch": 1790996008286.8,
+          "useful": 994.6999998092651,
+          "full": 994.6999998092651,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 20.199951171875,
+              "duration": 346,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 17.199951171875,
+              "duration": 370,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 388.199951171875,
+              "duration": 528,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 159,
+            "end": 1790996009210.2385,
+            "bytes": 151285
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 159,
+            "end": 1790996009212.233,
+            "ms": 0.3485000000000582,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 12.199951171875,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 19.199951171875,
+              "duration": 348
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 12.199951171875,
+              "duration": 376
+            },
+            {
+              "name": "loadSavings",
+              "start": 388.199951171875,
+              "duration": 537
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Create",
+          "epoch": 1790996010536.2,
+          "useful": 378.5,
+          "full": 1145.2000000476837,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 10.800048828125,
+              "duration": 261,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 8.800048828125,
+              "duration": 290,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 301.800048828125,
+              "duration": 267,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 301.800048828125,
+              "duration": 306,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 301.800048828125,
+              "duration": 511,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 815.800048828125,
+              "duration": 271,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 814.800048828125,
+              "duration": 286,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 6.800048828125,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 10.800048828125,
+              "duration": 262
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 6.800048828125,
+              "duration": 293
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 299.800048828125,
+              "duration": 309
+            },
+            {
+              "name": "loadAccounts",
+              "start": 299.800048828125,
+              "duration": 803
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Back",
+          "epoch": 1790996012920.8,
+          "useful": 44.09999990463257,
+          "full": 44.09999990463257,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 3,
+          "transition": "Detail",
+          "epoch": 1790996014209.3,
+          "useful": 1022.3999998569489,
+          "full": 1355.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 16.699951171875,
+              "duration": 275,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 12.699951171875,
+              "duration": 330,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 343.699951171875,
+              "duration": 342,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 688.699951171875,
+              "duration": 290,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 688.699951171875,
+              "duration": 309,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 689.699951171875,
+              "duration": 310,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 1002.699951171875,
+              "duration": 289,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 1002.699951171875,
+              "duration": 309,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 166,
+            "end": 1790996014895.697,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 10.699951171875,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 15.699951171875,
+              "duration": 277
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 10.699951171875,
+              "duration": 332
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 342.699951171875,
+              "duration": 344
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 686.699951171875,
+              "duration": 2
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 686.699951171875,
+              "duration": 314
+            },
+            {
+              "name": "loadAccounts",
+              "start": 686.699951171875,
+              "duration": 627
+            }
+          ]
+        }
+      ],
+      "requests": [
+        {
+          "at": 1790995971786,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790995971787,
+          "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+          "prefetch": true
+        },
+        {
+          "at": 1790995971808,
+          "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972686,
+          "path": "/en/money/savings/providers",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972686,
+          "path": "/en/money/savings/new",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972686,
+          "path": "/en/money/savings/:id",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972705,
+          "path": "/en/money/savings/providers",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972706,
+          "path": "/en/money/savings/:id",
+          "prefetch": true
+        },
+        {
+          "at": 1790995972706,
+          "path": "/en/money/savings/new",
+          "prefetch": true
+        },
+        {
+          "at": 1790995973955,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790995977710,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790995979972,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790995981303,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790995983844,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790995986004,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790995989859,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790995992204,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790995993553,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790995996593,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790995998972,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996003127,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996004406,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996005754,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790996008289,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996010538,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996014213,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996015604,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996016936,
+          "path": "/en/money",
+          "prefetch": false
+        }
+      ]
+    },
+    "after": {
+      "medians": {
+        "Savings": {
+          "useful": 856.2999999523163,
+          "full": 856.2999999523163
+        },
+        "Create": {
+          "useful": 361.7999999523163,
+          "full": 1061.5
+        },
+        "Back": {
+          "useful": 44.5,
+          "full": 44.59999990463257
+        },
+        "Detail": {
+          "useful": 911.8999998569489,
+          "full": 1411.5999999046326
+        }
+      },
+      "samples": [
+        {
+          "pass": 0,
+          "transition": "Savings",
+          "epoch": 1790996076109.2,
+          "useful": 873.0999999046326,
+          "full": 873.0999999046326,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 30.800048828125,
+              "duration": 262,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 23.800048828125,
+              "duration": 274,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 300.800048828125,
+              "duration": 492,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 91,
+            "end": 1790996076905.6152,
+            "bytes": 122661
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 91,
+            "end": 1790996076908.8943,
+            "ms": 1.7554159999999683,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 20.800048828125,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 29.800048828125,
+              "duration": 264
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 20.800048828125,
+              "duration": 278
+            },
+            {
+              "name": "loadSavings",
+              "start": 299.800048828125,
+              "duration": 500
+            }
+          ]
+        },
+        {
+          "pass": 0,
+          "transition": "Create",
+          "epoch": 1790996078238.5,
+          "useful": 360.2999999523163,
+          "full": 1243.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "user",
+              "start": 10.5,
+              "duration": 272,
+              "status": 200
+            },
+            {
+              "label": "active membership",
+              "start": 14.5,
+              "duration": 270,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 288.5,
+              "duration": 260,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 288.5,
+              "duration": 283,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 289.5,
+              "duration": 622,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 913.5,
+              "duration": 264,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 913.5,
+              "duration": 269,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 7.5,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 13.5,
+              "duration": 272
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 7.5,
+              "duration": 278
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 286.5,
+              "duration": 287
+            },
+            {
+              "name": "loadAccounts",
+              "start": 286.5,
+              "duration": 898
+            }
+          ]
+        },
+        {
+          "pass": 0,
+          "transition": "Back",
+          "epoch": 1790996080741.0999,
+          "useful": 41.40000009536743,
+          "full": 41.40000009536743,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 0,
+          "transition": "Detail",
+          "epoch": 1790996082022,
+          "useful": 1344,
+          "full": 1643.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 18,
+              "duration": 321,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 14,
+              "duration": 333,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 349,
+              "duration": 651,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 1004,
+              "duration": 316,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 1004,
+              "duration": 318,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 1004,
+              "duration": 319,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 1327,
+              "duration": 266,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 1326,
+              "duration": 268,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 121,
+            "end": 1790996083022.7942,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 11,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 18,
+              "duration": 322
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 11,
+              "duration": 337
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 348,
+              "duration": 653
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 1001,
+              "duration": 2
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 1001,
+              "duration": 323
+            },
+            {
+              "name": "loadAccounts",
+              "start": 1002,
+              "duration": 594
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Savings",
+          "epoch": 1790996087593.4,
+          "useful": 855.5,
+          "full": 855.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 20.60009765625,
+              "duration": 260,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 17.60009765625,
+              "duration": 270,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 289.60009765625,
+              "duration": 487,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 129,
+            "end": 1790996088373.002,
+            "bytes": 122661
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 129,
+            "end": 1790996088374.649,
+            "ms": 0.4381250000005821,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 13.60009765625,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 19.60009765625,
+              "duration": 269
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 13.60009765625,
+              "duration": 276
+            },
+            {
+              "name": "loadSavings",
+              "start": 289.60009765625,
+              "duration": 492
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Create",
+          "epoch": 1790996089703.8,
+          "useful": 361.7999999523163,
+          "full": 1028.2999999523163,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 12.199951171875,
+              "duration": 263,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 10.199951171875,
+              "duration": 279,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 292.199951171875,
+              "duration": 257,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 292.199951171875,
+              "duration": 277,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 292.199951171875,
+              "duration": 422,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 717.199951171875,
+              "duration": 265,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 718.199951171875,
+              "duration": 267,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 7.199951171875,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 12.199951171875,
+              "duration": 265
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 7.199951171875,
+              "duration": 283
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 290.199951171875,
+              "duration": 280
+            },
+            {
+              "name": "loadAccounts",
+              "start": 290.199951171875,
+              "duration": 696
+            }
+          ]
+        },
+        {
+          "pass": 1,
+          "transition": "Back",
+          "epoch": 1790996091987.8,
+          "useful": 44.5,
+          "full": 44.59999990463257,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 1,
+          "transition": "Detail",
+          "epoch": 1790996093270.5,
+          "useful": 911.8999998569489,
+          "full": 1411.5999999046326,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 10.5,
+              "duration": 280,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 8.5,
+              "duration": 286,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 296.5,
+              "duration": 280,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 579.5,
+              "duration": 243,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 579.5,
+              "duration": 262,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 579.5,
+              "duration": 270,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 843.5,
+              "duration": 250,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 844.5,
+              "duration": 522,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 136,
+            "end": 1790996093847.7314,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 6.5,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 10.5,
+              "duration": 281
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 6.5,
+              "duration": 289
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 295.5,
+              "duration": 282
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 577.5,
+              "duration": 1
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 577.5,
+              "duration": 273
+            },
+            {
+              "name": "loadAccounts",
+              "start": 577.5,
+              "duration": 791
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Savings",
+          "epoch": 1790996098109.2,
+          "useful": 856.2999999523163,
+          "full": 856.2999999523163,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 19.800048828125,
+              "duration": 253,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 16.800048828125,
+              "duration": 267,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 284.800048828125,
+              "duration": 492,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 144,
+            "end": 1790996098887.7217,
+            "bytes": 122661
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 144,
+            "end": 1790996098889.092,
+            "ms": 0.2714579999956186,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 13.800048828125,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 19.800048828125,
+              "duration": 254
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 13.800048828125,
+              "duration": 270
+            },
+            {
+              "name": "loadSavings",
+              "start": 284.800048828125,
+              "duration": 495
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Create",
+          "epoch": 1790996100220.3,
+          "useful": 361.7999999523163,
+          "full": 1111.7999999523163,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 13.699951171875,
+              "duration": 267,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 8.699951171875,
+              "duration": 283,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 294.699951171875,
+              "duration": 274,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 294.699951171875,
+              "duration": 278,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 295.699951171875,
+              "duration": 507,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 805.699951171875,
+              "duration": 262,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 804.699951171875,
+              "duration": 264,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 7.699951171875,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 12.699951171875,
+              "duration": 270
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 7.699951171875,
+              "duration": 285
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 292.699951171875,
+              "duration": 280
+            },
+            {
+              "name": "loadAccounts",
+              "start": 292.699951171875,
+              "duration": 778
+            }
+          ]
+        },
+        {
+          "pass": 2,
+          "transition": "Back",
+          "epoch": 1790996102570.9,
+          "useful": 44.700000047683716,
+          "full": 44.700000047683716,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 2,
+          "transition": "Detail",
+          "epoch": 1790996103858.5999,
+          "useful": 940.4000000953674,
+          "full": 1656.9000000953674,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 18.400146484375,
+              "duration": 257,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 15.400146484375,
+              "duration": 274,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 291.400146484375,
+              "duration": 310,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 607.400146484375,
+              "duration": 263,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 606.400146484375,
+              "duration": 271,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 608.400146484375,
+              "duration": 278,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 889.400146484375,
+              "duration": 355,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 891.400146484375,
+              "duration": 721,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 151,
+            "end": 1790996104461.1619,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 12.400146484375,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 18.400146484375,
+              "duration": 258
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 12.400146484375,
+              "duration": 277
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 290.400146484375,
+              "duration": 312
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 603.400146484375,
+              "duration": 2
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 603.400146484375,
+              "duration": 276
+            },
+            {
+              "name": "loadAccounts",
+              "start": 603.400146484375,
+              "duration": 1011
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Savings",
+          "epoch": 1790996109923.9,
+          "useful": 891.6000001430511,
+          "full": 891.6000001430511,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 20.10009765625,
+              "duration": 257,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 17.10009765625,
+              "duration": 308,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 327.10009765625,
+              "duration": 490,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 159,
+            "end": 1790996110743.0896,
+            "bytes": 122661
+          },
+          "mapping": {
+            "kind": "mapping",
+            "rid": 159,
+            "end": 1790996110744.4653,
+            "ms": 0.2660840000025928,
+            "rows": 34,
+            "cycles": 50
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 14.10009765625,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 20.10009765625,
+              "duration": 258
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 14.10009765625,
+              "duration": 312
+            },
+            {
+              "name": "loadSavings",
+              "start": 326.10009765625,
+              "duration": 495
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Create",
+          "epoch": 1790996112070.5999,
+          "useful": 361.5,
+          "full": 1061.5,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "earlyNameRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "user",
+              "start": 10.400146484375,
+              "duration": 272,
+              "status": 200
+            },
+            {
+              "label": "active membership",
+              "start": 13.400146484375,
+              "duration": 270,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 286.400146484375,
+              "duration": 347,
+              "status": 200
+            },
+            {
+              "label": "saving_providers",
+              "start": 286.400146484375,
+              "duration": 349,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 286.400146484375,
+              "duration": 463,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 751.400146484375,
+              "duration": 263,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 751.400146484375,
+              "duration": 268,
+              "status": 200
+            }
+          ],
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 9.400146484375,
+              "duration": 0
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 12.400146484375,
+              "duration": 272
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 9.400146484375,
+              "duration": 275
+            },
+            {
+              "name": "listProviderCatalog",
+              "start": 284.400146484375,
+              "duration": 353
+            },
+            {
+              "name": "loadAccounts",
+              "start": 284.400146484375,
+              "duration": 737
+            }
+          ]
+        },
+        {
+          "pass": 3,
+          "transition": "Back",
+          "epoch": 1790996114371.9,
+          "useful": 43.80000019073486,
+          "full": 43.80000019073486,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 0,
+          "remote": [],
+          "body": null,
+          "mapping": null,
+          "spans": []
+        },
+        {
+          "pass": 3,
+          "transition": "Detail",
+          "epoch": 1790996115657,
+          "useful": 908.7000000476837,
+          "full": 1275.2999999523163,
+          "mainRetained": true,
+          "viewportRetained": true,
+          "nodeRetained": true,
+          "rsc": 1,
+          "remote": [
+            {
+              "label": "active membership",
+              "start": 15,
+              "duration": 255,
+              "status": 200
+            },
+            {
+              "label": "user",
+              "start": 12,
+              "duration": 279,
+              "status": 200
+            },
+            {
+              "label": "Saving",
+              "start": 292,
+              "duration": 280,
+              "status": 200
+            },
+            {
+              "label": "households",
+              "start": 575,
+              "duration": 260,
+              "status": 200
+            },
+            {
+              "label": "accounts",
+              "start": 575,
+              "duration": 276,
+              "status": 200
+            },
+            {
+              "label": "owner membership",
+              "start": 853,
+              "duration": 254,
+              "status": 200
+            },
+            {
+              "label": "get_account_ledger_balances",
+              "start": 853,
+              "duration": 286,
+              "status": 200
+            },
+            {
+              "label": "saving_packages",
+              "start": 575,
+              "duration": 663,
+              "status": 200
+            }
+          ],
+          "body": {
+            "kind": "body",
+            "rid": 166,
+            "end": 1790996116229.211,
+            "bytes": 3244
+          },
+          "spans": [
+            {
+              "name": "createSupabaseServerClientUncached",
+              "start": 9,
+              "duration": 1
+            },
+            {
+              "name": "loadActiveMembership",
+              "start": 15,
+              "duration": 256
+            },
+            {
+              "name": "loadSessionMembership",
+              "start": 9,
+              "duration": 282
+            },
+            {
+              "name": "loadSavingDetail",
+              "start": 291,
+              "duration": 281
+            },
+            {
+              "name": "listSavingsFinancialActivities",
+              "start": 573,
+              "duration": 1
+            },
+            {
+              "name": "loadAccounts",
+              "start": 573,
+              "duration": 567
+            },
+            {
+              "name": "loadProviderPackages",
+              "start": 573,
+              "duration": 667
+            }
+          ]
+        }
+      ],
+      "requests": [
+        {
+          "at": 1790996076121,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996076121,
+          "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076142,
+          "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076966,
+          "path": "/en/money/savings/providers",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076966,
+          "path": "/en/money/savings/new",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076967,
+          "path": "/en/money/savings/:id",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076985,
+          "path": "/en/money/savings/providers",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076985,
+          "path": "/en/money/savings/new",
+          "prefetch": true
+        },
+        {
+          "at": 1790996076986,
+          "path": "/en/money/savings/:id",
+          "prefetch": true
+        },
+        {
+          "at": 1790996078241,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996082025,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996083705,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996085054,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790996087597,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996089705,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996093272,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996094723,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996095570,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790996098113,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996100222,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996103862,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996105555,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996106887,
+          "path": "/en/money",
+          "prefetch": false
+        },
+        {
+          "at": 1790996109929,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996112072,
+          "path": "/en/money/savings/new",
+          "prefetch": false
+        },
+        {
+          "at": 1790996115660,
+          "path": "/en/money/savings/:id",
+          "prefetch": false
+        },
+        {
+          "at": 1790996116973,
+          "path": "/en/money/savings",
+          "prefetch": false
+        },
+        {
+          "at": 1790996118303,
+          "path": "/en/money",
+          "prefetch": false
+        }
+      ]
+    }
+  },
+  "prototypeColumnTrim": {
+    "equivalent": true,
+    "compared": "Every Saving and overview field except six Detail-only cycle disclosure/activity fields",
+    "samples": [
+      {
+        "pass": 0,
+        "kind": "current",
+        "elapsed": 565.5001670000001,
+        "mappingMs": 2.142874999999549,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 551.1784590000002,
+            "ms": 558.3557500000002,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 0,
+        "kind": "minimal",
+        "elapsed": 839.6240419999999,
+        "mappingMs": 0.9194999999999709,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 829.441875,
+            "ms": 834.1609579999999,
+            "bytes": 122661,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "kind": "minimal",
+        "elapsed": 492.4499169999999,
+        "mappingMs": 0.4749170000000049,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 484.3447079999996,
+            "ms": 487.700875,
+            "bytes": 122661,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "kind": "current",
+        "elapsed": 323.42291699999987,
+        "mappingMs": 0.49120799999991505,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 312.65133400000013,
+            "ms": 316.82441700000027,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "kind": "current",
+        "elapsed": 368.52583400000003,
+        "mappingMs": 0.3443750000005821,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 360.36166600000024,
+            "ms": 363.3100410000002,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "kind": "minimal",
+        "elapsed": 799.8460000000005,
+        "mappingMs": 0.35129200000028504,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 790.0649170000006,
+            "ms": 794.7612090000002,
+            "bytes": 122661,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "kind": "minimal",
+        "elapsed": 454.09249999999975,
+        "mappingMs": 0.508125000000291,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 445.0544170000003,
+            "ms": 448.21875,
+            "bytes": 122661,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "kind": "current",
+        "elapsed": 491.64558299999953,
+        "mappingMs": 0.37941700000010314,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 479.4877919999999,
+            "ms": 484.220542,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      }
+    ]
+  },
+  "prototypeBoundedCycles": {
+    "equivalent": true,
+    "compared": "Every Saving and overview field except six Detail-only cycle disclosure/activity fields",
+    "samples": [
+      {
+        "pass": 0,
+        "kind": "current",
+        "elapsed": 543.4811669999999,
+        "mappingMs": 1.904457999999977,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 531.954041,
+            "ms": 536.3103329999999,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 0,
+        "kind": "minimal",
+        "elapsed": 867.9976670000001,
+        "mappingMs": 1.10149999999976,
+        "rows": 34,
+        "cycles": 47,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 857.1930000000002,
+            "ms": 860.8621250000001,
+            "bytes": 121364,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "kind": "minimal",
+        "elapsed": 525.6629170000001,
+        "mappingMs": 0.27095900000040274,
+        "rows": 34,
+        "cycles": 47,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 518.602958,
+            "ms": 521.5207500000001,
+            "bytes": 121364,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 1,
+        "kind": "current",
+        "elapsed": 330.8635830000003,
+        "mappingMs": 0.8210829999998168,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 318.50925000000007,
+            "ms": 323.1812920000002,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "kind": "current",
+        "elapsed": 347.25250000000005,
+        "mappingMs": 0.21879099999932805,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 335.0674590000003,
+            "ms": 341.46254199999976,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 2,
+        "kind": "minimal",
+        "elapsed": 329.0192079999997,
+        "mappingMs": 0.4117919999998776,
+        "rows": 34,
+        "cycles": 47,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 320.7618330000005,
+            "ms": 324.0204169999997,
+            "bytes": 121364,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "kind": "minimal",
+        "elapsed": 320.7458340000003,
+        "mappingMs": 0.35066699999970297,
+        "rows": 34,
+        "cycles": 47,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 313.45945800000027,
+            "ms": 316.19904100000076,
+            "bytes": 121364,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "pass": 3,
+        "kind": "current",
+        "elapsed": 364.193166,
+        "mappingMs": 0.34683399999994435,
+        "rows": 34,
+        "cycles": 50,
+        "parts": [
+          {
+            "table": "savings",
+            "headersMs": 355.2535829999997,
+            "ms": 359.0426660000003,
+            "bytes": 151285,
+            "status": 200
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": {
+    "initialPreEditControl": {
+      "includedInPrimary": false,
+      "reason": "Viewport not locked; body-ready hook did not survive Next response reconstruction",
+      "browser": {
+        "samples": [
+          {
+            "pass": 0,
+            "transition": "Savings",
+            "epoch": 1790995093462.5,
+            "useful": 978.3999998569489,
+            "full": 978.3999998569489,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Create",
+            "epoch": 1790995095695.7,
+            "useful": 394.60000014305115,
+            "full": 1178.6000001430511,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Back",
+            "epoch": 1790995098130.4001,
+            "useful": 60.299999952316284,
+            "full": 60.299999952316284,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Detail",
+            "epoch": 1790995099431.1,
+            "useful": 1326,
+            "full": 1576.4000000953674,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Savings",
+            "epoch": 1790995105452,
+            "useful": 1022,
+            "full": 1022.0999999046326,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Create",
+            "epoch": 1790995107729.6,
+            "useful": 361,
+            "full": 1127.7999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Back",
+            "epoch": 1790995110118.3,
+            "useful": 55.799999952316284,
+            "full": 55.799999952316284,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Detail",
+            "epoch": 1790995111415.7,
+            "useful": 941.9000000953674,
+            "full": 1225,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Savings",
+            "epoch": 1790995117067.7,
+            "useful": 939.7000000476837,
+            "full": 939.7000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Create",
+            "epoch": 1790995119262.2,
+            "useful": 361.7000000476837,
+            "full": 1145.1000001430511,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Back",
+            "epoch": 1790995121649.1,
+            "useful": 44.09999990463257,
+            "full": 44.09999990463257,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Detail",
+            "epoch": 1790995122931.7,
+            "useful": 926,
+            "full": 1642.3000001907349,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Savings",
+            "epoch": 1790995129000.5,
+            "useful": 873.5,
+            "full": 873.5999999046326,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Create",
+            "epoch": 1790995131129.5,
+            "useful": 361.09999990463257,
+            "full": 1061.0999999046326,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Back",
+            "epoch": 1790995133450.4001,
+            "useful": 60,
+            "full": 60,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Detail",
+            "epoch": 1790995134769.2,
+            "useful": 905,
+            "full": 1171.4000000953674,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          }
+        ],
+        "requests": [
+          {
+            "at": 1790995093475,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995093477,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094431,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094431,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094431,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094448,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094449,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995094449,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995095697,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995099437,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995101047,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995102396,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995105456,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995105461,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995107731,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995111420,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995112680,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995114029,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995117072,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995119264,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995122935,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995124614,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995125963,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995129005,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995131131,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995134773,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995135981,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995137363,
+            "path": "/en/money",
+            "prefetch": false
+          }
+        ]
+      }
+    },
+    "headerOnlyMatchedPair": {
+      "includedInPrimary": false,
+      "reason": "Body-ready telemetry missing; complete pair repeated with corrected scratch-only instrumentation",
+      "control": {
+        "samples": [
+          {
+            "pass": 0,
+            "transition": "Savings",
+            "epoch": 1790995632740.7002,
+            "useful": 921.8999998569489,
+            "full": 921.8999998569489,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Create",
+            "epoch": 1790995634918.3,
+            "useful": 360.7999999523163,
+            "full": 1060.7999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Back",
+            "epoch": 1790995637221,
+            "useful": 41.59999990463257,
+            "full": 41.59999990463257,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Detail",
+            "epoch": 1790995638504.5,
+            "useful": 941.8999998569489,
+            "full": 1558,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Savings",
+            "epoch": 1790995643972.1,
+            "useful": 890.5,
+            "full": 890.5,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Create",
+            "epoch": 1790995646117.2002,
+            "useful": 361.89999985694885,
+            "full": 1295.2999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Back",
+            "epoch": 1790995648672.8,
+            "useful": 39.90000009536743,
+            "full": 39.90000009536743,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Detail",
+            "epoch": 1790995649950.9001,
+            "useful": 978.6000001430511,
+            "full": 1261.8000001907349,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Savings",
+            "epoch": 1790995655136.1,
+            "useful": 859.7000000476837,
+            "full": 859.7000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Create",
+            "epoch": 1790995657250.3,
+            "useful": 362.2000000476837,
+            "full": 1062.2000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Back",
+            "epoch": 1790995659568.5,
+            "useful": 44.09999990463257,
+            "full": 44.09999990463257,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Detail",
+            "epoch": 1790995660854.5,
+            "useful": 941.5999999046326,
+            "full": 1374.7000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Savings",
+            "epoch": 1790995666652.9001,
+            "useful": 926.2000000476837,
+            "full": 926.2000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Create",
+            "epoch": 1790995668834.6,
+            "useful": 394.5,
+            "full": 1194.5,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Back",
+            "epoch": 1790995671267.4001,
+            "useful": 49.40000009536743,
+            "full": 49.5,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Detail",
+            "epoch": 1790995672556.7002,
+            "useful": 922.5,
+            "full": 1205.7999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          }
+        ],
+        "requests": [
+          {
+            "at": 1790995632751,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995632752,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995632777,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633645,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633645,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633645,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633666,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633666,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995633666,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995634921,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995638510,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995640102,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995641433,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995643975,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995646119,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995649954,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995651259,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995652601,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995655143,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995657252,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995660858,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995662270,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995663601,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995666657,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995668836,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995672561,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995673802,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995675151,
+            "path": "/en/money",
+            "prefetch": false
+          }
+        ]
+      },
+      "after": {
+        "samples": [
+          {
+            "pass": 0,
+            "transition": "Savings",
+            "epoch": 1790995732190.2,
+            "useful": 856.4000000953674,
+            "full": 856.4000000953674,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Create",
+            "epoch": 1790995734302.7,
+            "useful": 360.40000009536743,
+            "full": 1093.0999999046326,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Back",
+            "epoch": 1790995736675.2,
+            "useful": 54.799999952316284,
+            "full": 54.799999952316284,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 0,
+            "transition": "Detail",
+            "epoch": 1790995737971.9,
+            "useful": 891.3999998569489,
+            "full": 1441.5999999046326,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Savings",
+            "epoch": 1790995742842.9,
+            "useful": 953.5999999046326,
+            "full": 953.7000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Create",
+            "epoch": 1790995745051.0999,
+            "useful": 362,
+            "full": 1082.1999998092651,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Back",
+            "epoch": 1790995747387.4,
+            "useful": 42.5,
+            "full": 42.5,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 1,
+            "transition": "Detail",
+            "epoch": 1790995748673,
+            "useful": 906.7999999523163,
+            "full": 1156.9000000953674,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Savings",
+            "epoch": 1790995753751.7,
+            "useful": 1213.2999999523163,
+            "full": 1213.2999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Create",
+            "epoch": 1790995756218.0999,
+            "useful": 361.69999980926514,
+            "full": 1128.2999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Back",
+            "epoch": 1790995758585.3,
+            "useful": 44.5,
+            "full": 44.5,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 2,
+            "transition": "Detail",
+            "epoch": 1790995759872.4,
+            "useful": 908.5,
+            "full": 1157.3999998569489,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Savings",
+            "epoch": 1790995764954.4,
+            "useful": 825.5999999046326,
+            "full": 825.7000000476837,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Create",
+            "epoch": 1790995767034.5999,
+            "useful": 361.89999985694885,
+            "full": 1011.7999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true,
+            "earlyNameRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Back",
+            "epoch": 1790995769286.0999,
+            "useful": 43.799999952316284,
+            "full": 43.799999952316284,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          },
+          {
+            "pass": 3,
+            "transition": "Detail",
+            "epoch": 1790995770571.7,
+            "useful": 925,
+            "full": 1174.7999999523163,
+            "mainRetained": true,
+            "viewportRetained": true,
+            "nodeRetained": true
+          }
+        ],
+        "requests": [
+          {
+            "at": 1790995732201,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995732201,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995732225,
+            "path": "/en/money/accounts/a5a8086f-5c88-4563-967f-67dccc271a31",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733029,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733029,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733030,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733050,
+            "path": "/en/money/savings/providers",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733050,
+            "path": "/en/money/savings/new",
+            "prefetch": true
+          },
+          {
+            "at": 1790995733050,
+            "path": "/en/money/savings/:id",
+            "prefetch": true
+          },
+          {
+            "at": 1790995734305,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995737975,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995739456,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995740305,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995742846,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995745053,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995748678,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995749872,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995751220,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995753755,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995756220,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995759878,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995761069,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995762419,
+            "path": "/en/money",
+            "prefetch": false
+          },
+          {
+            "at": 1790995764957,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995767036,
+            "path": "/en/money/savings/new",
+            "prefetch": false
+          },
+          {
+            "at": 1790995770575,
+            "path": "/en/money/savings/:id",
+            "prefetch": false
+          },
+          {
+            "at": 1790995771786,
+            "path": "/en/money/savings",
+            "prefetch": false
+          },
+          {
+            "at": 1790995772635,
+            "path": "/en/money",
+            "prefetch": false
+          }
+        ]
+      }
+    }
+  },
+  "security": {
+    "normal": {
+      "rows": 34,
+      "cycles": 50,
+      "bytes": 122661,
+      "ownerEvidenceScoped": true,
+      "disclosureColumnsAbsent": true
+    },
+    "anonymous": {
+      "status": 401,
+      "code": "42501",
+      "rejected": true
+    },
+    "foreignHouseholdFilter": {
+      "rows": 0
+    }
+  },
+  "browser": {
+    "control": [
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "partnerPersonalReadable": true,
+        "personalBadge": true,
+        "partnerMutationHidden": true
+      },
+      {
+        "earlyCreateEditable": true,
+        "backHistoryRestored": true,
+        "householdDetailMutationAvailable": true,
+        "detailBrowserBack": true
+      }
+    ],
+    "after": [
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 390,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "light",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "dark",
+        "noOverflow": true,
+        "shellWidth": 440,
+        "rows": 34,
+        "reduced": true,
+        "valuesStable": true
+      },
+      {
+        "partnerPersonalReadable": true,
+        "personalBadge": true,
+        "partnerMutationHidden": true
+      },
+      {
+        "earlyCreateEditable": true,
+        "backHistoryRestored": true,
+        "householdDetailMutationAvailable": true,
+        "detailBrowserBack": true
+      }
+    ],
+    "exactTextAndTargets": [
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "c0b87994d54dc91aa163e30a276a95ef561ab5f6e216cfb2ed5f72cbdda66e8c",
+        "targetsSha256": "732d1167535ba637be749cd948f849f401d25295d9df35aaf52e0d2e3dc27d13"
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "light",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "theme": "dark",
+        "equal": true,
+        "contentSha256": "4ae5062d3fd8d2fc799ad20263f0c991edff98c2d25bc253fb29424f92e5286d",
+        "targetsSha256": "07d1256f9181977a72efa94318b95a3c156cd9bb3cc3df33e255c81601ab450b"
+      }
+    ]
+  },
+  "validation": {
+    "lint": "passed",
+    "typecheck": "only two existing Home TS2322 errors",
+    "fullTests": {
+      "passedFiles": 247,
+      "failedFiles": 3,
+      "passedTests": 1676,
+      "failedTests": 5,
+      "failuresReproducedInFrozenControl": true
+    },
+    "focusedTests": {
+      "files": 7,
+      "tests": 121,
+      "orchestrationTests": 50
+    },
+    "e2e": {
+      "passed": 2,
+      "financialMutations": false
+    },
+    "scratchBuilds": "passed; existing type errors bypassed only in disposable copies",
+    "refactorReview": "passed for Phase 7 delta; prior working-tree edits preserved"
+  },
+  "limitations": [
+    "Small samples and hosted-network/service/session variation; no reproducible payload-causal latency claim",
+    "List still receives full narrow cycle candidate history and complete mixed-use JSON snapshots",
+    "Malformed/inactive/terminal cases proven synthetically, not added to live financial fixture",
+    "Initial and header-only diagnostics retained; final full-body pair is primary"
+  ]
+}

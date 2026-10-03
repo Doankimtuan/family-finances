@@ -1,0 +1,1196 @@
+{
+  "method": "Local instrumented Next 16.3.1 production build, hosted Supabase ap-southeast-2, quiet host, headed Chromium, 440x900, click capture + two rAF; initial includes hydrated enabled name/mode controls and real interaction probes; full marker recorded independently of probes. One cold-ish and three warm Create+history Back passes.",
+  "before": {
+    "initialUsableWarmMs": 1108,
+    "sessionGateWarmMs": 306,
+    "createRemoteHttp": 7,
+    "demandRsc": 1,
+    "phase2BackWarmMs": 40.3
+  },
+  "summary": {
+    "initialUsableWarmMs": 626.7000000476837,
+    "fullReadyWarmMs": 1695.2999999523163,
+    "sessionGateWarmMs": 584.9023749999978,
+    "pageReleaseWarmMs": 586.3064579999991,
+    "accountLoaderWarmMs": 1056.7661660000012,
+    "accountReadyFromClickWarmMs": 1661.389404296875,
+    "providerLoaderWarmMs": 285.04675000000134,
+    "providerReadyFromClickWarmMs": 891.240478515625,
+    "backWarmMs": 42.0,
+    "initialSavedMs": 481.2999999523163,
+    "initialSavedPercent": 43.43862815454118
+  },
+  "samples": [
+    {
+      "sample": 0,
+      "kind": "cold-ish",
+      "initialUsableMs": 689.7000000476837,
+      "fullReadyMs": 1425.5,
+      "demandRsc": 1,
+      "totalRemoteHttp": 7,
+      "spans": {
+        "proxy": {
+          "startFromClickMs": 6.52978515625,
+          "durationMs": 1.016249999998763,
+          "endFromClickMs": 7.546142578125
+        },
+        "auth.getClaims": {
+          "startFromClickMs": 14.8427734375,
+          "durationMs": 4,
+          "endFromClickMs": 18.8427734375
+        },
+        "createSupabaseServerClientUncached": {
+          "startFromClickMs": 14.413330078125,
+          "durationMs": 0.4524590000000899,
+          "endFromClickMs": 14.86572265625
+        },
+        "membership.resolve": {
+          "startFromClickMs": 18.8427734375,
+          "durationMs": 277,
+          "endFromClickMs": 295.8427734375
+        },
+        "auth.getUser": {
+          "startFromClickMs": 14.8427734375,
+          "durationMs": 629,
+          "endFromClickMs": 643.8427734375
+        },
+        "loadSessionMembership": {
+          "startFromClickMs": 14.375,
+          "durationMs": 629.4667079999999,
+          "endFromClickMs": 643.841796875
+        },
+        "NewSavingPage": {
+          "startFromClickMs": 13.9833984375,
+          "durationMs": 632.112333000001,
+          "endFromClickMs": 646.095703125
+        },
+        "listProviderCatalog": {
+          "startFromClickMs": 644.447509765625,
+          "durationMs": 619.7227919999987,
+          "endFromClickMs": 1264.17041015625
+        },
+        "loadAccounts": {
+          "startFromClickMs": 644.358642578125,
+          "durationMs": 713.9558750000015,
+          "endFromClickMs": 1358.314453125
+        },
+        "loadCreateSavingData": {
+          "startFromClickMs": 644.1220703125,
+          "durationMs": 715.0630409999994,
+          "endFromClickMs": 1359.18505859375
+        }
+      },
+      "remote": [
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,household_id,role,user_id",
+          "startFromClickMs": 18.8427734375,
+          "durationMs": 275,
+          "endFromClickMs": 293.8427734375,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/auth/v1/user",
+          "method": "GET",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 15.8427734375,
+          "durationMs": 627,
+          "endFromClickMs": 642.8427734375,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/households",
+          "method": "GET",
+          "status": 200,
+          "shape": "base_currency",
+          "startFromClickMs": 646.8427734375,
+          "durationMs": 307,
+          "endFromClickMs": 953.8427734375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/accounts",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,name,type,icon_key,opening_balance,is_archived,financial_scope,owner_membership_id",
+          "startFromClickMs": 646.8427734375,
+          "durationMs": 428,
+          "endFromClickMs": 1074.8427734375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/saving_providers",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,provider_key,display_name,saving_type,is_active,metadata,family,icon_key,household_id,is_system,saving_packages!saving_packages_provider_id_fkey(id,provider_id,package_name,duration_days,annual_interest_rate,min_amount,max_amount,settlement_rules,penalty_rules,renewable_available,is_active,term_amount,term_unit,interest_calculation_method,currency,tax_rule,tax_rate_percent,early_settlement_rule,early_settlement_rate_percent,supports_partial_settlement)",
+          "startFromClickMs": 645.8427734375,
+          "durationMs": 615,
+          "endFromClickMs": 1260.8427734375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id",
+          "startFromClickMs": 1077.8427734375,
+          "durationMs": 273,
+          "endFromClickMs": 1350.8427734375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/rpc/get_account_ledger_balances",
+          "method": "POST",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 1078.8427734375,
+          "durationMs": 278,
+          "endFromClickMs": 1356.8427734375,
+          "completedBeforeInitial": false
+        }
+      ],
+      "stream": {
+        "early": {
+          "ready": "false",
+          "epoch": 1790964499483,
+          "loading": true
+        },
+        "full": {
+          "at": 9875.599999904633,
+          "epoch": 1790964500201.8,
+          "wizardRetained": true,
+          "inputRetained": true,
+          "name": "Phase 3 early input",
+          "loading": false,
+          "provider": true,
+          "settlement": false
+        }
+      },
+      "domRetained": {
+        "viewport": true,
+        "main": true,
+        "navigation": false
+      },
+      "rsc": [
+        {
+          "id": "97905.202",
+          "path": "/en/money/savings/new",
+          "query": "_rsc",
+          "type": "Fetch",
+          "method": "GET",
+          "epochStart": 1790964498778.6738,
+          "start": 1165834.284935,
+          "prefetch": null,
+          "segmentPrefetch": null,
+          "rsc": "1",
+          "status": 200,
+          "mime": "text/x-component",
+          "timing": {
+            "requestTime": 1165834.285615,
+            "proxyStart": -1,
+            "proxyEnd": -1,
+            "dnsStart": -1,
+            "dnsEnd": -1,
+            "connectStart": -1,
+            "connectEnd": -1,
+            "sslStart": -1,
+            "sslEnd": -1,
+            "workerStart": -1,
+            "workerReady": -1,
+            "workerFetchStart": -1,
+            "workerRespondWithSettled": -1,
+            "sendStart": 0.382,
+            "sendEnd": 0.551,
+            "pushStart": 0,
+            "pushEnd": 0,
+            "receiveHeadersStart": 15.323,
+            "receiveHeadersEnd": 15.364
+          },
+          "fromCache": false,
+          "protocol": "http/1.1",
+          "lastData": 1165835.643686,
+          "dataBytes": 12613,
+          "failure": "net::ERR_ABORTED",
+          "end": 1165835.64461
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "kind": "warm",
+      "initialUsableMs": 626.7000000476837,
+      "fullReadyMs": 1471.7999999523163,
+      "demandRsc": 1,
+      "totalRemoteHttp": 7,
+      "spans": {
+        "proxy": {
+          "startFromClickMs": 5.490966796875,
+          "durationMs": 0.9665000000022701,
+          "endFromClickMs": 6.45751953125
+        },
+        "auth.getClaims": {
+          "startFromClickMs": 13.642822265625,
+          "durationMs": 6,
+          "endFromClickMs": 19.642822265625
+        },
+        "createSupabaseServerClientUncached": {
+          "startFromClickMs": 12.72021484375,
+          "durationMs": 0.8642089999993914,
+          "endFromClickMs": 13.58447265625
+        },
+        "auth.getUser": {
+          "startFromClickMs": 13.642822265625,
+          "durationMs": 496,
+          "endFromClickMs": 509.642822265625
+        },
+        "membership.resolve": {
+          "startFromClickMs": 19.642822265625,
+          "durationMs": 578,
+          "endFromClickMs": 597.642822265625
+        },
+        "loadSessionMembership": {
+          "startFromClickMs": 12.71044921875,
+          "durationMs": 584.9023749999978,
+          "endFromClickMs": 597.61279296875
+        },
+        "NewSavingPage": {
+          "startFromClickMs": 12.409912109375,
+          "durationMs": 586.3064579999991,
+          "endFromClickMs": 598.71630859375
+        },
+        "listProviderCatalog": {
+          "startFromClickMs": 597.7099609375,
+          "durationMs": 303.1770000000033,
+          "endFromClickMs": 900.886962890625
+        },
+        "loadAccounts": {
+          "startFromClickMs": 597.703125,
+          "durationMs": 834.6687499999971,
+          "endFromClickMs": 1432.371826171875
+        },
+        "loadCreateSavingData": {
+          "startFromClickMs": 597.67333984375,
+          "durationMs": 835.1405840000007,
+          "endFromClickMs": 1432.81396484375
+        }
+      },
+      "remote": [
+        {
+          "path": "/auth/v1/user",
+          "method": "GET",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 15.642822265625,
+          "durationMs": 492,
+          "endFromClickMs": 507.642822265625,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,household_id,role,user_id",
+          "startFromClickMs": 20.642822265625,
+          "durationMs": 577,
+          "endFromClickMs": 597.642822265625,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/households",
+          "method": "GET",
+          "status": 200,
+          "shape": "base_currency",
+          "startFromClickMs": 598.642822265625,
+          "durationMs": 285,
+          "endFromClickMs": 883.642822265625,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/saving_providers",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,provider_key,display_name,saving_type,is_active,metadata,family,icon_key,household_id,is_system,saving_packages!saving_packages_provider_id_fkey(id,provider_id,package_name,duration_days,annual_interest_rate,min_amount,max_amount,settlement_rules,penalty_rules,renewable_available,is_active,term_amount,term_unit,interest_calculation_method,currency,tax_rule,tax_rate_percent,early_settlement_rule,early_settlement_rate_percent,supports_partial_settlement)",
+          "startFromClickMs": 598.642822265625,
+          "durationMs": 301,
+          "endFromClickMs": 899.642822265625,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/accounts",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,name,type,icon_key,opening_balance,is_archived,financial_scope,owner_membership_id",
+          "startFromClickMs": 599.642822265625,
+          "durationMs": 523,
+          "endFromClickMs": 1122.642822265625,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id",
+          "startFromClickMs": 1124.642822265625,
+          "durationMs": 282,
+          "endFromClickMs": 1406.642822265625,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/rpc/get_account_ledger_balances",
+          "method": "POST",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 1124.642822265625,
+          "durationMs": 306,
+          "endFromClickMs": 1430.642822265625,
+          "completedBeforeInitial": false
+        }
+      ],
+      "stream": {
+        "early": {
+          "ready": "false",
+          "epoch": 1790964535949,
+          "loading": true
+        },
+        "full": {
+          "at": 46451.09999990463,
+          "epoch": 1790964536777.2002,
+          "wizardRetained": true,
+          "inputRetained": true,
+          "name": "Phase 3 early input",
+          "loading": false,
+          "provider": true,
+          "settlement": false
+        }
+      },
+      "domRetained": {
+        "viewport": true,
+        "main": true,
+        "navigation": false
+      },
+      "rsc": [
+        {
+          "id": "97905.213",
+          "path": "/en/money/savings/new",
+          "query": "_rsc",
+          "type": "Fetch",
+          "method": "GET",
+          "epochStart": 1790964535306.702,
+          "start": 1165870.813151,
+          "prefetch": null,
+          "segmentPrefetch": null,
+          "rsc": "1",
+          "status": 200,
+          "mime": "text/x-component",
+          "timing": {
+            "requestTime": 1165870.813856,
+            "proxyStart": -1,
+            "proxyEnd": -1,
+            "dnsStart": 0.349,
+            "dnsEnd": 0.625,
+            "connectStart": 0.625,
+            "connectEnd": 0.872,
+            "sslStart": -1,
+            "sslEnd": -1,
+            "workerStart": -1,
+            "workerReady": -1,
+            "workerFetchStart": -1,
+            "workerRespondWithSettled": -1,
+            "sendStart": 0.954,
+            "sendEnd": 1.064,
+            "pushStart": 0,
+            "pushEnd": 0,
+            "receiveHeadersStart": 17.201,
+            "receiveHeadersEnd": 17.235
+          },
+          "fromCache": false,
+          "protocol": "http/1.1",
+          "lastData": 1165872.246152,
+          "dataBytes": 12613,
+          "failure": "net::ERR_ABORTED",
+          "end": 1165872.247059
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "kind": "warm",
+      "initialUsableMs": 642.1000001430511,
+      "fullReadyMs": 1699.4000000953674,
+      "demandRsc": 1,
+      "totalRemoteHttp": 7,
+      "spans": {
+        "proxy": {
+          "startFromClickMs": 5.265625,
+          "durationMs": 0.534749999998894,
+          "endFromClickMs": 5.80029296875
+        },
+        "auth.getClaims": {
+          "startFromClickMs": 14.54296875,
+          "durationMs": 5,
+          "endFromClickMs": 19.54296875
+        },
+        "createSupabaseServerClientUncached": {
+          "startFromClickMs": 12.784423828125,
+          "durationMs": 1.071750000002794,
+          "endFromClickMs": 13.856201171875
+        },
+        "auth.getUser": {
+          "startFromClickMs": 14.54296875,
+          "durationMs": 592,
+          "endFromClickMs": 606.54296875
+        },
+        "membership.resolve": {
+          "startFromClickMs": 19.54296875,
+          "durationMs": 587,
+          "endFromClickMs": 606.54296875
+        },
+        "loadSessionMembership": {
+          "startFromClickMs": 12.772216796875,
+          "durationMs": 593.3447500000038,
+          "endFromClickMs": 606.116943359375
+        },
+        "NewSavingPage": {
+          "startFromClickMs": 12.450927734375,
+          "durationMs": 595.8339580000029,
+          "endFromClickMs": 608.284912109375
+        },
+        "listProviderCatalog": {
+          "startFromClickMs": 606.19384765625,
+          "durationMs": 285.04675000000134,
+          "endFromClickMs": 891.240478515625
+        },
+        "loadAccounts": {
+          "startFromClickMs": 606.18798828125,
+          "durationMs": 1056.7661660000012,
+          "endFromClickMs": 1662.9541015625
+        },
+        "loadCreateSavingData": {
+          "startFromClickMs": 606.1767578125,
+          "durationMs": 1057.1498749999955,
+          "endFromClickMs": 1663.32666015625
+        }
+      },
+      "remote": [
+        {
+          "path": "/auth/v1/user",
+          "method": "GET",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 15.54296875,
+          "durationMs": 589,
+          "endFromClickMs": 604.54296875,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,household_id,role,user_id",
+          "startFromClickMs": 19.54296875,
+          "durationMs": 586,
+          "endFromClickMs": 605.54296875,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/saving_providers",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,provider_key,display_name,saving_type,is_active,metadata,family,icon_key,household_id,is_system,saving_packages!saving_packages_provider_id_fkey(id,provider_id,package_name,duration_days,annual_interest_rate,min_amount,max_amount,settlement_rules,penalty_rules,renewable_available,is_active,term_amount,term_unit,interest_calculation_method,currency,tax_rule,tax_rate_percent,early_settlement_rule,early_settlement_rate_percent,supports_partial_settlement)",
+          "startFromClickMs": 608.54296875,
+          "durationMs": 281,
+          "endFromClickMs": 889.54296875,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/households",
+          "method": "GET",
+          "status": 200,
+          "shape": "base_currency",
+          "startFromClickMs": 608.54296875,
+          "durationMs": 312,
+          "endFromClickMs": 920.54296875,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/accounts",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,name,type,icon_key,opening_balance,is_archived,financial_scope,owner_membership_id",
+          "startFromClickMs": 608.54296875,
+          "durationMs": 412,
+          "endFromClickMs": 1020.54296875,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/rpc/get_account_ledger_balances",
+          "method": "POST",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 1022.54296875,
+          "durationMs": 274,
+          "endFromClickMs": 1296.54296875,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id",
+          "startFromClickMs": 1022.54296875,
+          "durationMs": 640,
+          "endFromClickMs": 1662.54296875,
+          "completedBeforeInitial": false
+        }
+      ],
+      "stream": {
+        "early": {
+          "ready": "false",
+          "epoch": 1790964548016,
+          "loading": true
+        },
+        "full": {
+          "at": 58729.799999952316,
+          "epoch": 1790964549055.9001,
+          "wizardRetained": true,
+          "inputRetained": true,
+          "name": "Phase 3 early input",
+          "loading": false,
+          "provider": true,
+          "settlement": false
+        }
+      },
+      "domRetained": {
+        "viewport": true,
+        "main": true,
+        "navigation": false
+      },
+      "rsc": [
+        {
+          "id": "97905.217",
+          "path": "/en/money/savings/new",
+          "query": "_rsc",
+          "type": "Fetch",
+          "method": "GET",
+          "epochStart": 1790964547357.461,
+          "start": 1165882.863978,
+          "prefetch": null,
+          "segmentPrefetch": null,
+          "rsc": "1",
+          "status": 200,
+          "mime": "text/x-component",
+          "timing": {
+            "requestTime": 1165882.864902,
+            "proxyStart": -1,
+            "proxyEnd": -1,
+            "dnsStart": 0.308,
+            "dnsEnd": 0.613,
+            "connectStart": 0.613,
+            "connectEnd": 0.913,
+            "sslStart": -1,
+            "sslEnd": -1,
+            "workerStart": -1,
+            "workerReady": -1,
+            "workerFetchStart": -1,
+            "workerRespondWithSettled": -1,
+            "sendStart": 0.996,
+            "sendEnd": 1.089,
+            "pushStart": 0,
+            "pushEnd": 0,
+            "receiveHeadersStart": 17.305,
+            "receiveHeadersEnd": 17.348
+          },
+          "fromCache": false,
+          "protocol": "http/1.1",
+          "lastData": 1165884.527547,
+          "dataBytes": 12613,
+          "failure": "net::ERR_ABORTED",
+          "end": 1165884.528326
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "kind": "warm",
+      "initialUsableMs": 459.5,
+      "fullReadyMs": 1695.2999999523163,
+      "demandRsc": 1,
+      "totalRemoteHttp": 7,
+      "spans": {
+        "proxy": {
+          "startFromClickMs": 4.205078125,
+          "durationMs": 0.5040420000004815,
+          "endFromClickMs": 4.709228515625
+        },
+        "auth.getClaims": {
+          "startFromClickMs": 11.44287109375,
+          "durationMs": 6,
+          "endFromClickMs": 17.44287109375
+        },
+        "createSupabaseServerClientUncached": {
+          "startFromClickMs": 10.69677734375,
+          "durationMs": 1.0519590000039898,
+          "endFromClickMs": 11.748779296875
+        },
+        "auth.getUser": {
+          "startFromClickMs": 11.44287109375,
+          "durationMs": 418,
+          "endFromClickMs": 429.44287109375
+        },
+        "membership.resolve": {
+          "startFromClickMs": 17.44287109375,
+          "durationMs": 414,
+          "endFromClickMs": 431.44287109375
+        },
+        "loadSessionMembership": {
+          "startFromClickMs": 10.5908203125,
+          "durationMs": 420.8483750000014,
+          "endFromClickMs": 431.439208984375
+        },
+        "NewSavingPage": {
+          "startFromClickMs": 10.193115234375,
+          "durationMs": 423.81333299999824,
+          "endFromClickMs": 434.00634765625
+        },
+        "listProviderCatalog": {
+          "startFromClickMs": 431.5546875,
+          "durationMs": 274.31050000000687,
+          "endFromClickMs": 705.865234375
+        },
+        "loadAccounts": {
+          "startFromClickMs": 431.542236328125,
+          "durationMs": 1229.8470830000006,
+          "endFromClickMs": 1661.389404296875
+        },
+        "loadCreateSavingData": {
+          "startFromClickMs": 431.529052734375,
+          "durationMs": 1230.2727500000037,
+          "endFromClickMs": 1661.8017578125
+        }
+      },
+      "remote": [
+        {
+          "path": "/auth/v1/user",
+          "method": "GET",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 13.44287109375,
+          "durationMs": 415,
+          "endFromClickMs": 428.44287109375,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,household_id,role,user_id",
+          "startFromClickMs": 17.44287109375,
+          "durationMs": 413,
+          "endFromClickMs": 430.44287109375,
+          "completedBeforeInitial": true
+        },
+        {
+          "path": "/rest/v1/households",
+          "method": "GET",
+          "status": 200,
+          "shape": "base_currency",
+          "startFromClickMs": 434.44287109375,
+          "durationMs": 265,
+          "endFromClickMs": 699.44287109375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/saving_providers",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,provider_key,display_name,saving_type,is_active,metadata,family,icon_key,household_id,is_system,saving_packages!saving_packages_provider_id_fkey(id,provider_id,package_name,duration_days,annual_interest_rate,min_amount,max_amount,settlement_rules,penalty_rules,renewable_available,is_active,term_amount,term_unit,interest_calculation_method,currency,tax_rule,tax_rate_percent,early_settlement_rule,early_settlement_rate_percent,supports_partial_settlement)",
+          "startFromClickMs": 434.44287109375,
+          "durationMs": 271,
+          "endFromClickMs": 705.44287109375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/accounts",
+          "method": "GET",
+          "status": 200,
+          "shape": "id,name,type,icon_key,opening_balance,is_archived,financial_scope,owner_membership_id",
+          "startFromClickMs": 434.44287109375,
+          "durationMs": 487,
+          "endFromClickMs": 921.44287109375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/rpc/get_account_ledger_balances",
+          "method": "POST",
+          "status": 200,
+          "shape": null,
+          "startFromClickMs": 924.44287109375,
+          "durationMs": 274,
+          "endFromClickMs": 1198.44287109375,
+          "completedBeforeInitial": false
+        },
+        {
+          "path": "/rest/v1/household_members",
+          "method": "GET",
+          "status": 200,
+          "shape": "id",
+          "startFromClickMs": 924.44287109375,
+          "durationMs": 736,
+          "endFromClickMs": 1660.44287109375,
+          "completedBeforeInitial": false
+        }
+      ],
+      "stream": {
+        "early": {
+          "ready": "false",
+          "epoch": 1790964560099,
+          "loading": true
+        },
+        "full": {
+          "at": 70991.79999995232,
+          "epoch": 1790964561317.9001,
+          "wizardRetained": true,
+          "inputRetained": true,
+          "name": "Phase 3 early input",
+          "loading": false,
+          "provider": true,
+          "settlement": false
+        }
+      },
+      "domRetained": {
+        "viewport": true,
+        "main": true,
+        "navigation": false
+      },
+      "rsc": [
+        {
+          "id": "97905.221",
+          "path": "/en/money/savings/new",
+          "query": "_rsc",
+          "type": "Fetch",
+          "method": "GET",
+          "epochStart": 1790964559623.499,
+          "start": 1165895.130079,
+          "prefetch": null,
+          "segmentPrefetch": null,
+          "rsc": "1",
+          "status": 200,
+          "mime": "text/x-component",
+          "timing": {
+            "requestTime": 1165895.130662,
+            "proxyStart": -1,
+            "proxyEnd": -1,
+            "dnsStart": 0.285,
+            "dnsEnd": 0.573,
+            "connectStart": 0.573,
+            "connectEnd": 0.834,
+            "sslStart": -1,
+            "sslEnd": -1,
+            "workerStart": -1,
+            "workerReady": -1,
+            "workerFetchStart": -1,
+            "workerRespondWithSettled": -1,
+            "sendStart": 0.915,
+            "sendEnd": 1.037,
+            "pushStart": 0,
+            "pushEnd": 0,
+            "receiveHeadersStart": 15.652,
+            "receiveHeadersEnd": 15.688
+          },
+          "fromCache": false,
+          "protocol": "http/1.1",
+          "lastData": 1165896.792588,
+          "dataBytes": 12613,
+          "failure": "net::ERR_ABORTED",
+          "end": 1165896.793247
+        }
+      ]
+    }
+  ],
+  "backs": [
+    {
+      "sample": 0,
+      "visibleMs": 43.0,
+      "demandRsc": 0,
+      "fetches": 0,
+      "restoredSameEntry": true
+    },
+    {
+      "sample": 1,
+      "visibleMs": 41.299999952316284,
+      "demandRsc": 0,
+      "fetches": 0,
+      "restoredSameEntry": true
+    },
+    {
+      "sample": 2,
+      "visibleMs": 43,
+      "demandRsc": 0,
+      "fetches": 0,
+      "restoredSameEntry": true
+    },
+    {
+      "sample": 3,
+      "visibleMs": 42.0,
+      "demandRsc": 0,
+      "fetches": 0,
+      "restoredSameEntry": true
+    }
+  ],
+  "sqlDefinitionHashes": {
+    "create_saving_with_transfer14": "1b61c89db5ed2ab61d07a867bd499ce6",
+    "savings_is_eligible_liquid_account": "e8dd38a21428b9e7ffd37770a6e0d342",
+    "can_mutate_financial_resource": "0c61e12711f945c743929020204d5ab9"
+  },
+  "browserVerification": {
+    "passed": true,
+    "results": [
+      {
+        "name": "EN Forward then header Enter restores previous Savings",
+        "epoch": 1790964741884,
+        "endEpoch": 1790964743159,
+        "before": {
+          "key": "af65243a-ccca-4915-be85-ed4f824e4633",
+          "index": 3,
+          "activation": "cb6fe5a6-d2a7-40cf-a7dc-ad85d25db33d",
+          "url": "/en/money/savings/new",
+          "length": 4
+        },
+        "after": {
+          "key": "914304cf-d676-492a-9686-8644e603f8ee",
+          "index": 2,
+          "activation": "cb6fe5a6-d2a7-40cf-a7dc-ad85d25db33d",
+          "url": "/en/money/savings",
+          "length": 4
+        },
+        "network": [],
+        "serverCounts": {
+          "auth.getUser": 0,
+          "membership.resolve": 0,
+          "loadAccounts": 0,
+          "listProviderCatalog": 0,
+          "loadSavings": 0,
+          "fetch": 0
+        }
+      },
+      {
+        "name": "EN normal live setup \u2192 Review \u2192 internal Back preserves values",
+        "passed": true,
+        "submitted": false
+      },
+      {
+        "name": "EN direct-entry replace fallback",
+        "epoch": 1790964746886,
+        "endEpoch": 1790964749401,
+        "before": {
+          "key": "e6b28fb5-c8d7-477a-8960-b85b563bf079",
+          "index": 0,
+          "activation": "e6b28fb5-c8d7-477a-8960-b85b563bf079",
+          "url": "/en/money/savings/new",
+          "length": 1
+        },
+        "after": {
+          "key": "e6b28fb5-c8d7-477a-8960-b85b563bf079",
+          "index": 0,
+          "activation": "e6b28fb5-c8d7-477a-8960-b85b563bf079",
+          "url": "/en/money/savings",
+          "length": 1
+        },
+        "network": [
+          {
+            "epoch": 1790964746905,
+            "path": "/en/money/savings",
+            "prefetch": null,
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964748093,
+            "path": "/en/money/savings/providers",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964748094,
+            "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964748094,
+            "path": "/en/money/savings/new",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964748108,
+            "path": "/en/money/savings/providers",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964748109,
+            "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+            "prefetch": "1",
+            "method": "GET"
+          }
+        ],
+        "serverCounts": {
+          "auth.getUser": 1,
+          "membership.resolve": 1,
+          "loadAccounts": 0,
+          "listProviderCatalog": 0,
+          "loadSavings": 1,
+          "fetch": 4
+        }
+      },
+      {
+        "name": "EN reloaded Create replace fallback",
+        "epoch": 1790964753046,
+        "endEpoch": 1790964755572,
+        "before": {
+          "key": "cd2139ff-17e0-4941-b5f3-e757bd5ff707",
+          "index": 1,
+          "activation": "cd2139ff-17e0-4941-b5f3-e757bd5ff707",
+          "url": "/en/money/savings/new",
+          "length": 2
+        },
+        "after": {
+          "key": "cd2139ff-17e0-4941-b5f3-e757bd5ff707",
+          "index": 1,
+          "activation": "cd2139ff-17e0-4941-b5f3-e757bd5ff707",
+          "url": "/en/money/savings",
+          "length": 2
+        },
+        "network": [
+          {
+            "epoch": 1790964753076,
+            "path": "/en/money/savings",
+            "prefetch": null,
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964754175,
+            "path": "/en/money/savings/providers",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964754175,
+            "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964754175,
+            "path": "/en/money/savings/new",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964754191,
+            "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+            "prefetch": "1",
+            "method": "GET"
+          },
+          {
+            "epoch": 1790964754191,
+            "path": "/en/money/savings/providers",
+            "prefetch": "1",
+            "method": "GET"
+          }
+        ],
+        "serverCounts": {
+          "auth.getUser": 1,
+          "membership.resolve": 1,
+          "loadAccounts": 0,
+          "listProviderCatalog": 0,
+          "loadSavings": 1,
+          "fetch": 4
+        }
+      },
+      {
+        "name": "VI initial controls usable, fast Review attempt stays scoped, streamed data preserves input/mode/node identity",
+        "epoch": 1790964757982,
+        "endEpoch": 1790964759949,
+        "early": {
+          "ready": "false",
+          "loading": true
+        },
+        "retained": {
+          "input": true,
+          "wizard": true,
+          "name": "Ti\u1ebft ki\u1ec7m ki\u1ec3m tra",
+          "mode": "true"
+        },
+        "network": [
+          {
+            "epoch": 1790964758024,
+            "path": "/vi/money/savings/new",
+            "prefetch": null,
+            "method": "GET"
+          }
+        ],
+        "passed": true,
+        "serverCounts": {
+          "auth.getUser": 1,
+          "membership.resolve": 1,
+          "loadAccounts": 1,
+          "listProviderCatalog": 1,
+          "loadSavings": 0,
+          "fetch": 7
+        }
+      },
+      {
+        "name": "VI normal live setup \u2192 Review \u2192 internal Back",
+        "passed": true,
+        "submitted": false
+      },
+      {
+        "name": "VI in-app header Space restores previous Savings",
+        "epoch": 1790964764055,
+        "endEpoch": 1790964765345,
+        "before": {
+          "key": "38105271-4469-42c8-bc85-d621d99fb9c2",
+          "index": 1,
+          "activation": "86d11451-ccd1-4b76-b3a3-40ceac377ba8",
+          "url": "/vi/money/savings/new",
+          "length": 2
+        },
+        "after": {
+          "key": "86d11451-ccd1-4b76-b3a3-40ceac377ba8",
+          "index": 0,
+          "activation": "86d11451-ccd1-4b76-b3a3-40ceac377ba8",
+          "url": "/vi/money/savings",
+          "length": 2
+        },
+        "network": [],
+        "serverCounts": {
+          "auth.getUser": 0,
+          "membership.resolve": 0,
+          "loadAccounts": 0,
+          "listProviderCatalog": 0,
+          "loadSavings": 0,
+          "fetch": 0
+        }
+      },
+      {
+        "name": "Unauthenticated direct Create redirects to Login",
+        "passed": true
+      }
+    ],
+    "widths": [
+      {
+        "locale": "en",
+        "width": 390,
+        "scrollWidth": 390,
+        "nameWidth": 358
+      },
+      {
+        "locale": "en",
+        "width": 440,
+        "scrollWidth": 440,
+        "nameWidth": 408
+      },
+      {
+        "locale": "en",
+        "width": 768,
+        "scrollWidth": 768,
+        "nameWidth": 408
+      },
+      {
+        "locale": "en",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "nameWidth": 408
+      },
+      {
+        "locale": "vi",
+        "width": 390,
+        "scrollWidth": 390,
+        "nameWidth": 358
+      },
+      {
+        "locale": "vi",
+        "width": 440,
+        "scrollWidth": 440,
+        "nameWidth": 408
+      },
+      {
+        "locale": "vi",
+        "width": 768,
+        "scrollWidth": 768,
+        "nameWidth": 408
+      },
+      {
+        "locale": "vi",
+        "width": 1280,
+        "scrollWidth": 1280,
+        "nameWidth": 408
+      }
+    ],
+    "serverWindowNote": "Safety span classification allows 100 ms wall/monotonic alignment tolerance and excludes the final 200 ms of the 1.2 s idle tail, isolating immediately following actions. Benchmark counts use isolated capture windows and independently assert CDP demand requests.",
+    "screenshotsInspected": [
+      "phase3-vi-pending.png",
+      "phase3-en-ready.png",
+      "phase3-vi-ready.png"
+    ],
+    "earlyPendingCancel": {
+      "passed": true,
+      "pendingData": true,
+      "ms": 36.200000047683716,
+      "key": "914304cf-d676-492a-9686-8644e603f8ee",
+      "index": 2,
+      "url": "/en/money/savings",
+      "createVisible": false,
+      "newDemandRsc": 0,
+      "requestsAfterExit": [
+        {
+          "path": "/en/money/savings/providers",
+          "prefetch": "1"
+        },
+        {
+          "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+          "prefetch": "1"
+        },
+        {
+          "path": "/en/money/savings/providers",
+          "prefetch": "1"
+        },
+        {
+          "path": "/en/money/savings/eb685a0d-f23c-4df2-82e8-bd9eec83d67b",
+          "prefetch": "1"
+        }
+      ],
+      "note": "Previously started Create server reads may complete; no new navigation is issued by Cancel."
+    }
+  },
+  "validation": {
+    "lint": "pass",
+    "typecheck": "only existing Home TS2322 errors at 99 and 340",
+    "fullUnit": {
+      "passedFiles": 245,
+      "failedFiles": 4,
+      "passedTests": 1628,
+      "failedTests": 6,
+      "failures": "existing i18n parity 1, Money wrapping 1, account presentation missing NextIntl context 3, date-sensitive Savings historical opening 1"
+    },
+    "productionBuild": "passed in disposable profiling copy with baseline TypeScript build gate ignored; repository config unchanged",
+    "formatBaselineIssueCount": 194,
+    "financialMutationTests": "mocked unit command tests; real browser never confirms; live Supabase only SELECT function definitions",
+    "targetedFormatting": "all changed sources, tests, report and evidence pass"
+  },
+  "head": "daf24246821def5ac2b392144498cdb5f653d169",
+  "changedProductionFiles": [
+    "app/[locale]/(product)/money/savings/new/page.tsx",
+    "app/[locale]/(product)/money/savings/new/create-saving-wizard.tsx"
+  ],
+  "changedTestFiles": [
+    "tests/unit/create-saving-wizard.test.tsx",
+    "tests/unit/savings-create-streaming.test.tsx",
+    "tests/unit/savings-create-data.test.ts",
+    "tests/unit/savings-create-authority.test.ts"
+  ]
+}

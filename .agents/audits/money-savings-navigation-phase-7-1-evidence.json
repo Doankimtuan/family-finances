@@ -1,0 +1,1046 @@
+{
+  "date": "2026-10-03",
+  "timezone": "UTC; workstation Asia/Ho_Chi_Minh",
+  "scope": "Read-only local Node 24 authenticated Savings PostgREST request profiling; no application or infrastructure changes.",
+  "environment": {
+    "runtime": "Local macOS, standalone Node.js 24.18.0 profiling process (not a Next server)",
+    "node": "v24.18.0",
+    "supabaseRegion": "ap-southeast-2",
+    "query": "Savings + cycles + active-owner evidence"
+  },
+  "method": {
+    "cold": "first exact Savings PostgREST request in a fresh Node process; auth session and membership were already established in a separate process",
+    "warm": "10 reused-process session gates, each followed by alternating old/full vs current projection requests",
+    "freshProcess": "3 separate Node processes; each exact Savings request was first Supabase HTTP request in that process",
+    "auth": "temporary configured E2E account; sign-in and local-scope sign-out excluded from measurements",
+    "payload": "decoded UTF-8 response body bytes; no row values retained",
+    "runtimeScope": "Standalone Supabase JS auth/PostgREST calls; isolates the exact API request and controls from Next page, RSC, SSR cookie handling, and render timing."
+  },
+  "samples": {
+    "firstRequestInFreshProcess": {
+      "sample": "reused-process-first",
+      "projection": "current",
+      "requestStartUtc": "2026-10-03T03:24:18.288Z",
+      "status": 200,
+      "requestToHeadersMs": 1015.68,
+      "headersToBodyMs": 8.09,
+      "bodyCompleteToParseCompleteMs": 1.13,
+      "requestToParseCompleteMs": 1026.05,
+      "mappingMs": 1.71,
+      "decodedBytes": 122661,
+      "rows": 34,
+      "cycles": 50,
+      "maturedWithFollowup": 0,
+      "service": {
+        "serverTiming": null,
+        "serviceTiming": {
+          "x-envoy-upstream-service-time": 175
+        },
+        "resourceTiming": null
+      }
+    },
+    "warmSessionGates": [
+      {
+        "sample": "reused-process-warm-1",
+        "getUserMs": 342.26,
+        "claimsMs": 274.16,
+        "activeMembershipMs": 722.69,
+        "totalGateMs": 997.99,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:19.315Z",
+          "status": 200,
+          "requestToHeadersMs": 340.14,
+          "headersToBodyMs": 1.53,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 62
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": true
+      },
+      {
+        "sample": "reused-process-warm-2",
+        "getUserMs": 295.75,
+        "claimsMs": 2.53,
+        "activeMembershipMs": 688.07,
+        "totalGateMs": 691.54,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:21.207Z",
+          "status": 200,
+          "requestToHeadersMs": 294.29,
+          "headersToBodyMs": 1.25,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 25
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-3",
+        "getUserMs": 289,
+        "claimsMs": 1.71,
+        "activeMembershipMs": 274.42,
+        "totalGateMs": 289.03,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:22.652Z",
+          "status": 200,
+          "requestToHeadersMs": 287.3,
+          "headersToBodyMs": 1.28,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 12
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-4",
+        "getUserMs": 703.16,
+        "claimsMs": 6.44,
+        "activeMembershipMs": 282.89,
+        "totalGateMs": 703.19,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:23.708Z",
+          "status": 200,
+          "requestToHeadersMs": 701.68,
+          "headersToBodyMs": 1.17,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 5
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-5",
+        "getUserMs": 276.08,
+        "claimsMs": 2.27,
+        "activeMembershipMs": 304.97,
+        "totalGateMs": 307.92,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:25.272Z",
+          "status": 200,
+          "requestToHeadersMs": 274.14,
+          "headersToBodyMs": 1.46,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 6
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-6",
+        "getUserMs": 291,
+        "claimsMs": 1.48,
+        "activeMembershipMs": 775.21,
+        "totalGateMs": 777.2,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:26.318Z",
+          "status": 200,
+          "requestToHeadersMs": 289.8,
+          "headersToBodyMs": 0.94,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 24
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-7",
+        "getUserMs": 288.68,
+        "claimsMs": 1.67,
+        "activeMembershipMs": 275.6,
+        "totalGateMs": 288.73,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:28.232Z",
+          "status": 200,
+          "requestToHeadersMs": 287.22,
+          "headersToBodyMs": 0.93,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 15
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-8",
+        "getUserMs": 308.04,
+        "claimsMs": 1.06,
+        "activeMembershipMs": 307.34,
+        "totalGateMs": 308.77,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:29.184Z",
+          "status": 200,
+          "requestToHeadersMs": 305.99,
+          "headersToBodyMs": 1.74,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 10
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-9",
+        "getUserMs": 342.89,
+        "claimsMs": 1.79,
+        "activeMembershipMs": 324.13,
+        "totalGateMs": 342.96,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:30.203Z",
+          "status": 200,
+          "requestToHeadersMs": 340.98,
+          "headersToBodyMs": 1.37,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 2
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      },
+      {
+        "sample": "reused-process-warm-10",
+        "getUserMs": 355.18,
+        "claimsMs": 1.88,
+        "activeMembershipMs": 352.94,
+        "totalGateMs": 355.51,
+        "getUserHttp": {
+          "requestStartUtc": "2026-10-03T03:24:31.384Z",
+          "status": 200,
+          "requestToHeadersMs": 353.03,
+          "headersToBodyMs": 1.78,
+          "decodedBytes": null,
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 2
+          },
+          "resourceTiming": null
+        },
+        "claimsMadeAdditionalAuthRequest": false
+      }
+    ],
+    "warmCurrentProjection": [
+      {
+        "sample": "reused-process-warm-1-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:20.863Z",
+        "status": 200,
+        "requestToHeadersMs": 331.41,
+        "headersToBodyMs": 11.45,
+        "bodyCompleteToParseCompleteMs": 1.53,
+        "requestToParseCompleteMs": 345.13,
+        "mappingMs": 0.49,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 56
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-2-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:21.900Z",
+        "status": 200,
+        "requestToHeadersMs": 349.63,
+        "headersToBodyMs": 8.67,
+        "bodyCompleteToParseCompleteMs": 1.46,
+        "requestToParseCompleteMs": 360.28,
+        "mappingMs": 0.42,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 70
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-3-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:23.293Z",
+        "status": 200,
+        "requestToHeadersMs": 410.82,
+        "headersToBodyMs": 2.13,
+        "bodyCompleteToParseCompleteMs": 1.47,
+        "requestToParseCompleteMs": 415.15,
+        "mappingMs": 0.45,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 33
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-4-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:24.411Z",
+        "status": 200,
+        "requestToHeadersMs": 508.4,
+        "headersToBodyMs": 2.32,
+        "bodyCompleteToParseCompleteMs": 2.3,
+        "requestToParseCompleteMs": 513.51,
+        "mappingMs": 0.49,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 22
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-5-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:25.950Z",
+        "status": 200,
+        "requestToHeadersMs": 364.57,
+        "headersToBodyMs": 1.74,
+        "bodyCompleteToParseCompleteMs": 1.26,
+        "requestToParseCompleteMs": 368.08,
+        "mappingMs": 0.39,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 45
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-6-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:27.096Z",
+        "status": 200,
+        "requestToHeadersMs": 515.8,
+        "headersToBodyMs": 2.34,
+        "bodyCompleteToParseCompleteMs": 1.44,
+        "requestToParseCompleteMs": 520.16,
+        "mappingMs": 0.52,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 30
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-7-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:28.841Z",
+        "status": 200,
+        "requestToHeadersMs": 340.53,
+        "headersToBodyMs": 1.29,
+        "bodyCompleteToParseCompleteMs": 1.23,
+        "requestToParseCompleteMs": 343.54,
+        "mappingMs": 0.36,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 30
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-8-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:29.493Z",
+        "status": 200,
+        "requestToHeadersMs": 332.33,
+        "headersToBodyMs": 1.93,
+        "bodyCompleteToParseCompleteMs": 1.57,
+        "requestToParseCompleteMs": 336.21,
+        "mappingMs": 0.56,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 21
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-9-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:30.950Z",
+        "status": 200,
+        "requestToHeadersMs": 429.47,
+        "headersToBodyMs": 2.58,
+        "bodyCompleteToParseCompleteMs": 1.47,
+        "requestToParseCompleteMs": 434.08,
+        "mappingMs": 0.57,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 27
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-10-current",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:31.740Z",
+        "status": 200,
+        "requestToHeadersMs": 342.1,
+        "headersToBodyMs": 2.15,
+        "bodyCompleteToParseCompleteMs": 1.54,
+        "requestToParseCompleteMs": 346.23,
+        "mappingMs": 0.25,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 23
+          },
+          "resourceTiming": null
+        }
+      }
+    ],
+    "warmFullProjectionControl": [
+      {
+        "sample": "reused-process-warm-1-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:20.314Z",
+        "status": 200,
+        "requestToHeadersMs": 531.18,
+        "headersToBodyMs": 14.77,
+        "bodyCompleteToParseCompleteMs": 1.72,
+        "requestToParseCompleteMs": 548.44,
+        "mappingMs": 0.48,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 71
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-2-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:22.260Z",
+        "status": 200,
+        "requestToHeadersMs": 386.46,
+        "headersToBodyMs": 3.29,
+        "bodyCompleteToParseCompleteMs": 1.6,
+        "requestToParseCompleteMs": 391.9,
+        "mappingMs": 0.45,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 61
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-3-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:22.942Z",
+        "status": 200,
+        "requestToHeadersMs": 333,
+        "headersToBodyMs": 13.52,
+        "bodyCompleteToParseCompleteMs": 3.03,
+        "requestToParseCompleteMs": 350.17,
+        "mappingMs": 0.44,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 25
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-4-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:24.925Z",
+        "status": 200,
+        "requestToHeadersMs": 341.93,
+        "headersToBodyMs": 2.89,
+        "bodyCompleteToParseCompleteMs": 1.74,
+        "requestToParseCompleteMs": 347.14,
+        "mappingMs": 0.47,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 37
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-5-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:25.581Z",
+        "status": 200,
+        "requestToHeadersMs": 363.57,
+        "headersToBodyMs": 2.73,
+        "bodyCompleteToParseCompleteMs": 1.63,
+        "requestToParseCompleteMs": 368.66,
+        "mappingMs": 0.39,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 57
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-6-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:27.617Z",
+        "status": 200,
+        "requestToHeadersMs": 608.94,
+        "headersToBodyMs": 4.08,
+        "bodyCompleteToParseCompleteMs": 1.64,
+        "requestToParseCompleteMs": 615.25,
+        "mappingMs": 0.42,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 34
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-7-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:28.521Z",
+        "status": 200,
+        "requestToHeadersMs": 308.12,
+        "headersToBodyMs": 8.84,
+        "bodyCompleteToParseCompleteMs": 1.69,
+        "requestToParseCompleteMs": 319.35,
+        "mappingMs": 0.42,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 27
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-8-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:29.830Z",
+        "status": 200,
+        "requestToHeadersMs": 364.34,
+        "headersToBodyMs": 5.81,
+        "bodyCompleteToParseCompleteMs": 1.83,
+        "requestToParseCompleteMs": 372.49,
+        "mappingMs": 0.34,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 35
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-9-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:30.546Z",
+        "status": 200,
+        "requestToHeadersMs": 397.39,
+        "headersToBodyMs": 2.9,
+        "bodyCompleteToParseCompleteMs": 1.93,
+        "requestToParseCompleteMs": 402.86,
+        "mappingMs": 0.49,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 29
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "reused-process-warm-10-full",
+        "projection": "full",
+        "requestStartUtc": "2026-10-03T03:24:32.086Z",
+        "status": 200,
+        "requestToHeadersMs": 310.36,
+        "headersToBodyMs": 10.2,
+        "bodyCompleteToParseCompleteMs": 1.55,
+        "requestToParseCompleteMs": 322.44,
+        "mappingMs": 0.27,
+        "decodedBytes": 151285,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 32
+          },
+          "resourceTiming": null
+        }
+      }
+    ],
+    "freshProcessFirstRequests": [
+      {
+        "sample": "fresh-process-1-first",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:32.741Z",
+        "status": 200,
+        "requestToHeadersMs": 1090.96,
+        "headersToBodyMs": 7.48,
+        "bodyCompleteToParseCompleteMs": 1.17,
+        "requestToParseCompleteMs": 1100.78,
+        "mappingMs": 1.76,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 26
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "fresh-process-2-first",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:24:50.302Z",
+        "status": 200,
+        "requestToHeadersMs": 1017.33,
+        "headersToBodyMs": 8.08,
+        "bodyCompleteToParseCompleteMs": 1.38,
+        "requestToParseCompleteMs": 1027.96,
+        "mappingMs": 1.8,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 26
+          },
+          "resourceTiming": null
+        }
+      },
+      {
+        "sample": "fresh-process-3-first",
+        "projection": "current",
+        "requestStartUtc": "2026-10-03T03:25:05.502Z",
+        "status": 200,
+        "requestToHeadersMs": 1014.09,
+        "headersToBodyMs": 7.86,
+        "bodyCompleteToParseCompleteMs": 1.4,
+        "requestToParseCompleteMs": 1024.55,
+        "mappingMs": 2.01,
+        "decodedBytes": 122661,
+        "rows": 34,
+        "cycles": 50,
+        "maturedWithFollowup": 0,
+        "service": {
+          "serverTiming": null,
+          "serviceTiming": {
+            "x-envoy-upstream-service-time": 29
+          },
+          "resourceTiming": null
+        }
+      }
+    ],
+    "payloadPairDeltasCurrentMinusFull": [
+      {
+        "pair": 1,
+        "currentMinusFullHeadersMs": -199.77,
+        "currentMinusFullHeadersToBodyMs": -3.32,
+        "currentMinusFullParseCompleteMs": -203.31
+      },
+      {
+        "pair": 2,
+        "currentMinusFullHeadersMs": -36.83,
+        "currentMinusFullHeadersToBodyMs": 5.38,
+        "currentMinusFullParseCompleteMs": -31.62
+      },
+      {
+        "pair": 3,
+        "currentMinusFullHeadersMs": 77.82,
+        "currentMinusFullHeadersToBodyMs": -11.39,
+        "currentMinusFullParseCompleteMs": 64.98
+      },
+      {
+        "pair": 4,
+        "currentMinusFullHeadersMs": 166.47,
+        "currentMinusFullHeadersToBodyMs": -0.57,
+        "currentMinusFullParseCompleteMs": 166.37
+      },
+      {
+        "pair": 5,
+        "currentMinusFullHeadersMs": 1.0,
+        "currentMinusFullHeadersToBodyMs": -0.99,
+        "currentMinusFullParseCompleteMs": -0.58
+      },
+      {
+        "pair": 6,
+        "currentMinusFullHeadersMs": -93.14,
+        "currentMinusFullHeadersToBodyMs": -1.74,
+        "currentMinusFullParseCompleteMs": -95.09
+      },
+      {
+        "pair": 7,
+        "currentMinusFullHeadersMs": 32.41,
+        "currentMinusFullHeadersToBodyMs": -7.55,
+        "currentMinusFullParseCompleteMs": 24.19
+      },
+      {
+        "pair": 8,
+        "currentMinusFullHeadersMs": -32.01,
+        "currentMinusFullHeadersToBodyMs": -3.88,
+        "currentMinusFullParseCompleteMs": -36.28
+      },
+      {
+        "pair": 9,
+        "currentMinusFullHeadersMs": 32.08,
+        "currentMinusFullHeadersToBodyMs": -0.32,
+        "currentMinusFullParseCompleteMs": 31.22
+      },
+      {
+        "pair": 10,
+        "currentMinusFullHeadersMs": 31.74,
+        "currentMinusFullHeadersToBodyMs": -8.05,
+        "currentMinusFullParseCompleteMs": 23.79
+      }
+    ]
+  },
+  "summaries": {
+    "sessionGateMs": {
+      "n": 10,
+      "min": 288.73,
+      "median": 349.24,
+      "p75": 703.19,
+      "max": 997.99
+    },
+    "getUserMs": {
+      "n": 10,
+      "min": 276.08,
+      "median": 301.9,
+      "p75": 342.89,
+      "max": 703.16
+    },
+    "claimsMs": {
+      "n": 10,
+      "min": 1.06,
+      "median": 1.84,
+      "p75": 2.53,
+      "max": 274.16
+    },
+    "membershipMs": {
+      "n": 10,
+      "min": 274.42,
+      "median": 315.74,
+      "p75": 688.07,
+      "max": 775.21
+    },
+    "currentHeadersMs": {
+      "n": 10,
+      "min": 331.41,
+      "median": 357.1,
+      "p75": 429.47,
+      "max": 515.8
+    },
+    "currentBodyCompleteMs": {
+      "n": 10,
+      "min": 336.21,
+      "median": 364.18,
+      "p75": 434.08,
+      "max": 520.16
+    },
+    "currentHeadersToBodyMs": {
+      "n": 10,
+      "min": 1.29,
+      "median": 2.24,
+      "p75": 2.58,
+      "max": 11.45
+    },
+    "currentParseTailMs": {
+      "n": 10,
+      "min": 1.23,
+      "median": 1.47,
+      "p75": 1.54,
+      "max": 2.3
+    },
+    "currentMappingMs": {
+      "n": 10,
+      "min": 0.25,
+      "median": 0.47,
+      "p75": 0.52,
+      "max": 0.57
+    },
+    "currentBytes": {
+      "n": 10,
+      "min": 122661,
+      "median": 122661,
+      "p75": 122661,
+      "max": 122661
+    },
+    "fullHeadersMs": {
+      "n": 10,
+      "min": 308.12,
+      "median": 363.96,
+      "p75": 397.39,
+      "max": 608.94
+    },
+    "fullBodyCompleteMs": {
+      "n": 10,
+      "min": 319.35,
+      "median": 370.58,
+      "p75": 402.86,
+      "max": 615.25
+    },
+    "fullHeadersToBodyMs": {
+      "n": 10,
+      "min": 2.73,
+      "median": 4.95,
+      "p75": 10.2,
+      "max": 14.77
+    },
+    "fullMappingMs": {
+      "n": 10,
+      "min": 0.27,
+      "median": 0.43,
+      "p75": 0.47,
+      "max": 0.49
+    },
+    "fullBytes": {
+      "n": 10,
+      "min": 151285,
+      "median": 151285,
+      "p75": 151285,
+      "max": 151285
+    },
+    "freshHeadersMs": {
+      "n": 3,
+      "min": 1014.09,
+      "median": 1017.33,
+      "p75": 1090.96,
+      "max": 1090.96
+    },
+    "freshBodyCompleteMs": {
+      "n": 3,
+      "min": 1024.55,
+      "median": 1027.96,
+      "p75": 1100.78,
+      "max": 1100.78
+    },
+    "freshHeadersToBodyMs": {
+      "n": 3,
+      "min": 7.48,
+      "median": 7.86,
+      "p75": 8.08,
+      "max": 8.08
+    },
+    "currentBodyCompleteFromRequestStartMs": {
+      "n": 10,
+      "min": 334.26,
+      "median": 362.31,
+      "p75": 432.05,
+      "max": 518.14
+    },
+    "fullBodyCompleteFromRequestStartMs": {
+      "n": 10,
+      "min": 316.96,
+      "median": 368.23,
+      "p75": 400.29,
+      "max": 613.02
+    },
+    "freshFirstReadHeadersIncludingInitialAndThreeFreshProcessesMs": {
+      "n": 4,
+      "min": 1014.09,
+      "median": 1016.5,
+      "p75": 1017.33,
+      "max": 1090.96
+    },
+    "payloadPairDeltaCurrentMinusFull": {
+      "headersMs": {
+        "n": 10,
+        "min": -199.77,
+        "median": 16.37,
+        "p75": 32.41,
+        "max": 166.47
+      },
+      "headersToBodyMs": {
+        "n": 10,
+        "min": -11.39,
+        "median": -2.53,
+        "p75": -0.57,
+        "max": 5.38
+      },
+      "parseCompleteMs": {
+        "n": 10,
+        "min": -203.31,
+        "median": 11.61,
+        "p75": 31.22,
+        "max": 166.37
+      }
+    }
+  },
+  "supabaseLogs": {
+    "timeWindowUtc": ["2026-10-03T03:23:30Z", "2026-10-03T03:28:30Z"],
+    "matchedByResponseRequestId": true,
+    "gatewayRows": {
+      "currentWarm": {
+        "n": 10,
+        "statuses": [200],
+        "cloudflareColo": ["SIN"],
+        "clientTcpRttCaptured": 0,
+        "responseOriginTimeRawMedian": 222.5,
+        "xEnvoyUpstreamServiceTimeRawMedian": 30,
+        "xKongProxyLatencyCaptured": 0
+      },
+      "fullProjectionWarm": {
+        "n": 10,
+        "statuses": [200],
+        "cloudflareColo": ["SIN"],
+        "clientTcpRttCaptured": 0,
+        "responseOriginTimeRawMedian": 219.5,
+        "xEnvoyUpstreamServiceTimeRawMedian": 34.5,
+        "xKongProxyLatencyCaptured": 0
+      },
+      "freshFirstReads": {
+        "n": 4,
+        "statuses": [200],
+        "cloudflareColo": ["SIN"],
+        "clientTcpRttCaptured": 0,
+        "responseOriginTimeRawMedian": 726.5,
+        "xEnvoyUpstreamServiceTimeRawMedian": 27.5,
+        "xKongProxyLatencyCaptured": 0
+      },
+      "getUser": {
+        "authLogRowsMatched": 10,
+        "path": "/user"
+      }
+    },
+    "limitations": "Supabase documents response.origin_time as numeric without a unit or definition in the field reference. x-envoy and clientTcpRtt units/values were not documented by the available project log reference; clientTcpRtt was absent. Do not subtract these raw fields as though they were comparable request timings. No request-correlated PostgREST/Postgres duration was available."
+  },
+  "databasePlan": {
+    "mode": "BEGIN READ ONLY; SET LOCAL ROLE authenticated; transaction-local JWT subject; ROLLBACK",
+    "shape": "RLS-scoped Savings root joined to funding/settlement accounts, provider, active owner membership, and saving cycles; representative relational approximation of the current projection",
+    "planningMs": 13.89,
+    "executionMs": 8.519,
+    "actualJoinedRows": 50,
+    "rootSavingsRows": 34,
+    "sharedBufferHitsDuringExecution": 432,
+    "security": "RLS active; plan shows active_membership_id and is_household_member predicates",
+    "limitations": "Not the generated PostgREST SQL: embedded JSON aggregation and the exact relationship-filter compiler shape differ. This plan is not a PostgREST/API timing."
+  },
+  "environmentCoverage": {
+    "localMac": "Measured; standalone Node process, exact authenticated query and controls; not a Next server request.",
+    "vercel": "Not measured: Vercel connector exposed no teams/project access; prior audit indicates existing production deployment contains older source.",
+    "nearSydneyRuntime": "Not available safely; no disposable preview runtime was created."
+  },
+  "privacy": "No credentials, tokens, cookies, user/household IDs, raw financial rows, or request IDs retained."
+}

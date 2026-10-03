@@ -56,6 +56,7 @@ import { listActiveMembershipIds } from "@/modules/tenancy/application/list-acti
 import { listProviderPackages } from "@/modules/savings/application/savings-provider-registry";
 import {
   getSavingDetail,
+  listSavingsFinancialActivities,
   listSavings,
 } from "@/modules/savings/application/queries/list-savings";
 import {
@@ -66,9 +67,22 @@ import {
   SAVINGS_RPC,
   SavingStatus,
   SavingType,
+  SavingsCreateMode,
+  SavingsEventKind,
   SettlementRule,
 } from "@/modules/savings/application/savings-constants";
+import {
+  DEFAULT_CURRENCY,
+  TransactionLedgerType,
+} from "@/modules/ledger/application/ledger-constants";
 import { computeAccruedInterest } from "@/modules/savings/application/savings-interest";
+import { OWNER_STATUS } from "@/modules/shared-kernel/application/financial-ownership";
+import {
+  mapSavingCycleRow,
+  selectCurrentSavingCycle,
+  mapSavingRow,
+} from "@/modules/savings/application/savings-types";
+import { buildSavingsOverviewModel } from "@/modules/savings/application/savings-presentation";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { MONEY_ACTION_DENIED_REASON } from "@/modules/tenancy/application/tenancy-constants";
 
@@ -97,6 +111,7 @@ function thenableQuery(result: Promise<QueryResult>) {
   const self = () => query;
   for (const method of [
     "select",
+    "overrideTypes",
     "eq",
     "neq",
     "in",
@@ -104,6 +119,7 @@ function thenableQuery(result: Promise<QueryResult>) {
     "gt",
     "order",
     "maybeSingle",
+    "in",
   ]) {
     query[method] = vi.fn(self);
   }
@@ -236,21 +252,28 @@ function createListClient(input: {
   return { client, savingsQuery, rpc };
 }
 
-function createDetailClient(input: { savingRow: unknown; cycles?: unknown[] }) {
+function createDetailClient(input: {
+  savingRow: unknown;
+  savingError?: unknown;
+  transactions?: unknown[];
+}) {
   const savingsQuery = thenableQuery(
-    Promise.resolve({ data: input.savingRow, error: null }),
+    Promise.resolve({
+      data: input.savingError ? null : input.savingRow,
+      error: input.savingError ?? null,
+    }),
   );
-  const cyclesQuery = thenableQuery(
-    Promise.resolve({ data: input.cycles ?? [], error: null }),
+  const transactionsQuery = thenableQuery(
+    Promise.resolve({ data: input.transactions ?? [], error: null }),
   );
   const client = {
     from: vi.fn((table: string) => {
+      if (table === "transactions") return transactionsQuery;
       if (table === SAVINGS_TABLE) return savingsQuery;
-      if (table === SAVING_CYCLES_TABLE) return cyclesQuery;
       throw new Error(`unexpected table ${table}`);
     }),
   };
-  return { client, savingsQuery, cyclesQuery };
+  return { client, savingsQuery, transactionsQuery };
 }
 
 async function listWithRows(
@@ -266,6 +289,23 @@ async function listWithRows(
   vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
   const result = await listSavings();
   return { result, tables, savingsQuery, rpc };
+}
+
+const DETAIL_CYCLE_FIELDS = [
+  "settlement_result",
+  "renewal_decision",
+  "funding_transaction_id",
+  "settlement_transaction_id",
+  "previous_cycle_id",
+  "next_cycle_id",
+];
+
+function narrowCycleRow(row: Parameters<typeof mapSavingCycleRow>[0]) {
+  return Object.fromEntries(
+    Object.entries(row).filter(
+      ([field]) => !DETAIL_CYCLE_FIELDS.includes(field),
+    ),
+  );
 }
 
 describe("Savings list read orchestration", () => {
@@ -310,6 +350,210 @@ describe("Savings list read orchestration", () => {
     expect(result?.[0]?.id).toBe("saving-active");
     expect(result?.[0]?.latestCycle?.id).toBe("cycle-active");
   });
+
+  it("filters a left owner embed without changing the Detail projection", async () => {
+    const { savingsQuery } = await listWithRows([]);
+    expect(savingsQuery.select).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "owner_membership:household_members!savings_owner_membership_fk(id, household_id, is_active)",
+      ),
+    );
+    expect(savingsQuery.select).not.toHaveBeenCalledWith(
+      expect.stringContaining("!inner"),
+    );
+    expect(savingsQuery.eq).toHaveBeenCalledWith(
+      "owner_membership.is_active",
+      true,
+    );
+    expect(savingsQuery.eq).toHaveBeenCalledWith(
+      "owner_membership.household_id",
+      HOUSEHOLD_ID,
+    );
+    expect(listActiveMembershipIds).not.toHaveBeenCalled();
+
+    const detail = createDetailClient({
+      savingRow: savingRow({
+        id: "detail-control",
+        status: SavingStatus.ACTIVE,
+      }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      detail.client as never,
+    );
+    await getSavingDetail("detail-control");
+    expect(detail.savingsQuery.select).not.toHaveBeenCalledWith(
+      expect.stringContaining("owner_membership:"),
+    );
+    expect(detail.savingsQuery.eq).not.toHaveBeenCalledWith(
+      "owner_membership.is_active",
+      true,
+    );
+    expect(listActiveMembershipIds).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    {
+      name: "household without owner",
+      scope: FINANCIAL_SCOPE.HOUSEHOLD,
+      ownerId: null,
+      evidence: null,
+      active: false,
+      canMutate: true,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    },
+    {
+      name: "household with inactive owner",
+      scope: FINANCIAL_SCOPE.HOUSEHOLD,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: MEMBERSHIP_ID,
+        household_id: HOUSEHOLD_ID,
+        is_active: false,
+      },
+      active: false,
+      canMutate: true,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    },
+    {
+      name: "viewer personal",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: MEMBERSHIP_ID,
+        household_id: HOUSEHOLD_ID,
+        is_active: true,
+      },
+      active: true,
+      canMutate: true,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    },
+    {
+      name: "partner personal",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: "partner-member",
+      evidence: {
+        id: "partner-member",
+        household_id: HOUSEHOLD_ID,
+        is_active: true,
+      },
+      active: true,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    },
+    {
+      name: "inactive viewer owner",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: MEMBERSHIP_ID,
+        household_id: HOUSEHOLD_ID,
+        is_active: false,
+      },
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+    {
+      name: "missing or RLS-hidden owner",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: null,
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+    {
+      name: "personal without owner ID",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: null,
+      evidence: null,
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.ACTIVE,
+    },
+    {
+      name: "foreign household evidence",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: MEMBERSHIP_ID,
+        household_id: OTHER_HOUSEHOLD_ID,
+        is_active: true,
+      },
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+    {
+      name: "different owner evidence",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: "partner-member",
+        household_id: HOUSEHOLD_ID,
+        is_active: true,
+      },
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+    {
+      name: "malformed active evidence",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: {
+        id: MEMBERSHIP_ID,
+        household_id: HOUSEHOLD_ID,
+        is_active: "true",
+      },
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+    {
+      name: "missing evidence field",
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      ownerId: MEMBERSHIP_ID,
+      evidence: undefined,
+      active: false,
+      canMutate: false,
+      ownerStatus: OWNER_STATUS.FORMER,
+    },
+  ])(
+    "preserves list visibility and capabilities: $name",
+    async ({ scope, ownerId, evidence, active, canMutate, ownerStatus }) => {
+      const row = {
+        ...savingRow({
+          id: "ownership-saving",
+          status: SavingStatus.ACTIVE,
+          ownerMembershipId: ownerId,
+        }),
+        financial_scope: scope,
+        owner_membership: evidence,
+      };
+      const { result, tables } = await listWithRows([row]);
+      expect(result).toHaveLength(1);
+      expect(result?.[0]?.ownership).toEqual({
+        financialScope: scope,
+        ownerMembershipId: ownerId,
+        isPersonal: scope === FINANCIAL_SCOPE.PERSONAL,
+        isOwnedByMe:
+          scope === FINANCIAL_SCOPE.PERSONAL && ownerId === MEMBERSHIP_ID,
+        canMutate,
+        ownerStatus,
+      });
+      // Compare the full model to the former batch-based mapping with scoped IDs.
+      expect(result?.[0]).toEqual(
+        mapSavingRow(
+          row,
+          MEMBERSHIP_ID,
+          new Set(active && ownerId ? [ownerId] : []),
+        ),
+      );
+      expect(tables).toEqual([SAVINGS_TABLE]);
+      expect(listActiveMembershipIds).not.toHaveBeenCalled();
+    },
+  );
 
   it("returns an empty list without a follow-up cycles request", async () => {
     const { result, tables, rpc } = await listWithRows([]);
@@ -483,6 +727,128 @@ describe("Savings list read orchestration", () => {
     expect(result?.[0]?.latestCycle?.accruedInterest).not.toBe(1);
   });
 
+  it("keeps settlement and activity disclosure exclusively in the Detail projection", async () => {
+    const { savingsQuery } = await listWithRows([]);
+    const detail = createDetailClient({
+      savingRow: savingRow({ id: "projection", status: SavingStatus.ACTIVE }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      detail.client as never,
+    );
+    await getSavingDetail("projection");
+    for (const field of DETAIL_CYCLE_FIELDS) {
+      expect(savingsQuery.select).not.toHaveBeenCalledWith(
+        expect.stringContaining(field),
+      );
+      expect(detail.savingsQuery.select).toHaveBeenCalledWith(
+        expect.stringContaining(field),
+      );
+    }
+  });
+
+  it.each([
+    {
+      name: "one active cycle",
+      statuses: [CycleStatus.ACTIVE],
+      status: SavingStatus.ACTIVE,
+    },
+    {
+      name: "multiple historical cycles",
+      statuses: [CycleStatus.ROLLED, CycleStatus.ROLLED, CycleStatus.ACTIVE],
+      status: SavingStatus.ACTIVE,
+    },
+    {
+      name: "active before newer matured and rolled",
+      statuses: [CycleStatus.ACTIVE, CycleStatus.MATURED, CycleStatus.ROLLED],
+      status: SavingStatus.ACTIVE,
+    },
+    {
+      name: "matured before newer rolled",
+      statuses: [CycleStatus.MATURED, CycleStatus.ROLLED],
+      status: SavingStatus.MATURED,
+    },
+    {
+      name: "terminal fallback",
+      statuses: [CycleStatus.ROLLED, CycleStatus.EARLY_CLOSED],
+      status: SavingStatus.EARLY_CLOSED,
+    },
+    {
+      name: "historical Saving",
+      statuses: [CycleStatus.ACTIVE],
+      status: SavingStatus.ACTIVE,
+      historical: true,
+    },
+    { name: "no cycles", statuses: [], status: SavingStatus.ACTIVE },
+  ])(
+    "preserves the final overview with narrow cycles: $name",
+    async ({ statuses, status, historical }) => {
+      const cycles = statuses.map((cycleStatus, index) =>
+        cycleRow({
+          id: `projection-cycle-${index}`,
+          savingId: "projection-saving",
+          cycleNumber: index + 1,
+          status: cycleStatus,
+          accruedInterest: 73_000,
+        }),
+      );
+      const row = savingRow({
+        id: "projection-saving",
+        status,
+        cycles,
+        settlementRule: SettlementRule.WITHDRAW_EVERYTHING,
+      });
+      if (historical)
+        Object.assign(row.product_snapshot, {
+          creationMode: SavingsCreateMode.HISTORICAL,
+        });
+      const narrowCycles = cycles.map(narrowCycleRow);
+      const { result } = await listWithRows([
+        { ...row, saving_cycles: narrowCycles },
+      ]);
+      const expected = mapSavingRow(row, MEMBERSHIP_ID, new Set());
+      const current = selectCurrentSavingCycle(cycles.map(mapSavingCycleRow));
+      if (current?.status === CycleStatus.ACTIVE)
+        current.accruedInterest = computeAccruedInterest({
+          principal: current.principal,
+          annualRate: current.lockedRate,
+          startDate: current.startDate,
+          endDate: current.endDate,
+          method: InterestCalcMethod.SIMPLE,
+        }).totalInterest;
+      expected.latestCycle = current;
+      // The default rollover target has no available package in this fixture.
+      expected.maturityActionRequired = status === SavingStatus.MATURED;
+      expect(buildSavingsOverviewModel(result ?? [])).toEqual(
+        buildSavingsOverviewModel([expected]),
+      );
+    },
+  );
+
+  it("preserves malformed snapshot, status and numeric fallbacks with narrow cycles", async () => {
+    const raw = {
+      ...cycleRow({
+        id: "malformed-cycle",
+        savingId: "malformed-saving",
+        cycleNumber: 1,
+        status: CycleStatus.ACTIVE,
+      }),
+      status: "invalid-fixture-status",
+      principal: "invalid-number",
+      locked_rate: "invalid-number",
+      accrued_interest: "invalid-number",
+      package_snapshot: "{invalid-json",
+    };
+    const row = savingRow({
+      id: "malformed-saving",
+      status: SavingStatus.ACTIVE,
+    });
+    const narrow = narrowCycleRow(raw);
+    const { result } = await listWithRows([{ ...row, saving_cycles: narrow }]);
+    expect(result?.[0]?.latestCycle).toEqual(mapSavingCycleRow(raw));
+    expect(result?.[0]?.latestCycle?.principal).toBe(0);
+    expect(result?.[0]?.latestCycle?.status).toBe(CycleStatus.ACTIVE);
+  });
+
   it("returns null when the combined savings read fails", async () => {
     const { result, tables, rpc } = await listWithRows(null, {
       savingError: { code: "PGRST301", message: "read failed" },
@@ -493,10 +859,13 @@ describe("Savings list read orchestration", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("does not query when money action is denied", async () => {
+  it.each([
+    MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED,
+    MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
+  ])("does not query when money action is denied: %s", async (reason) => {
     vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
       ok: false,
-      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
+      reason,
     });
     const from = vi.fn();
     vi.mocked(createSupabaseServerClient).mockResolvedValue({
@@ -526,7 +895,6 @@ describe("Savings list read orchestration", () => {
       }),
     ]);
 
-    expect(savingsQuery.eq).toHaveBeenCalledTimes(1);
     expect(savingsQuery.eq).toHaveBeenCalledWith("household_id", HOUSEHOLD_ID);
     expect(savingsQuery.eq).not.toHaveBeenCalledWith(
       "household_id",
@@ -580,13 +948,12 @@ describe("Savings detail read orchestration", () => {
       cycleNumber: 1,
       status: CycleStatus.ACTIVE,
     });
-    const { client, savingsQuery, cyclesQuery } = createDetailClient({
+    const { client, savingsQuery } = createDetailClient({
       savingRow: savingRow({
         id: savingId,
         status: SavingStatus.ACTIVE,
-        cycles: [],
+        cycles: [cycle],
       }),
-      cycles: [cycle],
     });
     vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
 
@@ -596,8 +963,259 @@ describe("Savings detail read orchestration", () => {
     expect(result?.saving.latestCycle?.id).toBe(cycle.id);
     expect(result?.cycles.map((item) => item.id)).toEqual([cycle.id]);
     expect(savingsQuery.eq).toHaveBeenCalledWith("id", savingId);
-    expect(cyclesQuery.eq).toHaveBeenCalledWith("saving_id", savingId);
-    expect(client.from).toHaveBeenCalledTimes(2);
+    expect(savingsQuery.eq).toHaveBeenCalledWith("household_id", HOUSEHOLD_ID);
+    expect(savingsQuery.select).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `${SAVING_CYCLES_TABLE}!${SAVING_CYCLES_SAVING_FK}`,
+      ),
+    );
+    expect(client.from.mock.calls.map(([table]) => table)).toEqual([
+      SAVINGS_TABLE,
+    ]);
+  });
+
+  it("reuses authorized detail for empty activity without another Saving or cycle read", async () => {
+    const { client } = createDetailClient({
+      savingRow: savingRow({
+        id: "saving-detail",
+        status: SavingStatus.ACTIVE,
+      }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    await getSavingDetail("saving-detail");
+    expect(await listSavingsFinancialActivities("saving-detail")).toEqual([]);
+    expect(client.from.mock.calls.map(([table]) => table)).toEqual([
+      SAVINGS_TABLE,
+    ]);
+  });
+
+  it("derives transaction IDs from trusted cycles and scopes every activity read to the household", async () => {
+    const cycle = {
+      ...cycleRow({
+        id: "cycle-detail",
+        savingId: "saving-detail",
+        cycleNumber: 1,
+        status: CycleStatus.ACTIVE,
+      }),
+      funding_transaction_id: "transaction-1",
+    };
+    const { client, transactionsQuery } = createDetailClient({
+      savingRow: savingRow({
+        id: "saving-detail",
+        status: SavingStatus.ACTIVE,
+        cycles: [cycle],
+      }),
+      transactions: [
+        {
+          id: "transaction-1",
+          type: TransactionLedgerType.TRANSFER_OUT,
+          amount: 100,
+          currency: DEFAULT_CURRENCY,
+          transaction_date: "2026-01-01",
+          note: null,
+          transfer_group_id: "transfer-1",
+          savings_event_kind: SavingsEventKind.PRINCIPAL_PLACEMENT,
+        },
+      ],
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    await getSavingDetail("saving-detail");
+    const activities = await listSavingsFinancialActivities("saving-detail");
+    expect(activities).toHaveLength(1);
+    expect(activities?.[0]).toMatchObject({
+      eventKind: SavingsEventKind.PRINCIPAL_PLACEMENT,
+      amount: 100,
+    });
+    expect(transactionsQuery.in).toHaveBeenCalledWith("id", ["transaction-1"]);
+    expect(transactionsQuery.in).toHaveBeenCalledWith("transfer_group_id", [
+      "transfer-1",
+    ]);
+    expect(transactionsQuery.eq).toHaveBeenCalledTimes(2);
+    expect(transactionsQuery.eq).toHaveBeenCalledWith(
+      "household_id",
+      HOUSEHOLD_ID,
+    );
+    expect(
+      client.from.mock.calls.filter(([table]) => table === SAVINGS_TABLE),
+    ).toHaveLength(1);
+  });
+
+  it("returns no activity for a missing or household-inaccessible Saving", async () => {
+    const { client, savingsQuery } = createDetailClient({ savingRow: null });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    expect(
+      await listSavingsFinancialActivities("unavailable-saving"),
+    ).toBeNull();
+    expect(savingsQuery.eq).toHaveBeenCalledWith("household_id", HOUSEHOLD_ID);
+    expect(client.from).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a denied Money gate before reading any detail or activity", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: false,
+      reason: MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
+    });
+    expect(await listSavingsFinancialActivities("saving-detail")).toBeNull();
+    expect(createSupabaseServerClient).not.toHaveBeenCalled();
+  });
+
+  it("does not share authorized Detail across household requests", async () => {
+    const first = createDetailClient({
+      savingRow: savingRow({
+        id: "saving-detail",
+        status: SavingStatus.ACTIVE,
+      }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      first.client as never,
+    );
+    expect(await getSavingDetail("saving-detail")).not.toBeNull();
+    requestCache.beginRequest();
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "other-user",
+      householdId: OTHER_HOUSEHOLD_ID,
+      membershipId: "other-member",
+    });
+    const second = createDetailClient({ savingRow: null });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(
+      second.client as never,
+    );
+    expect(await getSavingDetail("saving-detail")).toBeNull();
+    expect(second.savingsQuery.eq).toHaveBeenCalledWith(
+      "household_id",
+      OTHER_HOUSEHOLD_ID,
+    );
+  });
+
+  it.each([
+    MONEY_ACTION_DENIED_REASON.UNAUTHENTICATED,
+    MONEY_ACTION_DENIED_REASON.NO_MEMBERSHIP,
+  ])(
+    "rejects detail before a read when the gate returns %s",
+    async (reason) => {
+      vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+        ok: false,
+        reason,
+      });
+      expect(await getSavingDetail("saving-detail")).toBeNull();
+      expect(createSupabaseServerClient).not.toHaveBeenCalled();
+    },
+  );
+
+  it("fails closed when the embedded read rejects a malformed ID or relation", async () => {
+    const { client } = createDetailClient({
+      savingRow: null,
+      savingError: { code: "22P02", message: "invalid input" },
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    expect(await getSavingDetail("malformed-id")).toBeNull();
+    expect(listActiveMembershipIds).not.toHaveBeenCalled();
+  });
+
+  it("retains lifecycle selection and descending history with unordered embedded cycles", async () => {
+    const savingId = "saving-detail";
+    const active = cycleRow({
+      id: "current",
+      savingId,
+      cycleNumber: 2,
+      status: CycleStatus.ACTIVE,
+    });
+    const rolled = cycleRow({
+      id: "rolled",
+      savingId,
+      cycleNumber: 1,
+      status: CycleStatus.ROLLED,
+    });
+    const { client } = createDetailClient({
+      savingRow: savingRow({
+        id: savingId,
+        status: SavingStatus.ACTIVE,
+        cycles: [rolled, active],
+      }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    const result = await getSavingDetail(savingId);
+    expect(result?.saving.latestCycle?.id).toBe(active.id);
+    expect(result?.cycles.map((cycle) => cycle.id)).toEqual([
+      active.id,
+      rolled.id,
+    ]);
+    expect(result?.saving.latestCycle?.accruedInterest).toBe(
+      computeAccruedInterest({
+        principal: active.principal,
+        annualRate: active.locked_rate,
+        startDate: active.start_date,
+        endDate: active.end_date,
+        method: InterestCalcMethod.SIMPLE,
+      }).totalInterest,
+    );
+  });
+
+  it.each([
+    {
+      scope: FINANCIAL_SCOPE.HOUSEHOLD,
+      owner: null,
+      active: true,
+      canMutate: true,
+    },
+    {
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      owner: MEMBERSHIP_ID,
+      active: true,
+      canMutate: true,
+    },
+    {
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      owner: "partner-member",
+      active: true,
+      canMutate: false,
+    },
+    {
+      scope: FINANCIAL_SCOPE.PERSONAL,
+      owner: MEMBERSHIP_ID,
+      active: false,
+      canMutate: false,
+    },
+  ])(
+    "preserves ownership capabilities for $scope / $owner / active=$active",
+    async ({ scope, owner, active, canMutate }) => {
+      const { client } = createDetailClient({
+        savingRow: {
+          ...savingRow({
+            id: "saving-detail",
+            status: SavingStatus.ACTIVE,
+            ownerMembershipId: owner,
+          }),
+          financial_scope: scope,
+        },
+      });
+      vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+      vi.mocked(listActiveMembershipIds).mockResolvedValue(
+        new Set(active && owner ? [owner] : []),
+      );
+      const result = await getSavingDetail("saving-detail");
+      expect(result?.saving.ownership.canMutate).toBe(canMutate);
+      expect(listActiveMembershipIds).toHaveBeenCalledWith(
+        client,
+        HOUSEHOLD_ID,
+        owner ? [owner] : [],
+      );
+    },
+  );
+
+  it("keeps invalid rollover-package warnings in the critical authorized detail", async () => {
+    const { client } = createDetailClient({
+      savingRow: savingRow({
+        id: "saving-detail",
+        status: SavingStatus.MATURED,
+      }),
+    });
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+    expect(
+      (await getSavingDetail("saving-detail"))?.saving.maturityActionRequired,
+    ).toBe(true);
+    expect(listProviderPackages).toHaveBeenCalledWith("provider-1");
   });
 });
 

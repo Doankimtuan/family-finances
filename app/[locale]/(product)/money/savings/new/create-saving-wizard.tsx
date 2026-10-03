@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import {
+  Suspense,
+  use,
+  useCallback,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import type { ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import {
-  moneySavingsPath,
-  APP_PATH,
-} from "@/modules/tenancy/application/app-path";
+import { moneySavingsPath } from "@/modules/tenancy/application/app-path";
+import { useSavingsReturn } from "./create-saving-navigation";
 import {
   MaturityFallbackPolicy,
   RenewalPolicy,
@@ -37,6 +42,8 @@ import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { FinancialScopeField } from "@/shared/patterns/financial-scope-field";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { SavingsUnavailable } from "../savings-unavailable";
 import { Progress } from "@/shared/ui/progress";
 import { Card } from "@/shared/patterns/card";
 import { Amount, AmountSize } from "@/shared/patterns/amount";
@@ -103,11 +110,29 @@ type PackageOption = {
   taxRatePercent?: number;
   renewableAvailable?: boolean;
 };
-type Props = {
+type CreateSavingData = {
   accounts: AccountOption[];
   providers: ProviderOption[];
   packagesByProvider: Record<string, PackageOption[]>;
 };
+type Props = {
+  data: Promise<CreateSavingData>;
+  unavailable: Parameters<typeof SavingsUnavailable>[0];
+};
+
+function DeferredSavingData({
+  data,
+  onReady,
+}: {
+  data: Promise<CreateSavingData>;
+  onReady: (data: CreateSavingData) => void;
+}) {
+  const resolved = use(data);
+  // Hand the streamed server result to the already-mounted form; no browser fetch.
+  useEffect(() => onReady(resolved), [resolved, onReady]);
+  return null;
+}
+
 const FlowStep = {
   SETUP: "setup",
   REVIEW: "review",
@@ -295,11 +320,26 @@ function SelectionRow({
   );
 }
 
-export function CreateSavingWizard({
-  accounts,
-  providers,
-  packagesByProvider,
-}: Props) {
+export function CreateSavingWizard({ data, unavailable }: Props) {
+  const [readyData, setReadyData] = useState<
+    (CreateSavingData & { defaults: SavingFormValues }) | null
+  >(null);
+  const receiveData = useCallback((resolved: CreateSavingData) => {
+    setReadyData((previous) => ({
+      ...resolved,
+      // Seed once; refreshed options must not silently replace selected accounts.
+      defaults:
+        previous?.defaults ??
+        createDefaultValues(
+          resolved.accounts,
+          resolved.providers,
+          resolved.packagesByProvider,
+        ),
+    }));
+  }, []);
+  const accounts = readyData?.accounts ?? [];
+  const providers = readyData?.providers ?? [];
+  const packagesByProvider = readyData?.packagesByProvider ?? {};
   const t = useTranslations("money.savingsWizard");
   const tErr = useTranslations("money.products.errors");
   const locale = useLocale();
@@ -310,16 +350,17 @@ export function CreateSavingWizard({
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const defaultValues = createDefaultValues(
-    accounts,
-    providers,
-    packagesByProvider,
-  );
-  const { control, handleSubmit, reset, setValue, register } =
+  const defaultValues = readyData?.defaults ?? createDefaultValues([], [], {});
+  const { control, handleSubmit, reset, setValue, register, formState } =
     useForm<SavingFormValues>({
       resolver: zodResolver(savingFormSchema),
       defaultValues,
+      values: defaultValues,
+      // Server defaults arrive once. Preserve edits made during streaming.
+      resetOptions: { keepDirtyValues: true },
     });
+  // RHF needs the dirty-fields subscription to preserve controlled early edits.
+  void formState.dirtyFields;
   const values = useWatch({ control });
   const fundingAccountId = values.fundingAccountId ?? "";
   const creationMode = values.creationMode ?? SavingsCreateMode.LIVE_DEPOSIT;
@@ -394,9 +435,9 @@ export function CreateSavingWizard({
     }
   };
   const selectCreationMode = (nextMode: SavingsCreateMode) => {
-    setValue("creationMode", nextMode);
+    setValue("creationMode", nextMode, { shouldDirty: true });
     if (nextMode === SavingsCreateMode.HISTORICAL_OPENING) {
-      setValue("fundingAccountId", null);
+      setValue("fundingAccountId", null, { shouldDirty: true });
       return;
     }
     if (!fundingAccount || fundingAccount.id === settlementAccountId) {
@@ -526,7 +567,7 @@ export function CreateSavingWizard({
     setDirection("backward");
     setStepIndex((index) => Math.max(index - 1, 0));
   };
-  const exitFlow = () => router.push(APP_PATH.MONEY_SAVINGS);
+  const exitFlow = useSavingsReturn();
 
   const confirm = handleSubmit((submitted) => {
     if (!online) {
@@ -603,7 +644,7 @@ export function CreateSavingWizard({
     startTransition(async () => {
       const result = await createSavingAction(input);
       if (result.status === "success" && result.id) {
-        reset(defaultValues);
+        reset(defaultValues, { keepDirtyValues: false });
         router.replace(moneySavingsPath(result.id));
         return;
       }
@@ -615,10 +656,15 @@ export function CreateSavingWizard({
     });
   });
 
+  if (readyData && accounts.length === 0) {
+    return <SavingsUnavailable {...unavailable} />;
+  }
+
   return (
     <div
       className="flex min-h-full flex-col gap-(--space-4)"
       data-testid="savings-create-wizard"
+      data-ready={readyData !== null}
     >
       {errorCode ? (
         <StatusAlert variant="danger" title={tErr(errorCode)} />
@@ -838,14 +884,32 @@ export function CreateSavingWizard({
             <div className="flex flex-col gap-(--space-2)">
               <FinancialScopeField
                 value={financialScope}
-                onChange={(next) => setValue("financialScope", next)}
+                onChange={(next) =>
+                  setValue("financialScope", next, { shouldDirty: true })
+                }
                 testId="savings-financial-scope"
               />
             </div>
           </section>
         ) : null}
 
-        {step === FlowStep.SETUP ? (
+        <Suspense
+          fallback={
+            <section
+              aria-busy="true"
+              aria-label={t("depositTitle")}
+              data-testid="savings-create-data-loading"
+              className="flex flex-col gap-(--space-3)"
+            >
+              <Skeleton.Text width="60%" />
+              <Skeleton.Card />
+            </section>
+          }
+        >
+          <DeferredSavingData data={data} onReady={receiveData} />
+        </Suspense>
+
+        {readyData && step === FlowStep.SETUP ? (
           <section
             className="flex flex-col gap-(--space-5)"
             aria-labelledby="savings-deposit-title"

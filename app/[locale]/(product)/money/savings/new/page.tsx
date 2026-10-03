@@ -9,11 +9,10 @@ import {
   listSavingsEligibleAccounts,
   listProviderCatalog,
 } from "@/modules/savings/application";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { CreateSavingTopAppBar } from "./create-saving-navigation";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { CreateSavingWizard } from "./create-saving-wizard";
-import { SavingsUnavailable } from "../savings-unavailable";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -28,13 +27,39 @@ export default async function NewSavingPage({ params }: Props) {
     return redirect({ href: APP_PATH.ONBOARD, locale });
   }
 
-  const [t, tMoney, accountsResult, catalog] = await Promise.all([
+  // Start both server reads once; the independent Setup controls can stream first.
+  const data = loadCreateSavingData();
+  const [t, tMoney] = await Promise.all([
     getTranslations("money.savingsWizard"),
     getTranslations("money"),
+  ]);
+
+  return (
+    <Page
+      testId="money-savings-new"
+      topBar={
+        <CreateSavingTopAppBar title={t("title")} subtitle={t("subtitle")} />
+      }
+    >
+      <MoneyOfflineBanner />
+      <CreateSavingWizard
+        data={data}
+        unavailable={{
+          title: t("noEligibleAccounts"),
+          description: t("reviewHint"),
+          actionHref: APP_PATH.MONEY_ACCOUNTS,
+          actionLabel: tMoney("createAccount"),
+        }}
+      />
+    </Page>
+  );
+}
+
+async function loadCreateSavingData() {
+  const [accountsResult, catalog] = await Promise.all([
     listSavingsEligibleAccounts(),
     listProviderCatalog(),
   ]);
-
   const accounts = accountsResult?.accounts ?? [];
   const providers = catalog ?? [];
   const packagesByProvider = Object.fromEntries(
@@ -60,42 +85,18 @@ export default async function NewSavingPage({ params }: Props) {
     ]),
   );
 
-  return (
-    <Page
-      testId="money-savings-new"
-      topBar={
-        <TopAppBar
-          variant="detail"
-          backHref={APP_PATH.MONEY_SAVINGS}
-          title={t("title")}
-          subtitle={t("subtitle")}
-        />
-      }
-    >
-      <MoneyOfflineBanner />
-      {accounts.length === 0 ? (
-        <SavingsUnavailable
-          title={t("noEligibleAccounts")}
-          description={t("reviewHint")}
-          actionHref={APP_PATH.MONEY_ACCOUNTS}
-          actionLabel={tMoney("createAccount")}
-        />
-      ) : (
-        <CreateSavingWizard
-          accounts={accounts.map((account) => ({
-            id: account.id,
-            name: account.name,
-            type: account.type,
-            balance: account.balance,
-          }))}
-          providers={providers.map((provider) => ({
-            id: provider.id,
-            displayName: provider.displayName,
-            savingType: provider.savingType,
-          }))}
-          packagesByProvider={packagesByProvider}
-        />
-      )}
-    </Page>
-  );
+  return {
+    accounts: accounts.map((account) => ({
+      id: account.id,
+      name: account.name,
+      type: account.type,
+      balance: account.balance,
+    })),
+    providers: providers.map((provider) => ({
+      id: provider.id,
+      displayName: provider.displayName,
+      savingType: provider.savingType,
+    })),
+    packagesByProvider,
+  };
 }

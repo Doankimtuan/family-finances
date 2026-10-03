@@ -36,6 +36,8 @@ if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
 
 Read the existing investigation and its evidence; repeated its benchmark without changing selectors, waits, destination markers, or app Back behavior. One cold-ish pass followed by three warm repetitions of Money → Savings → Create → app Back → Savings → first existing Saving Detail. Same local production build on port 3102, 440 × 900 headed Chromium viewport, same hosted Supabase project `bbzffxvgocjwsdbujvgn` (ap-southeast-2), same authenticated test user and existing Saving. Repetitions return through existing app Back links in the same document; no page reload between repetitions. No financial fixture or data mutation was performed.
 
+An initial diagnostic collection overlapped repository checks on the host. It was excluded before locking results; the reported collection repeats the complete same methodology with a restarted profiling server and fresh browser after all checks finished. Selectors, waits, app Back links, instrumentation, sample count, and data requirements were unchanged. This rerun controls an identified workload confound rather than selecting individual fast samples.
+
 The stored auth state had expired and its refresh token was rejected. Signed in using the already configured E2E account before the benchmark. Login/initial refresh attempts are excluded from all transition measurements; there are zero refresh-token requests in the 16 measured transitions. This refresh makes the session age different from the baseline. “Cold-ish” still means the first measured route pass, not a cleared CDN/DB/JWKS cache.
 
 Used the same disposable production-copy instrumentation: browser capture-phase click timestamps, mutation commit followed by two animation frames for visible content, CDP network/performance and third-warm browser trace, server HTTP envelopes and loader spans, and Supabase fetch spans. Timings are observations on a local Mac against a remote DB, not deployment latency guarantees. Background prefetch is distinguished from demand RSC requests. No benchmark instrumentation was written into application source.
@@ -46,23 +48,23 @@ Baseline gate values are the earlier serial `getUser` + membership span sums. Af
 
 | Transition       | Before gate | After gate |  Saved | Reduction |
 | ---------------- | ----------: | ---------: | -----: | --------: |
-| Money → Savings  |      732 ms |     659 ms |  73 ms |     10.0% |
-| Savings → Create |      546 ms |     288 ms | 258 ms |     47.2% |
-| Create → Savings |      535 ms |     293 ms | 242 ms |     45.2% |
-| Savings → Detail |      539 ms |     293 ms | 246 ms |     45.6% |
+| Money → Savings  |      732 ms |     575 ms | 157 ms |     21.5% |
+| Savings → Create |      546 ms |     306 ms | 240 ms |     44.0% |
+| Create → Savings |      535 ms |     357 ms | 178 ms |     33.2% |
+| Savings → Detail |      539 ms |     287 ms | 252 ms |     46.7% |
 
-Every measured request overlaps auth and membership. Observed overlap ranges from 259 to 620 ms. The gate now tracks the slower operation plus verified-claims/setup overhead, instead of adding both operation durations. Membership still must wait for verified claims; domain reads still must wait for the complete authenticated context.
+Every measured request overlaps auth and membership. Observed overlap ranges from 250 to 545 ms. The gate now tracks the slower operation plus verified-claims/setup overhead, instead of adding both operation durations. Membership still must wait for verified claims; domain reads still must wait for the complete authenticated context.
 
 ### Complete navigation — warm medians
 
 | Transition       |   Before |    After |  Saved |            Change |
 | ---------------- | -------: | -------: | -----: | ----------------: |
-| Money → Savings  | 1,904 ms | 1,896 ms |   8 ms |  0.4% improvement |
-| Savings → Create | 1,357 ms | 1,389 ms | -32 ms | -2.4% improvement |
-| Create → Savings | 1,382 ms | 1,166 ms | 216 ms | 15.7% improvement |
-| Savings → Detail | 2,435 ms | 1,712 ms | 723 ms | 29.7% improvement |
+| Money → Savings  | 1,904 ms | 1,743 ms | 161 ms |  8.5% improvement |
+| Savings → Create | 1,357 ms | 1,108 ms | 249 ms | 18.4% improvement |
+| Create → Savings | 1,382 ms | 1,195 ms | 187 ms | 13.6% improvement |
+| Savings → Detail | 2,435 ms | 1,628 ms | 807 ms | 33.1% improvement |
 
-Negative saved time means slower navigation. Savings → Create is 32 ms (2.4%) slower overall despite its substantially shorter gate. Money → Savings is essentially flat (8 ms, 0.4%). These small total deltas should not be treated as reliable performance wins. Detail and app Back to Savings improve in these observations; the direct overlap spans provide stronger evidence of the isolated gate change than the complete-navigation deltas.
+All four complete-navigation warm medians are lower in the final quiet collection. These are observations from three warm samples, not controlled statistical guarantees. Direct overlap spans provide stronger evidence of the isolated gate change than the complete-navigation deltas; faster or slower domain HTTP calls also influence total time.
 
 ### Every measured transition
 
@@ -70,22 +72,22 @@ All timestamps below are milliseconds relative to click = 0. Start/Ready/Domain 
 
 | Pass     | Transition       | Visible | Session start | Auth | Member | Context ready | Domain begins | Gate |
 | -------- | ---------------- | ------: | ------------: | ---: | -----: | ------------: | ------------: | ---: |
-| Cold-ish | Money → Savings  |    1495 |            29 |  286 |    281 |           315 |           315 |  286 |
-| Cold-ish | Savings → Create |    1185 |            27 |  317 |    321 |           351 |           352 |  324 |
-| Cold-ish | Create → Savings |    1131 |            27 |  276 |    260 |           304 |           304 |  277 |
-| Cold-ish | Savings → Detail |    1781 |            26 |  298 |    296 |           324 |           324 |  298 |
-| Warm 1   | Money → Savings  |    2382 |            30 |  468 |    841 |           879 |           880 |  850 |
-| Warm 1   | Savings → Create |    1077 |            33 |  284 |    283 |           321 |           321 |  288 |
-| Warm 1   | Create → Savings |    1143 |            30 |  284 |    286 |           323 |           323 |  293 |
-| Warm 1   | Savings → Detail |    1761 |            33 |  271 |    385 |           423 |           423 |  390 |
-| Warm 2   | Money → Savings  |    1896 |            74 |  651 |    620 |           732 |           733 |  659 |
-| Warm 2   | Savings → Create |    1512 |            28 |  281 |    660 |           691 |           691 |  663 |
-| Warm 2   | Create → Savings |    1274 |            30 |  293 |    276 |           326 |           326 |  295 |
-| Warm 2   | Savings → Detail |    1712 |            36 |  290 |    268 |           326 |           326 |  290 |
-| Warm 3   | Money → Savings  |    1397 |            32 |  523 |    499 |           554 |           555 |  523 |
-| Warm 3   | Savings → Create |    1389 |            40 |  263 |    262 |           307 |           307 |  266 |
-| Warm 3   | Create → Savings |    1166 |            28 |  281 |    279 |           311 |           311 |  282 |
-| Warm 3   | Savings → Detail |    1696 |            30 |  293 |    283 |           323 |           323 |  293 |
+| Cold-ish | Money → Savings  |    1259 |            12 |  355 |    352 |           368 |           368 |  356 |
+| Cold-ish | Savings → Create |    1258 |            13 |  264 |    352 |           370 |           370 |  357 |
+| Cold-ish | Create → Savings |    2075 |            11 |  260 |    267 |           290 |           290 |  279 |
+| Cold-ish | Savings → Detail |    1595 |            11 |  305 |    259 |           317 |           317 |  306 |
+| Warm 1   | Money → Savings  |    1528 |            24 |  560 |    545 |           653 |           653 |  629 |
+| Warm 1   | Savings → Create |    1108 |            14 |  269 |    255 |           284 |           284 |  269 |
+| Warm 1   | Create → Savings |    1144 |            10 |  270 |    264 |           284 |           284 |  274 |
+| Warm 1   | Savings → Detail |    1696 |             6 |  336 |    333 |           342 |           342 |  336 |
+| Warm 2   | Money → Savings  |    1840 |            40 |  554 |    561 |           615 |           615 |  575 |
+| Warm 2   | Savings → Create |    1262 |             9 |  324 |    320 |           334 |           334 |  325 |
+| Warm 2   | Create → Savings |    1491 |            14 |  639 |    378 |           653 |           653 |  639 |
+| Warm 2   | Savings → Detail |    1626 |            25 |  266 |    270 |           303 |           303 |  279 |
+| Warm 3   | Money → Savings  |    1743 |            24 |  470 |    456 |           495 |           495 |  470 |
+| Warm 3   | Savings → Create |    1044 |            11 |  305 |    299 |           316 |           316 |  306 |
+| Warm 3   | Create → Savings |    1195 |             9 |  357 |    341 |           367 |           367 |  357 |
+| Warm 3   | Savings → Detail |    1628 |             8 |  287 |    267 |           296 |           296 |  287 |
 
 ### Remote request counts
 
@@ -100,33 +102,33 @@ Counts cover actual server Supabase HTTP calls inside the demand request, not br
 
 ### Representative server timelines
 
-**Savings → Create, warm pass 1** (click = 0; visible at 1077 ms):
+**Savings → Create, warm pass 1** (click = 0; visible at 1108 ms):
 
 | Operation                            | Begins after click | Duration | Finishes after click |
 | ------------------------------------ | -----------------: | -------: | -------------------: |
-| `auth.getClaims`                     |              26 ms |     4 ms |                30 ms |
-| `loadSessionMembership`              |              33 ms |   288 ms |               321 ms |
-| `createSupabaseServerClientUncached` |              33 ms |     0 ms |                33 ms |
-| `auth.getClaims`                     |              33 ms |     4 ms |                37 ms |
-| `auth.getUser`                       |              33 ms |   284 ms |               317 ms |
-| `membership.resolve`                 |              38 ms |   283 ms |               321 ms |
-| `loadAccounts`                       |             321 ms |   734 ms |              1055 ms |
-| `listProviderCatalog`                |             321 ms |   281 ms |               602 ms |
+| `auth.getClaims`                     |               8 ms |     3 ms |                11 ms |
+| `loadSessionMembership`              |              14 ms |   269 ms |               284 ms |
+| `createSupabaseServerClientUncached` |              14 ms |     0 ms |                15 ms |
+| `auth.getClaims`                     |              15 ms |     5 ms |                20 ms |
+| `auth.getUser`                       |              15 ms |   269 ms |               284 ms |
+| `membership.resolve`                 |              20 ms |   255 ms |               275 ms |
+| `loadAccounts`                       |             284 ms |   786 ms |              1070 ms |
+| `listProviderCatalog`                |             284 ms |   282 ms |               565 ms |
 
-**Savings → Detail, warm pass 2** (click = 0; visible at 1712 ms):
+**Savings → Detail, warm pass 2** (click = 0; visible at 1626 ms):
 
 | Operation                            | Begins after click | Duration | Finishes after click |
 | ------------------------------------ | -----------------: | -------: | -------------------: |
-| `auth.getClaims`                     |              25 ms |     2 ms |                27 ms |
-| `loadSessionMembership`              |              36 ms |   290 ms |               326 ms |
-| `createSupabaseServerClientUncached` |              36 ms |     0 ms |                36 ms |
-| `auth.getClaims`                     |              36 ms |     9 ms |                45 ms |
-| `auth.getUser`                       |              36 ms |   290 ms |               326 ms |
-| `membership.resolve`                 |              45 ms |   268 ms |               313 ms |
-| `loadSavingDetail`                   |             326 ms |   589 ms |               915 ms |
-| `listSavingsFinancialActivities`     |             919 ms |   268 ms |              1187 ms |
-| `loadProviderPackages`               |             919 ms |   285 ms |              1204 ms |
-| `loadAccounts`                       |             919 ms |   782 ms |              1701 ms |
+| `auth.getClaims`                     |              11 ms |     7 ms |                18 ms |
+| `loadSessionMembership`              |              25 ms |   279 ms |               303 ms |
+| `createSupabaseServerClientUncached` |              25 ms |     0 ms |                25 ms |
+| `auth.getClaims`                     |              25 ms |     8 ms |                33 ms |
+| `auth.getUser`                       |              25 ms |   266 ms |               291 ms |
+| `membership.resolve`                 |              33 ms |   270 ms |               303 ms |
+| `loadSavingDetail`                   |             303 ms |   526 ms |               829 ms |
+| `listSavingsFinancialActivities`     |             829 ms |   308 ms |              1137 ms |
+| `loadProviderPackages`               |             829 ms |   308 ms |              1138 ms |
+| `loadAccounts`                       |             829 ms |   774 ms |              1603 ms |
 
 Create starts account and provider loading only when the context is ready. Detail starts its core Saving/cycles load after the gate, then waits for activity, package, and account loaders after core detail resolves. The parent layout is not recreated on these demand navigations.
 
@@ -143,12 +145,12 @@ Create starts account and provider loading only when the context is ready. Detai
 
 ## Remaining bottlenecks
 
-Unchanged domain work dominates after the gate: list domain envelopes have a warm median of 1110 ms, Create 810 ms, and Detail 1343 ms. Create still waits for its account pipeline; Detail still serializes core Saving/cycle data before its secondary account/activity/package stage. The representative Detail account stage takes 782 ms after a 589 ms core load. These remain future-phase targets, not Phase 1 changes.
+Unchanged domain work dominates after the gate: list domain envelopes have a warm median of 1142 ms, Create 784 ms, and Detail 1298 ms. Create still waits for its account pipeline; Detail still serializes core Saving/cycle data before its secondary account/activity/package stage. The representative Detail account stage takes 774 ms after a 526 ms core load. These remain future-phase targets, not Phase 1 changes.
 
-Membership/network variation is still visible: the Money → Savings warm membership durations are 841 / 620 / 499 ms, compared with the earlier serial baseline gate median of 732 ms. That slower remote operation limits the observed list gate gain despite removing the serialization. Create warm pass 2 similarly waits 660 ms for membership. Client finishing work remains much smaller than the multi-stage remote-data wait.
+Membership/network variation is still visible: the Money → Savings warm membership durations are 545 / 561 / 456 ms, compared with the earlier serial baseline gate median of 732 ms. Remote operation variance limits the observed list gate gain despite removing the serialization. The final list gate warm median is still 575 ms. In the excluded contended collection, membership alone reached 841 ms, illustrating why expected improvements should not be manufactured. Client finishing work remains much smaller than the multi-stage remote-data wait.
 
 ## Decision
 
-All six Phase 1 criteria are satisfied: existing authenticated gates retained; request-local canonical context reused; no duplicate remote auth/membership work; direct measurements confirm overlap and lower gate medians; exact four-transition benchmark rerun with all 16 samples; implementation limited to three page gates plus focused tests. Total Create navigation did not improve, and list was essentially flat; neither result is hidden. Phase 2 has not been implemented.
+All six Phase 1 criteria are satisfied: existing authenticated gates retained; request-local canonical context reused; no duplicate remote auth/membership work; direct measurements confirm overlap and lower gate medians; exact four-transition benchmark rerun with all 16 final samples; implementation limited to three page gates plus focused tests. All four final gate and complete-navigation medians improved; small sample size and remote-service variance remain explicit limitations. Phase 2 has not been implemented.
 
 **PHASE 1 SUCCESS — PROCEED TO PHASE 2**

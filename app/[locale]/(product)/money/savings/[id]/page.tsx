@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { hasLocale } from "next-intl";
 import { setLocale } from "@/i18n/set-locale";
@@ -19,6 +20,7 @@ import {
   SavingStatus,
   SettlementRule,
   SavingsCreateMode,
+  type Saving,
 } from "@/modules/savings/application";
 import { SavingsTermUnit } from "@/modules/savings/application/savings-domain-rules";
 import { RenewalPolicy } from "@/modules/savings/application/savings-constants";
@@ -42,6 +44,7 @@ import {
 } from "@/shared/patterns/transaction-row";
 import { MotionReveal } from "@/shared/motion";
 import { Text } from "@/shared/ui/text";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FinancialValue } from "@/shared/patterns/financial-value";
@@ -136,11 +139,9 @@ export default async function SavingsDetailPage({ params }: Props) {
     canMutate &&
     (item.status === SavingStatus.ACTIVE ||
       item.status === SavingStatus.MATURED);
-  const [activities, packagesResult, accountsResult] = await Promise.all([
-    listSavingsFinancialActivities(id, cycles ?? []),
-    canAct ? listProviderPackages(item.providerId) : Promise.resolve(null),
-    canAct ? listSavingsEligibleAccounts() : Promise.resolve(null),
-  ]);
+  // Server-started reads are shared by all deferred consumers in this render.
+  const activities = listSavingsFinancialActivities(id);
+  const actionData = canAct ? loadSavingActionData(item.providerId) : null;
   const cycleSnapshot = cycle?.packageSnapshot;
   const legacyImport = Boolean(
     (item.productSnapshot as { legacyImport?: boolean }).legacyImport,
@@ -154,22 +155,7 @@ export default async function SavingsDetailPage({ params }: Props) {
   const money = (value: number) =>
     formatCurrency(value, currency, locale, { maximumFractionDigits: 0 });
   const isTerminal = model.isTerminal;
-  const packages = canAct
-    ? (packagesResult ?? []).map((pkg) => ({
-        id: pkg.id,
-        packageName: pkg.packageName,
-        durationDays: pkg.durationDays,
-        annualInterestRate: pkg.annualInterestRate,
-        termAmount: pkg.termAmount,
-        termUnit: pkg.termUnit,
-      }))
-    : [];
   const targetUnavailable = item.maturityActionRequired === true;
-  const accounts =
-    accountsResult?.accounts.map((account) => ({
-      id: account.id,
-      name: account.name,
-    })) ?? [];
   const state = model.maturityState;
   const stateLabel = t(`maturityStates.${state}`);
   const familyLabel = t(`family.${item.savingsFamily}`);
@@ -187,14 +173,6 @@ export default async function SavingsDetailPage({ params }: Props) {
   const fundingAccountName = item.fundingAccountName || t("accountFallback");
   const settlementAccountName =
     item.settlementAccountName || t("accountFallback");
-  const selectedTargetPackageName = item.maturityInstruction.targetPackageId
-    ? (packages.find(
-        (pkg) => pkg.id === item.maturityInstruction.targetPackageId,
-      )?.packageName ?? t("keepCurrentPackage"))
-    : t("keepCurrentPackage");
-  const targetPackageDisplay = targetUnavailable
-    ? t("targetUnavailable")
-    : selectedTargetPackageName;
 
   return (
     <Page
@@ -451,7 +429,7 @@ export default async function SavingsDetailPage({ params }: Props) {
         </section>
       ) : null}
 
-      {canAct ? (
+      {actionData ? (
         <section
           className="flex flex-col gap-(--space-2)"
           data-testid="savings-maturity-instruction"
@@ -496,7 +474,21 @@ export default async function SavingsDetailPage({ params }: Props) {
                 SettlementRule.WITHDRAW_EVERYTHING ? (
                   <SavingsFactRow
                     label={t("targetPackageLabel")}
-                    value={targetPackageDisplay}
+                    value={
+                      targetUnavailable ? (
+                        t("targetUnavailable")
+                      ) : (
+                        <Suspense
+                          fallback={<Skeleton className="h-4 w-24 rounded" />}
+                        >
+                          <SavingTargetPackageName
+                            item={item}
+                            data={actionData}
+                            t={t}
+                          />
+                        </Suspense>
+                      )
+                    }
                     className="px-0"
                   />
                 ) : null}
@@ -508,13 +500,13 @@ export default async function SavingsDetailPage({ params }: Props) {
               </dl>
             </div>
             <div>
-              <RenewalPolicyEditor
-                savingId={item.id}
-                renewalPolicy={item.renewalPolicy}
-                renewalConfig={item.renewalConfig}
-                packages={packages}
-                accounts={accounts}
-              />
+              <Suspense
+                fallback={
+                  <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+                }
+              >
+                <SavingRenewalEditor item={item} data={actionData} />
+              </Suspense>
             </div>
           </Card>
         </section>
@@ -536,15 +528,12 @@ export default async function SavingsDetailPage({ params }: Props) {
             </Text>
           </Link>
         ) : null}
-        {canAct ? (
-          <RenewalPolicyEditor
-            savingId={item.id}
-            renewalPolicy={item.renewalPolicy}
-            renewalConfig={item.renewalConfig}
-            packages={packages}
-            accounts={accounts}
-            compact
-          />
+        {actionData ? (
+          <Suspense
+            fallback={<Skeleton className="h-20 rounded-(--radius-control)" />}
+          >
+            <SavingRenewalEditor item={item} data={actionData} compact />
+          </Suspense>
         ) : null}
         {cycles && cycles.length > 0 ? (
           <a
@@ -591,65 +580,26 @@ export default async function SavingsDetailPage({ params }: Props) {
         </section>
       ) : null}
 
-      <section
-        className="flex flex-col gap-(--space-2)"
-        data-testid="savings-financial-activity"
+      <Suspense
+        fallback={
+          <section
+            className="flex flex-col gap-(--space-2)"
+            aria-busy="true"
+            aria-label={t("activityTitle")}
+            data-testid="savings-activity-pending"
+          >
+            <SavingsSectionTitle>{t("activityTitle")}</SavingsSectionTitle>
+            <Skeleton className="h-36 w-full rounded-(--radius-card)" />
+          </section>
+        }
       >
-        <div>
-          <SavingsSectionTitle>{t("activityTitle")}</SavingsSectionTitle>
-          <Text
-            size="xs"
-            tone="secondary"
-            className="mt-(--space-1) text-pretty"
-          >
-            {t("activityHint")}
-          </Text>
-        </div>
-        {activities && activities.length > 0 ? (
-          <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-            <div className="flex items-center justify-between gap-(--space-3) border-b border-border-subtle px-(--space-4) py-(--space-3)">
-              <Text size="xs" weight="medium" tone="secondary">
-                {t("activityCount", { count: activities.length })}
-              </Text>
-              <Text size="xs" tone="muted">
-                {t("activityReadOnly")}
-              </Text>
-            </div>
-            <div className="px-(--space-4)">
-              {activities.map((activity) => (
-                <TransactionRow
-                  key={activity.id}
-                  title={t(`activity.${activity.eventKind}` as never)}
-                  subtitle={formatDate(new Date(activity.date), locale)}
-                  amountLabel={money(activity.amount)}
-                  tone={resolveActivityAmountTone(activity.eventKind)}
-                  showRail={false}
-                  className="last:border-b-0"
-                />
-              ))}
-            </div>
-          </Card>
-        ) : (
-          <Card
-            tone="soft"
-            className="flex flex-col items-center gap-(--space-2) p-(--space-4)"
-          >
-            <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
-              <AppIcon icon={FINANCE_ICONS.savings} size={AppIconSize.SM} />
-            </IconContainer>
-            <Text size="sm" weight="medium" className="text-center">
-              {t("activityEmpty")}
-            </Text>
-            <Text
-              size="xs"
-              tone="secondary"
-              className="text-center text-pretty"
-            >
-              {t("activityEmptyHint")}
-            </Text>
-          </Card>
-        )}
-      </section>
+        <SavingFinancialActivity
+          data={activities}
+          locale={locale}
+          currency={currency}
+          t={t}
+        />
+      </Suspense>
 
       <details className="rounded-(--radius-control) border border-border-subtle bg-surface p-(--space-4)">
         <summary className="min-h-11 cursor-pointer text-sm font-semibold focus-visible:outline-2 focus-visible:outline-focus-ring">
@@ -698,32 +648,20 @@ export default async function SavingsDetailPage({ params }: Props) {
       {(model.canSettle && cycle) ||
       (!model.canSettle && !model.canSettleEarly && !isTerminal) ? (
         <BottomActionBar>
-          {model.canSettle && cycle ? (
-            accounts.length > 0 ? (
-              <SavingsSettlementFlow
-                cycleId={cycle.id}
-                currentPackageId={
-                  cycle.packageSnapshot.packageId ??
-                  item.productSnapshot.packageId ??
-                  null
-                }
-                currentMaturityDate={cycle.endDate}
-                principal={model.principal}
-                grossInterest={model.grossInterest}
-                taxRule={model.taxRule}
-                taxRatePercent={model.taxRatePercent}
-                fee={model.fee}
-                settlementAccountId={item.settlementAccountId}
-                accounts={accounts}
-                packages={packages}
+          {model.canSettle && cycle && actionData ? (
+            <Suspense
+              fallback={
+                <Skeleton className="h-11 w-full rounded-(--radius-control)" />
+              }
+            >
+              <SavingSettlementActions
+                item={item}
+                model={model}
+                data={actionData}
                 currency={currency}
-                targetUnavailable={targetUnavailable}
+                t={t}
               />
-            ) : (
-              <Text size="sm" tone="secondary">
-                {t("noSettlementYet")}
-              </Text>
-            )
+            </Suspense>
           ) : null}
           {!model.canSettle && !model.canSettleEarly && !isTerminal ? (
             <Text size="sm" tone="secondary">
@@ -733,5 +671,189 @@ export default async function SavingsDetailPage({ params }: Props) {
         </BottomActionBar>
       ) : null}
     </Page>
+  );
+}
+
+type DetailTranslations = Awaited<
+  ReturnType<typeof getTranslations<"money.savingsDetail">>
+>;
+type SavingActionData = ReturnType<typeof loadSavingActionData>;
+
+async function loadSavingActionData(providerId: string) {
+  const [packagesResult, accountsResult] = await Promise.all([
+    listProviderPackages(providerId),
+    listSavingsEligibleAccounts(),
+  ]);
+  // Do not mount action forms with a partial or unavailable reference model.
+  if (!packagesResult || !accountsResult) return null;
+  return {
+    packages: packagesResult.map((pkg) => ({
+      id: pkg.id,
+      packageName: pkg.packageName,
+      durationDays: pkg.durationDays,
+      annualInterestRate: pkg.annualInterestRate,
+      termAmount: pkg.termAmount,
+      termUnit: pkg.termUnit,
+    })),
+    accounts: accountsResult.accounts.map((account) => ({
+      id: account.id,
+      name: account.name,
+    })),
+  };
+}
+
+async function SavingTargetPackageName({
+  item,
+  data,
+  t,
+}: {
+  item: Saving;
+  data: SavingActionData;
+  t: DetailTranslations;
+}) {
+  const options = await data;
+  if (!options) return t("unknown");
+  return item.maturityInstruction.targetPackageId
+    ? (options.packages.find(
+        (pkg) => pkg.id === item.maturityInstruction.targetPackageId,
+      )?.packageName ?? t("keepCurrentPackage"))
+    : t("keepCurrentPackage");
+}
+
+async function SavingRenewalEditor({
+  item,
+  data,
+  compact,
+}: {
+  item: Saving;
+  data: SavingActionData;
+  compact?: boolean;
+}) {
+  const options = await data;
+  if (!options) return null;
+  return (
+    <RenewalPolicyEditor
+      savingId={item.id}
+      renewalPolicy={item.renewalPolicy}
+      renewalConfig={item.renewalConfig}
+      packages={options.packages}
+      accounts={options.accounts}
+      compact={compact}
+    />
+  );
+}
+
+async function SavingSettlementActions({
+  item,
+  model,
+  data,
+  currency,
+  t,
+}: {
+  item: Saving;
+  model: ReturnType<typeof buildSavingsDetailModel>;
+  data: SavingActionData;
+  currency: string;
+  t: DetailTranslations;
+}) {
+  const options = await data;
+  const cycle = item.latestCycle;
+  if (!options || options.accounts.length === 0 || !cycle)
+    return (
+      <Text size="sm" tone="secondary">
+        {t("noSettlementYet")}
+      </Text>
+    );
+  const { accounts, packages } = options;
+  const targetUnavailable = item.maturityActionRequired === true;
+  return (
+    <SavingsSettlementFlow
+      cycleId={cycle.id}
+      currentPackageId={
+        cycle.packageSnapshot.packageId ??
+        item.productSnapshot.packageId ??
+        null
+      }
+      currentMaturityDate={cycle.endDate}
+      principal={model.principal}
+      grossInterest={model.grossInterest}
+      taxRule={model.taxRule}
+      taxRatePercent={model.taxRatePercent}
+      fee={model.fee}
+      settlementAccountId={item.settlementAccountId}
+      accounts={accounts}
+      packages={packages}
+      currency={currency}
+      targetUnavailable={targetUnavailable}
+    />
+  );
+}
+
+async function SavingFinancialActivity({
+  data,
+  locale,
+  currency,
+  t,
+}: {
+  data: ReturnType<typeof listSavingsFinancialActivities>;
+  locale: string;
+  currency: string;
+  t: DetailTranslations;
+}) {
+  const activities = await data;
+  const money = (value: number) =>
+    formatCurrency(value, currency, locale, { maximumFractionDigits: 0 });
+  return (
+    <section
+      className="flex flex-col gap-(--space-2)"
+      data-testid="savings-financial-activity"
+    >
+      <div>
+        <SavingsSectionTitle>{t("activityTitle")}</SavingsSectionTitle>
+        <Text size="xs" tone="secondary" className="mt-(--space-1) text-pretty">
+          {t("activityHint")}
+        </Text>
+      </div>
+      {activities && activities.length > 0 ? (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <div className="flex items-center justify-between gap-(--space-3) border-b border-border-subtle px-(--space-4) py-(--space-3)">
+            <Text size="xs" weight="medium" tone="secondary">
+              {t("activityCount", { count: activities.length })}
+            </Text>
+            <Text size="xs" tone="muted">
+              {t("activityReadOnly")}
+            </Text>
+          </div>
+          <div className="px-(--space-4)">
+            {activities.map((activity) => (
+              <TransactionRow
+                key={activity.id}
+                title={t(`activity.${activity.eventKind}` as never)}
+                subtitle={formatDate(new Date(activity.date), locale)}
+                amountLabel={money(activity.amount)}
+                tone={resolveActivityAmountTone(activity.eventKind)}
+                showRail={false}
+                className="last:border-b-0"
+              />
+            ))}
+          </div>
+        </Card>
+      ) : (
+        <Card
+          tone="soft"
+          className="flex flex-col items-center gap-(--space-2) p-(--space-4)"
+        >
+          <IconContainer tone={IconContainerTone.SAVINGS} size="sm">
+            <AppIcon icon={FINANCE_ICONS.savings} size={AppIconSize.SM} />
+          </IconContainer>
+          <Text size="sm" weight="medium" className="text-center">
+            {t("activityEmpty")}
+          </Text>
+          <Text size="xs" tone="secondary" className="text-center text-pretty">
+            {t("activityEmptyHint")}
+          </Text>
+        </Card>
+      )}
+    </section>
   );
 }
