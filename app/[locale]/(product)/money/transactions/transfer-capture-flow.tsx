@@ -18,7 +18,6 @@ import {
   recordTransferInputSchema,
   type RecordTransferInput,
 } from "@/modules/ledger/application/client";
-import { ControlledField } from "@/shared/patterns/controlled-fields";
 import { BottomActionBar } from "@/shared/patterns/bottom-action-bar";
 import { ConfirmSummary } from "@/shared/patterns/confirm-summary";
 import { TextField } from "@/shared/ui/form";
@@ -44,12 +43,14 @@ import type { LedgerActionErrorCode } from "@/modules/ledger/application/client"
 import { recordTransferAction } from "./actions";
 import { TransactionReceipt } from "./transaction-receipt";
 import { CaptureSurface } from "./capture-surface";
-import {
-  CAPTURE_AMOUNT_FIELD_CLASS,
-  TRANSACTION_SURFACE_LINK_CLASS,
-  TRANSFER_ACCOUNT_ROW_CLASS,
-} from "./transaction-chrome";
+import { TRANSACTION_SURFACE_LINK_CLASS } from "./transaction-chrome";
+import { TransactionAccountField } from "./transaction-account-field";
 import { Card } from "@/shared/patterns/card";
+import { TransactionAmountField } from "./transaction-amount-field";
+import { TransactionDateField } from "./transaction-date-field";
+import { MoneyCaptureMode } from "@/modules/ledger/application/client";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { todayIsoDate } from "@/shared/utils/iso-date";
 
 type Props = {
@@ -407,6 +408,7 @@ export function TransferCaptureFlow({
             variant="primary"
             className="w-full"
             data-testid="transfer-confirm"
+            isLoading={isPending}
             isDisabled={isPending || !online}
             onPress={confirmTransfer}
           >
@@ -427,11 +429,8 @@ export function TransferCaptureFlow({
   }
 
   return (
-    <div
-      className="flex min-h-0 flex-1 flex-col"
-      data-testid="money-transfer-form"
-    >
-      <div className="flex min-h-0 flex-1 flex-col gap-(--space-5) overflow-y-auto overscroll-y-contain">
+    <div className="flex flex-1 flex-col" data-testid="money-transfer-form">
+      <div className="flex flex-1 flex-col gap-(--space-5)">
         {errorCode ? (
           <StatusAlert
             variant="danger"
@@ -448,130 +447,114 @@ export function TransferCaptureFlow({
           />
         ) : null}
 
-        <CaptureSurface>
-          <ControlledField
-            control={control}
-            field={{
-              type: "amount",
-              name: "amount",
-              id: amountId,
-              label: t("amountLabel", { currency }),
-              placeholder: "0",
-              testId: "transfer-amount",
-              required: true,
-              className: CAPTURE_AMOUNT_FIELD_CLASS,
-            }}
-            getErrorMessage={() => t("errors.invalid")}
-          />
-        </CaptureSurface>
+        <Controller
+          control={control}
+          name="amount"
+          render={({ field }) => (
+            <TransactionAmountField
+              id={amountId}
+              label={t("amountLabel", { currency })}
+              mode={MoneyCaptureMode.TRANSFER}
+              currency={currency}
+              value={typeof field.value === "number" ? field.value : null}
+              onValueChange={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.amount ? t("errors.invalid") : undefined}
+              required
+              autoFocus
+              placeholder={t("amountPlaceholder")}
+              data-testid="transfer-amount"
+            />
+          )}
+        />
 
-        <CaptureSurface>
-          <fieldset className="flex flex-col gap-(--space-3)">
-            <legend className="text-sm font-semibold tracking-tight text-text-primary">
-              {t("fromLabel")}
-            </legend>
-            {eligible.length < 2 ? (
-              <StatusAlert
-                variant="warning"
-                title={t("errors.need_two_accounts")}
-                description={t("needTwoAccountsHint")}
-              />
-            ) : (
-              <Controller
-                control={control}
-                name="sourceAccountId"
-                render={({ field }) => (
-                  <div className="flex flex-col gap-(--space-2)">
-                    {eligible.map((account) => (
-                      <label
-                        key={account.id}
-                        className={TRANSFER_ACCOUNT_ROW_CLASS}
-                      >
-                        <input
-                          type="radio"
-                          name="transfer-source"
-                          value={account.id}
-                          checked={field.value === account.id}
-                          onChange={() => {
-                            field.onChange(account.id);
-                            if (destinationAccountId === account.id) {
-                              setValue(
-                                "destinationAccountId",
-                                eligible.find(
-                                  (candidate) => candidate.id !== account.id,
-                                )?.id ?? "",
-                                { shouldValidate: true },
-                              );
-                            }
-                          }}
-                          className="size-4 accent-[var(--color-accent)]"
-                          data-testid={`transfer-source-${account.id}`}
-                        />
-                        <span className="text-sm font-medium text-text-primary">
-                          {localizeCatalogName(
-                            tCatalog,
-                            CatalogGroup.ACCOUNTS,
-                            account.name,
-                          )}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+        {eligible.length < 2 ? (
+          <StatusAlert
+            variant="warning"
+            title={t("errors.need_two_accounts")}
+            description={t("needTwoAccountsHint")}
+          />
+        ) : null}
+        <Card
+          className="gap-0 overflow-hidden p-0"
+          data-testid="transfer-accounts"
+        >
+          <Controller
+            control={control}
+            name="sourceAccountId"
+            render={({ field }) => (
+              <TransactionAccountField
+                id="transfer-source"
+                label={t("fromLabel")}
+                value={field.value}
+                onChange={(next) => {
+                  field.onChange(next);
+                  if (destinationAccountId === next) {
+                    setValue(
+                      "destinationAccountId",
+                      eligible.find((account) => account.id !== next)?.id ?? "",
+                      { shouldValidate: true },
+                    );
+                  }
+                }}
+                onBlur={field.onBlur}
+                required
+                isDisabled={eligible.length < 2}
+                error={errors.sourceAccountId ? t("errors.invalid") : undefined}
+                accounts={eligible}
+                currency={currency}
+                data-testid="transfer-source"
               />
             )}
-          </fieldset>
-        </CaptureSurface>
-
-        <CaptureSurface>
-          <fieldset className="flex flex-col gap-(--space-3)">
-            <legend className="text-sm font-semibold tracking-tight text-text-primary">
-              {t("toLabel")}
-            </legend>
-            <Controller
-              control={control}
-              name="destinationAccountId"
-              render={({ field }) => (
-                <div className="flex flex-col gap-(--space-2)">
-                  {destinationOptions.map((account) => (
-                    <label
-                      key={account.id}
-                      className={TRANSFER_ACCOUNT_ROW_CLASS}
-                    >
-                      <input
-                        type="radio"
-                        name="transfer-destination"
-                        value={account.id}
-                        checked={field.value === account.id}
-                        onChange={() => field.onChange(account.id)}
-                        className="size-4 accent-[var(--color-accent)]"
-                        data-testid={`transfer-destination-${account.id}`}
-                      />
-                      <span className="text-sm font-medium text-text-primary">
-                        {localizeCatalogName(
-                          tCatalog,
-                          CatalogGroup.ACCOUNTS,
-                          account.name,
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            />
-          </fieldset>
-        </CaptureSurface>
-
-        <ControlledField
+          />
+          <div
+            className="relative mx-(--space-3) border-t border-border-subtle"
+            aria-hidden="true"
+          >
+            <span className="absolute start-(--space-1) -translate-y-1/2 rounded-full border border-border-subtle bg-surface p-(--space-1) text-transfer">
+              <AppIcon
+                icon={ACTION_ICONS.forward}
+                size="sm"
+                className="rotate-90"
+              />
+            </span>
+          </div>
+          <Controller
+            control={control}
+            name="destinationAccountId"
+            render={({ field }) => (
+              <TransactionAccountField
+                id="transfer-destination"
+                label={t("toLabel")}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                required
+                isDisabled={eligible.length < 2}
+                error={
+                  errors.destinationAccountId ? t("errors.invalid") : undefined
+                }
+                accounts={destinationOptions}
+                currency={currency}
+                data-testid="transfer-destination"
+              />
+            )}
+          />
+        </Card>
+        <Controller
           control={control}
-          field={{
-            type: "date",
-            name: "transactionDate",
-            id: "transfer-date",
-            label: t("effectiveDateLabel"),
-            testId: "transfer-date",
-          }}
-          getErrorMessage={() => t("errors.invalid")}
+          name="transactionDate"
+          render={({ field }) => (
+            <TransactionDateField
+              id="transfer-date"
+              label={t("effectiveDateLabel")}
+              value={field.value ?? ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.transactionDate ? t("errors.invalid") : undefined}
+              data-testid="transfer-date"
+            />
+          )}
         />
 
         <TextField
@@ -606,7 +589,14 @@ export function TransferCaptureFlow({
           variant="primary"
           className="w-full"
           data-testid="transfer-preview-continue"
-          isDisabled={isPending || !online || eligible.length < 2}
+          isDisabled={
+            isPending ||
+            !online ||
+            eligible.length < 2 ||
+            !amountLabel ||
+            !sourceAccount ||
+            !destinationAccount
+          }
           onPress={goConfirm}
         >
           {t("continue")}

@@ -50,7 +50,7 @@ export function MoneyCaptureEntry({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col gap-(--space-5)"
+      className="flex flex-1 flex-col gap-(--space-5)"
       data-testid="money-capture-entry"
     >
       <fieldset className="flex flex-col gap-(--space-2)">
@@ -102,8 +102,8 @@ export function MoneyCaptureEntry({
         </div>
       </fieldset>
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <MotionStep stepKey={mode} className="flex h-full min-h-0 flex-col">
+      <div className="flex flex-1 flex-col">
+        <MotionStep stepKey={mode} className="flex flex-1 flex-col">
           {mode === MoneyCaptureMode.TRANSFER ? (
             <TransferCaptureFlow
               accounts={accounts}

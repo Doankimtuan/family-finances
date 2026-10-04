@@ -92,12 +92,11 @@ describe("TransferCaptureFlow", () => {
 
   it("excludes the selected source from transfer destinations", () => {
     renderFlow();
+    fireEvent.click(screen.getByLabelText(/^toLabel/));
     expect(
-      screen.queryByTestId(`transfer-destination-${accounts[0].id}`),
+      screen.queryByRole("option", { name: /Wallet/ }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByTestId(`transfer-destination-${accounts[1].id}`),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Bank/ })).toBeInTheDocument();
   });
 
   it("returns to the form with one typed error after server failure", async () => {

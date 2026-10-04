@@ -19,6 +19,8 @@ export const TRANSACTION_AMOUNT_PREFIX = {
   [TransactionDirection.INCOME]: "+",
 } as const;
 
+export const TRANSACTION_TRANSFER_AMOUNT_PREFIX = "⇄";
+
 /** Capture / correct / category kinds — income and expense only. */
 export const TRANSACTION_DIRECTION_VALUES = [
   TransactionDirection.INCOME,
@@ -309,8 +311,8 @@ export const TRANSACTION_FILTER_OPTIONS = [
 
 export const TRANSACTION_COMMON_FILTER_OPTIONS = [
   TransactionFilterType.ALL,
-  TransactionFilterType.INCOME,
   TransactionFilterType.EXPENSE,
+  TransactionFilterType.INCOME,
   TransactionFilterType.TRANSFER,
 ] as const;
 

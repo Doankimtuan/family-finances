@@ -7,6 +7,7 @@ import { PRODUCT_LINK_PREFETCH } from "@/shared/constants/navigation";
 import {
   TransactionRow,
   type TransactionAmountTone,
+  type TransactionType,
 } from "@/shared/patterns/transaction-row";
 
 export function TransactionListItem({
@@ -14,20 +15,24 @@ export function TransactionListItem({
   activityId,
   title,
   subtitle,
+  subtitleContent,
   amountLabel,
   amountMeta,
   amountAria,
   tone,
+  type,
   leading,
 }: {
   href: string;
   activityId: string;
   title: string;
   subtitle: string;
+  subtitleContent?: ReactNode;
   amountLabel: string;
   amountMeta: string;
   amountAria: string;
   tone: TransactionAmountTone;
+  type?: TransactionType;
   leading: ReactNode;
 }) {
   const { isHidden } = useFinancialPrivacy();
@@ -40,20 +45,20 @@ export function TransactionListItem({
       <Link
         href={href}
         prefetch={PRODUCT_LINK_PREFETCH}
-        className="block min-h-11 rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
+        className="block min-h-11 transition-colors duration-(--duration-fast) hover:bg-surface-hover motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring"
         aria-label={accessibleName}
         data-testid={`transaction-row-${activityId}`}
       >
         <TransactionRow
           leading={leading}
           title={title}
-          subtitle={subtitle}
+          subtitle={subtitleContent ?? subtitle}
           amountLabel={amountLabel}
           amountMeta={amountMeta || undefined}
           tone={tone}
+          type={type}
           showRail={false}
-          showChevron
-          className="border-b-0 px-(--space-4)"
+          className="border-b-0 px-(--space-1) py-(--space-1)"
         />
       </Link>
     </li>

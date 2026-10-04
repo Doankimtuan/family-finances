@@ -10,15 +10,29 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import {
   TransactionActivityKind,
+  TransactionActivityTone,
   TransactionFilterType,
   TRANSACTION_LIST_OBSERVER_ROOT_MARGIN,
   type TransactionActivity,
 } from "@/modules/ledger/application/client";
+import { TRANSACTION_TRANSFER_AMOUNT_PREFIX } from "@/modules/ledger/application/transaction-constants";
+import { summarizeTransactionActivities } from "@/modules/ledger/application/transaction-activity-summary";
+import {
+  FinancialAmount,
+  FinancialAmountSize,
+  FinancialAmountTone,
+} from "@/shared/ui/financial-amount";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
+import { UTILITY_ICONS, categoryVisualFor } from "@/shared/ui/icon-registry";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
 import { Button, ButtonVariant } from "@/shared/ui/button";
 import { AppIcon, IconContainer, Spinner, financeIconFor } from "@/shared/ui";
-import { formatCurrency } from "@/shared/i18n/formatters";
+import { formatCurrency, formatTime } from "@/shared/i18n/formatters";
+import { TransactionType } from "@/shared/patterns/transaction-row";
 import { TransactionsDateGroup } from "./transactions-date-group";
 import { TransactionListItem } from "./transaction-list-item";
 import {
@@ -32,6 +46,7 @@ import {
   amountAriaToneKey,
   dateGroupLabel,
   groupActivities,
+  localizedAccountName,
   transactionsEventsHref,
 } from "./transactions-list-presentations";
 
@@ -265,11 +280,57 @@ export function TransactionsActivityList({
         aria-busy={isLoading}
         data-testid="transactions-activity-list"
       >
-        {groupedActivities.map((group) => (
+        {groupedActivities.map((group, groupIndex) => (
           <TransactionsDateGroup
             key={group.date}
             date={group.date}
             label={dateGroupLabel(group.date, locale, dateLabels)}
+            countLabel={
+              !hasMore || groupIndex < groupedActivities.length - 1
+                ? t("dayCount", { count: group.activities.length })
+                : undefined
+            }
+            summary={
+              !hasMore || groupIndex < groupedActivities.length - 1 ? (
+                <div className="flex flex-wrap gap-(--space-2) text-xs text-text-secondary">
+                  {summarizeTransactionActivities(group.activities).map(
+                    (total) => (
+                      <span
+                        key={total.currency}
+                        className="inline-flex flex-wrap items-baseline gap-(--space-1)"
+                      >
+                        {t("dailyExpense")}:
+                        <FinancialAmount
+                          size={FinancialAmountSize.MICRO_AMOUNT}
+                          tone={FinancialAmountTone.EXPENSE}
+                          amountLabel={formatCurrency(
+                            total.expense === 0 ? 0 : -total.expense,
+                            total.currency,
+                            locale,
+                            { maximumFractionDigits: 0 },
+                          )}
+                        />
+                        <span aria-hidden>·</span>
+                        {t("dailyIncome")}:
+                        <FinancialAmount
+                          size={FinancialAmountSize.MICRO_AMOUNT}
+                          tone={FinancialAmountTone.INCOME}
+                          amountLabel={formatCurrency(
+                            total.income,
+                            total.currency,
+                            locale,
+                            {
+                              maximumFractionDigits: 0,
+                              signDisplay: "exceptZero",
+                            },
+                          )}
+                        />
+                      </span>
+                    ),
+                  )}
+                </div>
+              ) : undefined
+            }
           >
             {group.activities.map((activity) => {
               const title = activityTitle(
@@ -283,19 +344,50 @@ export function TransactionsActivityList({
                 locale,
                 { maximumFractionDigits: 0 },
               );
+              const subtitle = activitySubtitle(
+                activity,
+                title,
+                activityKindLabels,
+                tCatalog,
+              );
+              const category = activity.categoryName
+                ? localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.TAGS,
+                    activity.categoryName,
+                  )
+                : activityKindLabels[activity.kind];
               return (
                 <TransactionListItem
                   key={activity.id}
                   href={moneyTransactionPath(activity.relatedTransactionIds[0])}
                   activityId={activity.id}
                   title={title}
-                  subtitle={activitySubtitle(
-                    activity,
-                    title,
-                    activityKindLabels,
-                    tCatalog,
-                  )}
-                  amountLabel={`${activity.sign}${amount}`}
+                  subtitle={subtitle}
+                  subtitleContent={
+                    <>
+                      <span className="font-medium text-primary">
+                        {category}
+                      </span>
+                      <span>{` · ${[
+                        activity.kind === TransactionActivityKind.TRANSFER
+                          ? activity.note
+                          : localizedAccountName(
+                              activity.sourceAccount?.name ??
+                                activity.destinationAccount?.name,
+                              tCatalog,
+                            ),
+                        formatTime(
+                          new Date(activity.representativeCreatedAt),
+                          locale,
+                        ),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}`}</span>
+                    </>
+                  }
+
+                  amountLabel={`${activity.kind === TransactionActivityKind.TRANSFER ? TRANSACTION_TRANSFER_AMOUNT_PREFIX : activity.sign} ${amount}`}
                   amountMeta={[
                     activityStatusMeta(activity, (status) =>
                       tMoney(`status.${status}`),
@@ -305,11 +397,30 @@ export function TransactionsActivityList({
                     .filter(Boolean)
                     .join(" · ")}
                   amountAria={t(amountAriaToneKey(activity.tone), { amount })}
-                  tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
+                  tone={
+                    activity.kind === TransactionActivityKind.REFUND
+                      ? ACTIVITY_TONE_TO_AMOUNT_TONE[
+                          TransactionActivityTone.CREDIT
+                        ]
+                      : ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]
+                  }
+                  type={
+                    activity.kind === TransactionActivityKind.TRANSFER
+                      ? TransactionType.TRANSFER
+                      : undefined
+                  }
                   leading={
-                    <IconContainer tone={activityIconTone(activity)} size="sm">
+                    <IconContainer tone={activityIconTone(activity)} size="md">
                       <AppIcon
-                        icon={financeIconFor(activityIconKey(activity))}
+                        icon={
+                          activity.kind === TransactionActivityKind.EXPENSE &&
+                          activity.categoryName
+                            ? categoryVisualFor({
+                                categoryId: activity.categoryId,
+                                categoryName: activity.categoryName,
+                              }).icon
+                            : financeIconFor(activityIconKey(activity))
+                        }
                         size="sm"
                       />
                     </IconContainer>
@@ -351,8 +462,13 @@ export function TransactionsActivityList({
           <div ref={sentinelRef} className="min-h-1" aria-hidden="true" />
         ) : null}
         {!hasMore && activities.length > 0 ? (
-          <p className="py-(--space-2) text-center text-sm text-text-secondary">
-            {t("allLoaded")}
+          <p className="flex items-center justify-center gap-(--space-2) py-(--space-3) text-center text-xs text-text-secondary">
+            <AppIcon
+              icon={UTILITY_ICONS.shield}
+              size="xs"
+              className="shrink-0 text-primary"
+            />
+            {t("allLoaded", { count: activities.length })}
           </p>
         ) : null}
         {!activities.length && !hasMore && !hasLoadError ? emptyState : null}

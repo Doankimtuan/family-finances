@@ -7,6 +7,14 @@ import { cn } from "@/shared/utils/cn";
 import { formatVietnameseCurrencyWords } from "@/shared/utils/vietnamese-words";
 import { AmountField, type AmountFieldProps } from "./amount-field";
 
+export const CurrencyInputCurrencyPosition = {
+  PREFIX: "prefix",
+  SUFFIX: "suffix",
+} as const;
+
+export type CurrencyInputCurrencyPosition =
+  (typeof CurrencyInputCurrencyPosition)[keyof typeof CurrencyInputCurrencyPosition];
+
 export type CurrencyInputProps = Omit<
   AmountFieldProps,
   "id" | "value" | "onValueChange" | "leadingIcon" | "trailingElement"
@@ -15,6 +23,7 @@ export type CurrencyInputProps = Omit<
   value: number | null;
   onValueChange: (value: number | null) => void;
   showWordsPreview?: boolean;
+  currencyPosition?: CurrencyInputCurrencyPosition;
   quickChips?: readonly number[];
   disabled?: boolean;
   readOnly?: boolean;
@@ -27,6 +36,7 @@ export function CurrencyInput({
   onValueChange,
   locale: localeProp,
   showWordsPreview = true,
+  currencyPosition,
   quickChips,
   labelAccessory,
   disabled,
@@ -40,6 +50,9 @@ export function CurrencyInput({
   const activeLocale = useLocale();
   const locale = localeProp ?? activeLocale;
   const isVietnamese = locale.toLowerCase().startsWith("vi");
+  const isCurrencyPrefix = currencyPosition
+    ? currencyPosition === CurrencyInputCurrencyPosition.PREFIX
+    : !isVietnamese;
   const shouldShowVietnameseWords =
     showWordsPreview && isVietnamese && value != null && value > 0;
   const currencySymbol = (
@@ -62,8 +75,8 @@ export function CurrencyInput({
         disabled={disabled}
         isReadOnly={Boolean(readOnly || isReadOnly)}
         labelAccessory={labelAccessory}
-        leadingIcon={!isVietnamese ? currencySymbol : undefined}
-        trailingElement={isVietnamese ? currencySymbol : undefined}
+        leadingIcon={isCurrencyPrefix ? currencySymbol : undefined}
+        trailingElement={!isCurrencyPrefix ? currencySymbol : undefined}
         className={cn("text-base md:text-sm", className)}
       />
 

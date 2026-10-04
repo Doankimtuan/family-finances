@@ -176,12 +176,11 @@ export {
   IconContainerTone,
   type IconContainerProps,
 } from "./icon-container";
+export { FinancialAmount, type FinancialAmountProps } from "./financial-amount";
 export {
-  FinancialAmount,
   FinancialAmountSize,
   FinancialAmountTone,
-  type FinancialAmountProps,
-} from "./financial-amount";
+} from "./financial-amount-constants";
 export {
   KeyValueList,
   KeyValueRow,

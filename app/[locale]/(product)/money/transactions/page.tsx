@@ -26,7 +26,7 @@ import {
   FinancialPrivacyToggleTone,
 } from "@/shared/patterns/financial-privacy-toggle";
 import { AppIcon, AppIconSize } from "@/shared/ui";
-import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
+import { FINANCE_ICONS, ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { MoneyOfflineBanner } from "../money-offline-banner";
 import { TransactionsFilterBar } from "./transactions-filter-bar";
 import { TransactionsActivityList } from "./transactions-activity-list";
@@ -124,7 +124,14 @@ export default async function TransactionsListPage({
             >
               {t("clearFilters")}
             </Link>
-          ) : undefined
+          ) : (
+            <Link
+              href={APP_PATH.MONEY_ADD}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-(--radius-control) bg-primary px-(--space-4) text-sm font-medium text-primary-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            >
+              {t("addFirst")}
+            </Link>
+          )
         }
       />
     </div>
@@ -137,6 +144,7 @@ export default async function TransactionsListPage({
       topBar={
         <TopAppBar
           variant="detail"
+          className="border-b border-border-subtle [&_h1]:text-center [&_h1+div]:text-center [&_h1+div]:text-xs [&_h1+div]:leading-snug"
           title={
             filters.accountId
               ? tMoney("accountDetail.statementTitle")
@@ -159,6 +167,7 @@ export default async function TransactionsListPage({
               showLabel={tMoney("financialPrivacy.show")}
               testId="transactions-financial-privacy-toggle"
               tone={FinancialPrivacyToggleTone.SURFACE}
+              className="border-transparent bg-transparent"
             />
           }
         />
@@ -208,6 +217,16 @@ export default async function TransactionsListPage({
           emptyState={emptyState}
         />
       )}
+      <div className="pointer-events-none sticky bottom-(--space-3) z-(--z-sticky) mt-auto flex justify-end pt-(--space-3)">
+        <Link
+          href={APP_PATH.MONEY_ADD}
+          className="pointer-events-auto inline-flex min-h-11 items-center gap-(--space-2) rounded-full bg-primary px-(--space-4) text-sm font-semibold text-primary-fg shadow-lg hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          data-testid="transactions-add"
+        >
+          <AppIcon icon={ACTION_ICONS.add} size="sm" />
+          {t("addTransaction")}
+        </Link>
+      </div>
     </Page>
   );
 }

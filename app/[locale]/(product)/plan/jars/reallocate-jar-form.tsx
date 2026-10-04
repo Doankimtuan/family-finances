@@ -1,5 +1,7 @@
 "use client";
 
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { useId, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +36,10 @@ import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
-import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import {
+  CatalogGroup,
+  localizeCatalogName,
+} from "@/shared/i18n/localize-catalog-name";
 import {
   CLIENT_ACTION_ERROR_CODE,
   PRODUCT_ACTION_ERROR_CODE,
@@ -99,6 +104,7 @@ type ReceiptState = {
 };
 
 type Props = {
+  triggerLabel?: string;
   sourceJarId: string;
   sourceJarName: string;
   availableToMove: number;
@@ -121,6 +127,7 @@ function asFieldErrorKey(message: string | undefined): FieldErrorKey {
  * Virtual jar capacity reallocation (BR-01 / AC-JAR-01) with emergency (AC-JAR-02).
  */
 export function ReallocateJarForm({
+  triggerLabel,
   sourceJarId,
   sourceJarName,
   availableToMove,
@@ -164,6 +171,8 @@ export function ReallocateJarForm({
 
   const isEmergency = useWatch({ control, name: "isEmergency" });
   const amount = useWatch({ control, name: "amount" });
+  const targetJarId = useWatch({ control, name: "targetJarId" });
+  const targetJar = targetJars.find((jar) => jar.id === targetJarId);
 
   if (targetJars.length === 0) {
     return null;
@@ -266,8 +275,8 @@ export function ReallocateJarForm({
   if (!open) {
     return (
       <Button
-        variant="secondary"
-        className="w-full"
+        variant="primary"
+        className="h-auto min-h-11 w-full whitespace-normal px-(--space-2) py-(--space-2) text-xs"
         data-testid="jar-reallocate-open"
         isDisabled={!online}
         onPress={() => {
@@ -276,7 +285,8 @@ export function ReallocateJarForm({
           setOpen(true);
         }}
       >
-        {t("open")}
+        <AppIcon icon={ACTION_ICONS.add} size="sm" />
+        {triggerLabel ?? t("open")}
       </Button>
     );
   }
@@ -334,7 +344,8 @@ export function ReallocateJarForm({
           targetJars.find((jar) => jar.id === result.targetJarId) ??
           targetJars.find((jar) => jar.id === values.targetJarId);
         const targetName = target
-          ? localizeCatalogName(tCatalog, "jars", target.name) || target.name
+          ? localizeCatalogName(tCatalog, CatalogGroup.JARS, target.name) ||
+            target.name
           : values.targetJarId;
 
         reset({
@@ -366,6 +377,8 @@ export function ReallocateJarForm({
   };
 
   const close = () => {
+    reset();
+    setReceipt(null);
     setOpen(false);
     setAwaitingWarn(false);
     setErrorCode(null);
@@ -452,7 +465,11 @@ export function ReallocateJarForm({
                 options: targetJars.map((jar) => ({
                   id: jar.id,
                   label:
-                    localizeCatalogName(tCatalog, "jars", jar.name) || jar.name,
+                    localizeCatalogName(
+                      tCatalog,
+                      CatalogGroup.JARS,
+                      jar.name,
+                    ) || jar.name,
                 })),
                 error: errors.targetJarId
                   ? t(`errors.${asFieldErrorKey(errors.targetJarId.message)}`)
@@ -460,6 +477,37 @@ export function ReallocateJarForm({
                 testId: "jar-reallocate-target",
               }}
             />
+
+            {amount != null && amount > 0 && targetJar ? (
+              <Section variant="surface" testId="jar-reallocate-preview">
+                <Text size="sm" weight="semibold">
+                  {t("capacityDeltaHeading")}
+                </Text>
+                <Text size="sm" tone="secondary" className="text-pretty">
+                  {sourceJarName} →{" "}
+                  {localizeCatalogName(
+                    tCatalog,
+                    CatalogGroup.JARS,
+                    targetJar.name,
+                  ) || targetJar.name}
+                </Text>
+                <Text
+                  size="lg"
+                  weight="semibold"
+                  tabular
+                  data-financial-kind={FinancialNumberKind.INTENTION}
+                >
+                  <FinancialValue>
+                    {formatCurrency(amount, currency, locale, {
+                      maximumFractionDigits: 0,
+                    })}
+                  </FinancialValue>
+                </Text>
+                <Text size="xs" tone="secondary">
+                  {t("receiptMoney")} · {t("receiptMoneyUnchanged")}
+                </Text>
+              </Section>
+            ) : null}
 
             <CheckboxField
               id={emergencyId}

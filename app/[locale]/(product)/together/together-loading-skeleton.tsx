@@ -1,28 +1,25 @@
 import { getTranslations } from "next-intl/server";
 import { Page } from "@/shared/patterns/page";
 import { Card } from "@/shared/patterns/card";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
-import { TogetherHeaderTab } from "@/shared/patterns/together-header-tab";
+import { TogetherOverviewHeader } from "./together-overview-header";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 export async function TogetherLoadingSkeleton({ testId }: { testId?: string }) {
-  const [t, tNavigation] = await Promise.all([
-    getTranslations("together"),
-    getTranslations("navigation"),
-  ]);
+  const t = await getTranslations("together");
 
   return (
     <Page
       testId={testId}
       topBar={
-        <TopAppBar
-          variant="primary"
-          title={<Skeleton className="h-7 w-48" />}
-          subtitle={t("header.supporting")}
-          meta={<TogetherHeaderTab label={tNavigation("together")} active />}
-          status={<Skeleton className="h-7 w-20 rounded-full" />}
+        <TogetherOverviewHeader
+          eyebrow={t("header.eyebrow")}
+          title={<Skeleton className="h-6 w-32" />}
+          supporting={t("header.supporting")}
+          roleLabel={<Skeleton className="h-4 w-12" />}
+          settingsLabel={t("settingsLink")}
         />
       }
+      contentClassName="pt-0"
     >
       <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
         <div className="flex items-center gap-(--space-3)">
@@ -64,6 +61,7 @@ export async function TogetherLoadingSkeleton({ testId }: { testId?: string }) {
         </Card>
       </section>
 
+      <Skeleton className="h-12 w-full rounded-(--radius-control)" />
       <section className="flex flex-col gap-(--space-3)">
         <div className="flex flex-col gap-(--space-2)">
           <Skeleton className="h-5 w-44" />
@@ -85,6 +83,7 @@ export async function TogetherLoadingSkeleton({ testId }: { testId?: string }) {
           ))}
         </Card>
       </section>
+      <Skeleton className="h-20 w-full rounded-(--radius-card)" />
     </Page>
   );
 }

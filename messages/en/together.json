@@ -242,5 +242,10 @@
       "no_household": "Create a household before editing preferences.",
       "unknown": "Something went wrong. Try again."
     }
-  }
+  },
+  "householdActive": "Active",
+  "overviewAdminResponsibility": "You can manage members, roles, and shared household rules.",
+  "overviewPartnerResponsibility": "You share daily Money, Plan, and Inbox. Admins manage members and shared household rules.",
+  "overviewSettingsTitle": "App & account settings",
+  "overviewSettingsDescription": "Light/dark appearance, security, and personal information"
 }

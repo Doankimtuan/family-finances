@@ -95,7 +95,7 @@ export function PlanHubHero({
       className="gap-(--space-4) p-(--space-4)"
       data-testid="plan-period-pulse"
     >
-      <div className="flex items-center justify-between gap-(--space-2)">
+      <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
         <StatusBadge
           tone={attentionTone}
           className="min-h-7 px-(--space-3) text-xs"
@@ -134,7 +134,7 @@ export function PlanHubHero({
           />
           {dayProgressPercent != null ? (
             <span
-              className="absolute top-2 inline-flex min-h-6 w-max -translate-x-1/2 items-center whitespace-nowrap rounded-sm bg-surface-muted px-(--space-2) py-(--space-1) text-[10px] leading-tight text-text-secondary"
+              className="absolute top-2 inline-flex min-h-6 w-max -translate-x-1/2 items-center whitespace-nowrap rounded-sm bg-surface-muted px-(--space-2) py-(--space-1) text-xs leading-tight text-text-secondary"
               style={{
                 left: `clamp(var(--space-5), ${dayProgressPercent}%, calc(100% - var(--space-5)))`,
               }}

@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
-import { Card } from "@/shared/patterns/card";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 function FilterSkeleton() {
@@ -27,23 +26,21 @@ function ListSkeleton() {
       {[0, 1].map((group) => (
         <div key={group} className="flex flex-col gap-(--space-2)">
           <Skeleton className="h-4 w-24" />
-          <Card tone="elevated" className="gap-0 p-0">
-            <div className="flex flex-col divide-y divide-border-subtle/65 py-(--space-1)">
-              {[0, 1, 2].map((row) => (
-                <div
-                  key={row}
-                  className="flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-3)"
-                >
-                  <Skeleton className="size-8 rounded-full" />
-                  <div className="flex flex-1 flex-col gap-(--space-1)">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                  <Skeleton className="h-4 w-16" />
+          <div className="flex flex-col gap-(--space-1)">
+            {[0, 1, 2].map((row) => (
+              <div
+                key={row}
+                className="flex min-h-14 items-center gap-(--space-3) py-(--space-3)"
+              >
+                <Skeleton className="size-10 rounded-(--radius-control)" />
+                <div className="flex flex-1 flex-col gap-(--space-1)">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
-              ))}
-            </div>
-          </Card>
+                <Skeleton className="h-4 w-16" />
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>

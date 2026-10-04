@@ -21,6 +21,9 @@ export const JarKind = {
 /** A budget usage ratio is displayed on a 0–100 percent scale. */
 export const JAR_BUDGET_PERCENT_SCALE = 100;
 
+/** Recent ledger events shown on a Jar detail screen. */
+export const PLAN_JAR_RECENT_ACTIVITY_LIMIT = 4;
+
 /** Canonical first day for a selectable Plan month. */
 export const PLAN_PERIOD_MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-01$/;
 

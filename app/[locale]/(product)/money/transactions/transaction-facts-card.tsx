@@ -26,8 +26,8 @@ export function TransactionFactsCard({
   return (
     <section className="flex flex-col gap-(--space-3)" data-testid={testId}>
       {title ? <SectionHeader title={title} /> : null}
-      <Card tone="elevated" className="gap-0 p-0">
-        <dl className="divide-y divide-border-subtle/65">{children}</dl>
+      <Card tone="soft" className="gap-0 p-0">
+        <dl className="flex flex-col">{children}</dl>
       </Card>
     </section>
   );

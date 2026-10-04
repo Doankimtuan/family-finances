@@ -84,6 +84,7 @@ function renderTogetherCopy(locale: "en" | "vi") {
 function renderPanel(
   invitations: PendingInvitation[] = [firstInvitation],
   locale: "en" | "vi" = "en",
+  showHeading = true,
 ) {
   const ui: ReactElement = (
     <NextIntlClientProvider
@@ -91,7 +92,10 @@ function renderPanel(
       messages={{ together: locale === "vi" ? viTogether : enTogether }}
     >
       <StatusAlertProvider>
-        <InvitationsPanel initialInvitations={invitations} />
+        <InvitationsPanel
+          initialInvitations={invitations}
+          showHeading={showHeading}
+        />
       </StatusAlertProvider>
     </NextIntlClientProvider>
   );
@@ -118,6 +122,21 @@ describe("Together invitation scan hierarchy (B15)", () => {
     expect(
       screen.queryByTestId("invite-revoke-confirm"),
     ).not.toBeInTheDocument();
+  });
+
+  it("embeds invitation actions in the household hub without a duplicate heading", () => {
+    renderPanel([firstInvitation], "en", false);
+
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
+    expect(screen.getByTestId("together-invitation-row")).toHaveTextContent(
+      firstInvitation.email,
+    );
+    expect(
+      screen.getByRole("button", { name: enTogether.invitations.copyLink }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: enTogether.invitations.revoke }),
+    ).toBeInTheDocument();
   });
 
   it("keeps multiple invitations independently scannable", () => {
@@ -218,9 +237,9 @@ describe("Together terminology localization (B15)", () => {
     );
 
     expect(overview).toContain('title={t("header.headline")}');
-    expect(overview).toContain('label={tNavigation("together")}');
-    expect(loading).toContain('subtitle={t("header.supporting")}');
-    expect(loading).toContain('label={tNavigation("together")}');
+    expect(overview).toContain('eyebrow={t("header.eyebrow")}');
+    expect(loading).toContain('supporting={t("header.supporting")}');
+    expect(loading).toContain('eyebrow={t("header.eyebrow")}');
     expect(overview).not.toContain('title="Together"');
     expect(loading).not.toContain('title="Together"');
   });
@@ -292,9 +311,9 @@ describe("Together terminology localization (B15)", () => {
     expect(overview).toContain("TOGETHER_PATH.MEMBERS");
     expect(overview).toContain("TOGETHER_PATH.INVITATIONS");
     expect(overview).toContain("TOGETHER_PATH.POLICIES");
-    expect(overview).toContain("TOGETHER_PATH.PREFERENCES");
-    expect(overview).not.toContain("TOGETHER_PATH.SETTINGS");
-    expect(overview).toContain('description={t("membersDescription")}');
+    expect(overview).not.toContain("TOGETHER_PATH.PREFERENCES");
+    expect(overview).toContain("TOGETHER_PATH.SETTINGS");
+    expect(overview).toContain('t("membersDescription")');
     expect(accept).toContain('t("goHome")');
     expect(accept).toContain("APP_PATH.WELCOME");
     expect(accept).toContain("APP_PATH.TOGETHER");

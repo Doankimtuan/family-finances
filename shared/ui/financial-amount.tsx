@@ -7,33 +7,14 @@ import { FinancialValue } from "@/shared/patterns/financial-value";
 import type { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
 import { cn } from "@/shared/utils/cn";
 
-export const FinancialAmountSize = {
-  DISPLAY_HERO: "displayHero",
-  SECTION_TOTAL: "sectionTotal",
-  METRIC_MEDIUM: "metricMedium",
-  ROW_AMOUNT: "rowAmount",
-  MICRO_AMOUNT: "microAmount",
-} as const;
-
-export type FinancialAmountSize =
-  | (typeof FinancialAmountSize)[keyof typeof FinancialAmountSize]
-  | "hero"
-  | "lg"
-  | "md"
-  | "sm"
-  | "xs";
-
-export const FinancialAmountTone = {
-  INCOME: "income",
-  EXPENSE: "expense",
-  DEBT: "debt",
-  TRANSFER: "transfer",
-  NEUTRAL: "neutral",
-  MUTED: "muted",
-} as const;
-
-export type FinancialAmountTone =
-  (typeof FinancialAmountTone)[keyof typeof FinancialAmountTone];
+import {
+  FinancialAmountSize,
+  FinancialAmountTone,
+} from "./financial-amount-constants";
+export {
+  FinancialAmountSize,
+  FinancialAmountTone,
+} from "./financial-amount-constants";
 
 const SIZE_CLASSES: Record<string, string> = {
   displayHero: "text-[32px] font-semibold leading-[38px] tracking-tight",
@@ -122,7 +103,7 @@ export function FinancialAmount({
 
   // Resolve semantic prefix sign if requested
   let signGlyph = "";
-  if (showSign) {
+  if (showSign && amountLabel === undefined) {
     if (tone === FinancialAmountTone.INCOME) {
       signGlyph = "+ ";
     } else if (tone === FinancialAmountTone.EXPENSE) {
@@ -132,7 +113,7 @@ export function FinancialAmount({
     }
   }
 
-  const hasCurrency = Boolean(currency);
+  const hasCurrency = amountLabel === undefined && Boolean(currency);
   const currencyElement = hasCurrency ? (
     <span className="font-semibold select-none">{currency}</span>
   ) : null;

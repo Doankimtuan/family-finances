@@ -167,7 +167,7 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     expect(screen.getByTestId("capture-preview")).toBeInTheDocument();
   });
 
-  it("keeps compact credit-card account identity explicit", () => {
+  it("keeps credit-card account identity explicit in the dropdown", () => {
     renderCaptureForm({
       accounts: [
         account,
@@ -180,7 +180,10 @@ describe("CaptureTransactionForm save-failure presentation", () => {
       ],
     });
 
-    expect(screen.getByText("Visa · creditCardLabel")).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/^expenseAccountLabel/));
+    expect(
+      screen.getByRole("option", { name: /Visa · creditCardLabel/ }),
+    ).toBeInTheDocument();
   });
 
   it("defaults a personal expense outside the family Plan until a jar is chosen", async () => {
@@ -210,11 +213,32 @@ describe("CaptureTransactionForm save-failure presentation", () => {
       screen
         .getByTestId("capture-account")
         .querySelector("[data-slot='select-value']")?.textContent,
-    ).toBe("Wallet 0 · cash");
+    ).toContain("Wallet 0");
 
     fireEvent.click(screen.getByLabelText(/^expenseAccountLabel/));
     expect(
-      screen.getByRole("option", { name: "Visa · creditCardLabel" }),
+      screen.getByRole("option", { name: /Visa · creditCardLabel/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("discards category search when the picker closes", async () => {
+    renderCaptureForm({ expenseTags: [expenseCategory] });
+    fireEvent.click(screen.getByTestId("capture-category"));
+    fireEvent.change(
+      screen.getByRole("searchbox", { name: "categorySearch" }),
+      { target: { value: "missing" } },
+    );
+    expect(screen.getByRole("status")).toHaveTextContent("categoryEmpty");
+    fireEvent.click(screen.getByRole("button", { name: "categoryClose" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByTestId("capture-category"));
+    expect(
+      screen.getByRole("searchbox", { name: "categorySearch" }),
+    ).toHaveValue("");
+    expect(
+      screen.getByRole("button", { name: "tags.food" }),
     ).toBeInTheDocument();
   });
 
@@ -411,15 +435,9 @@ describe("CaptureTransactionForm confirmation sheet", () => {
     });
 
     await act(async () => {
-      const trigger = screen
-        .getByTestId("capture-category")
-        .querySelector("button");
-      if (!trigger) {
-        throw new Error("Expected capture category Select trigger");
-      }
-      fireEvent.click(trigger);
+      fireEvent.click(screen.getByTestId("capture-category"));
     });
-    fireEvent.click(screen.getByRole("option", { name: "tags.food" }));
+    fireEvent.click(screen.getByRole("button", { name: "tags.food" }));
     fireEvent.change(screen.getByTestId("capture-note"), {
       target: { value: "Lunch with a friend" },
     });

@@ -89,7 +89,7 @@ const SelectPopover = ({
     className={cn(
       "z-(--z-dropdown) max-h-80 w-[var(--trigger-width)] overflow-y-auto rounded-[var(--radius-card)] p-1",
       "border border-border-subtle bg-surface-elevated text-text-primary shadow-lg",
-      "animate-in fade-in zoom-in-95 duration-100",
+      "animate-none! transition-none!",
       className,
     )}
     {...props}

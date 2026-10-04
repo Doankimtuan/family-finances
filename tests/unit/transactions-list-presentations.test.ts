@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { formatDate } from "@/shared/i18n/formatters";
+import { summarizeTransactionActivities } from "@/modules/ledger/application/transaction-activity-summary";
 import {
   createTransactionActivities,
   TRANSACTION_CURSOR_QUERY_PARAM,
@@ -12,6 +14,7 @@ import {
   TransactionFilterType,
   TransactionLedgerType,
   TransactionStatus,
+  TransactionActivityBreakdownKind,
   type LedgerTransaction,
 } from "@/modules/ledger/application";
 import { APP_API_PATH, APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -69,6 +72,59 @@ function row(overrides: Partial<LedgerTransaction> = {}): LedgerTransaction {
 
 const tCatalog = (key: string) => key;
 
+describe("complete transaction date summaries", () => {
+  it("keeps currencies separate and excludes internal transfers", () => {
+    const activities = createTransactionActivities([
+      row({ id: "expense", amount: 120_000 }),
+      row({
+        id: "income",
+        type: TransactionLedgerType.INCOME,
+        amount: 280_000,
+      }),
+      row({ id: "usd", currency: "USD", amount: 25 }),
+      row({
+        id: "out",
+        type: TransactionLedgerType.TRANSFER_OUT,
+        amount: 500_000,
+        transferGroupId: "transfer",
+      }),
+      row({
+        id: "in",
+        type: TransactionLedgerType.TRANSFER_IN,
+        amount: 500_000,
+        transferGroupId: "transfer",
+      }),
+    ]);
+    const totals = summarizeTransactionActivities(activities);
+    expect(totals).toHaveLength(2);
+    expect(totals).toEqual(
+      expect.arrayContaining([
+        { currency: "VND", income: 280_000, expense: 120_000 },
+        { currency: "USD", income: 0, expense: 25 },
+      ]),
+    );
+  });
+  it("counts only the expense contribution of a combined loan payment", () => {
+    const [activity] = createTransactionActivities([row()]);
+    expect(
+      summarizeTransactionActivities([
+        {
+          ...activity,
+          amount: 1_100_000,
+          breakdown: {
+            kind: TransactionActivityBreakdownKind.LOAN_PAYMENT,
+            totalPaid: 1_100_000,
+            principalAmount: 1_000_000,
+            interestAmount: 100_000,
+            expenseContribution: 100_000,
+            neutralContribution: 1_000_000,
+          },
+        },
+      ]),
+    ).toEqual([{ currency: "VND", income: 0, expense: 100_000 }]);
+  });
+});
+
 describe("transactions list presentation", () => {
   it("prioritizes merchant/note then category and account", () => {
     const [activity] = createTransactionActivities([row()]);
@@ -110,7 +166,9 @@ describe("transactions list presentation", () => {
     const today = todayIsoDate();
     const labels = { today: "Hôm nay", yesterday: "Hôm qua" };
 
-    expect(dateGroupLabel(today, "vi", labels)).toBe("Hôm nay");
+    expect(dateGroupLabel(today, "vi", labels)).toBe(
+      `Hôm nay, ${formatDate(new Date(`${today}T00:00:00Z`), "vi", { month: "long", day: "numeric" })}`,
+    );
   });
 
   it("keeps posted status off the row meta and exposes movement aria keys", () => {

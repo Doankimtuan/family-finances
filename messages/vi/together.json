@@ -242,5 +242,10 @@
       "no_household": "Tạo hộ trước khi sửa tuỳ chọn.",
       "unknown": "Đã xảy ra lỗi. Thử lại."
     }
-  }
+  },
+  "householdActive": "Đang chạy",
+  "overviewAdminResponsibility": "Bạn có quyền quản trị thành viên, phân quyền và thiết lập các quy tắc chung của hộ.",
+  "overviewPartnerResponsibility": "Bạn cùng chia sẻ Tiền, Kế hoạch và Hộp thư hằng ngày. Quản trị quản lý thành viên và quy tắc chung của hộ.",
+  "overviewSettingsTitle": "Cài đặt ứng dụng & tài khoản",
+  "overviewSettingsDescription": "Giao diện sáng/tối, bảo mật và thông tin cá nhân"
 }

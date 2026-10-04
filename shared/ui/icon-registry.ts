@@ -72,6 +72,7 @@ import {
   StitchHistoryIcon,
   StitchInboxIcon,
   StitchSortIcon,
+  StitchCloseIcon,
   StitchRefundIcon,
   StitchSavingsIcon,
   StitchTransferIcon,
@@ -162,6 +163,7 @@ export const PLAN_ICONS = {
   recurring: StitchRecurringPaymentIcon,
   calendar: Calendar03Icon,
   monthlyReview: StitchHistoryIcon,
+  lockedPeriod: StitchLockIcon,
   ritual: CheckmarkCircle02Icon,
 } as const;
 
@@ -292,6 +294,7 @@ export function categoryVisualFor(input: {
 /** Common interaction icons retain semantic names across feature modules. */
 export const ACTION_ICONS = {
   search: Search01Icon,
+  close: StitchCloseIcon,
   filter: FilterIcon,
   sort: StitchSortIcon,
   edit: Edit02Icon,

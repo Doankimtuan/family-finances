@@ -1677,7 +1677,18 @@
     "personalJarSuggestion": "This category suggests {jar}. Choose it to include this expense in the plan.",
     "personalJarUnmapped": "Exclude from family plan",
     "planIncluded": "Included · {jar}",
-    "planExcluded": "Excluded from the family plan"
+    "planExcluded": "Excluded from the family plan",
+    "expenseCategoryLabel": "Expense category",
+    "incomeCategoryLabel": "Income source",
+    "saveExpense": "Save expense",
+    "saveIncome": "Save income",
+    "categorySearch": "Search categories",
+    "categoryEmpty": "No matching categories",
+    "categoryClose": "Done",
+    "accountBalance": "Balance",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "amountPlaceholder": "Enter amount"
   },
   "transferForm": {
     "amountLabel": "Amount ({currency})",
@@ -1727,7 +1738,8 @@
       "offline": "Connect to save.",
       "need_two_accounts": "Need two liquid accounts.",
       "unknown": "Could not save. Try again."
-    }
+    },
+    "amountPlaceholder": "Enter amount"
   },
   "transferDetail": {
     "title": "Transfer",
@@ -1739,7 +1751,9 @@
     "date": "Effective date",
     "note": "Note",
     "emptyValue": "—",
-    "neutrality": "Money moved between your accounts. It is not counted as income or expense."
+    "neutrality": "Money moved between your accounts. It is not counted as income or expense.",
+    "balanced": "Balanced entries",
+    "auditId": "Ledger entry"
   },
   "accountsPage": {
     "title": "Accounts & wallets",
@@ -2046,7 +2060,7 @@
   },
   "transactionsPage": {
     "title": "Transactions",
-    "subtitle": "Income, spending, and money movements",
+    "subtitle": "Family income, expenses and transfers",
     "filterLabel": "Transaction type",
     "tagFilterLabel": "Tags",
     "noteSearchLabel": "Search notes",
@@ -2070,7 +2084,7 @@
     "noCategoriesMatch": "No matching categories",
     "noJarsMatch": "No matching jars",
     "loadingMore": "Loading more transactions…",
-    "allLoaded": "All transactions loaded",
+    "allLoaded": "All {count} transactions loaded",
     "activitiesLoaded": "Loaded {count} transactions",
     "loadMoreError": "Couldn’t load more transactions.",
     "loadMore": "Load more",
@@ -2118,7 +2132,16 @@
     "relationship": {
       "partiallyRefunded": "Partially refunded",
       "fullyRefunded": "Fully refunded"
-    }
+    },
+    "addFirst": "Add your first transaction",
+    "noteSearchPlaceholder": "Search notes…",
+    "clearSearch": "Clear search",
+    "activeFilters": "Filtering:",
+    "removeFilter": "Remove filter: {name}",
+    "addTransaction": "Add transaction",
+    "dayCount": "{count} entries",
+    "dailyIncome": "Income",
+    "dailyExpense": "Expenses"
   },
   "transactionTags": {
     "title": "Transaction tags",
@@ -2248,7 +2271,9 @@
     "readErrorBody": "We could not load this event right now. Try again.",
     "familyPlan": "Family plan",
     "planIncluded": "Included · {jar}",
-    "planExcluded": "Excluded from the family plan"
+    "planExcluded": "Excluded from the family plan",
+    "auditId": "Ledger entry",
+    "immutableNotice": "Posted entries stay in the ledger. Corrections and refunds create balancing entries and preserve the history."
   },
   "status": {
     "pending_mapping": "Needs category",

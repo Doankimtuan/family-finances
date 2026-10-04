@@ -18,30 +18,23 @@ import type {
   TransactionTag,
 } from "@/modules/ledger/application/client";
 import { TransactionDirection as Direction } from "@/modules/ledger/application/client";
-import {
-  AccountType,
-  CAPTURE_ACCOUNT_COMPACT_LIMIT,
-} from "@/modules/ledger/application/account-constants";
+import { AccountType } from "@/modules/ledger/application/account-constants";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
-import {
-  CAPTURE_CATEGORY_NONE_OPTION_ID,
-  CAPTURE_JAR_UNMAPPED_OPTION_ID,
-} from "@/modules/ledger/application/transaction-constants";
+import { CAPTURE_JAR_UNMAPPED_OPTION_ID } from "@/modules/ledger/application/transaction-constants";
 import {
   recordTransactionInputSchema,
   type RecordTransactionInput,
 } from "@/modules/ledger/application/commands/record-transaction.schema";
-import { DatePickerField, SelectField, TextField } from "@/shared/ui/form";
-import { AmountField } from "@/shared/patterns/amount-field";
+import { SelectField, TextField } from "@/shared/ui/form";
+import { TransactionAccountField } from "./transaction-account-field";
+import { TransactionDateField } from "./transaction-date-field";
+import { TransactionAmountField } from "./transaction-amount-field";
+import { TransactionCategoryField } from "./transaction-category-field";
 import {
   BottomActionBar,
   BottomActionBarLayout,
 } from "@/shared/patterns/bottom-action-bar";
-import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { Button } from "@/shared/ui/button";
-import { AppIcon } from "@/shared/ui/app-icon";
-import { categoryVisualFor } from "@/shared/ui/icon-registry";
-import { moneyAccountVisualFor } from "../money-account-visuals";
 import { Text } from "@/shared/ui/text";
 import { FinancialValue } from "@/shared/patterns/financial-value";
 import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
@@ -59,7 +52,6 @@ import type { ConfirmSummaryRow } from "@/shared/patterns/confirm-summary";
 import { CaptureSurface } from "./capture-surface";
 import { CaptureTransactionConfirmSheet } from "./capture-transaction-confirm-sheet";
 import {
-  CAPTURE_AMOUNT_FIELD_CLASS,
   CAPTURE_FIELDSET_LEGEND_CLASS,
   CAPTURE_SPLIT_CANCEL_LINK_CLASS,
 } from "./transaction-chrome";
@@ -142,16 +134,12 @@ function captureAccountChoiceLabel(
   tCatalog: Parameters<typeof localizeCatalogName>[0],
   account: LedgerAccount,
   creditCardLabel: string,
-  typeLabel: string,
 ) {
   const name = captureAccountName(tCatalog, account.name);
   if (account.type === AccountType.CREDIT_CARD) {
     return `${name} · ${creditCardLabel}`;
   }
-  if (name.trim().toLowerCase() === typeLabel.trim().toLowerCase()) {
-    return name;
-  }
-  return `${name} · ${typeLabel}`;
+  return name;
 }
 
 function accountFieldLabelKey(direction: TransactionDirection) {
@@ -206,7 +194,6 @@ export function CaptureTransactionForm({
 }: Props) {
   const t = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
-  const tTypes = useTranslations("money.types");
   const locale = useLocale();
   const { online } = useOnlineStatusClient();
   const statusAlert = useStatusAlert();
@@ -267,8 +254,6 @@ export function CaptureTransactionForm({
         ),
       })
     : t("personalJarHint");
-  const useCompactAccountPicker =
-    accounts.length <= CAPTURE_ACCOUNT_COMPACT_LIMIT;
   const numericAmount = typeof amount === "number" ? amount : null;
   const amountLabel =
     numericAmount != null && numericAmount > 0
@@ -609,11 +594,11 @@ export function CaptureTransactionForm({
     <>
       <form
         onSubmit={openConfirmation}
-        className="flex min-h-0 flex-1 flex-col"
+        className="flex flex-1 flex-col"
         data-testid="money-capture-form"
       >
         <div
-          className="flex min-h-0 flex-1 flex-col gap-(--space-5) overflow-y-auto overscroll-y-contain"
+          className="flex flex-1 flex-col gap-(--space-5)"
           data-testid="money-capture-fields"
         >
           {!online ? (
@@ -624,27 +609,26 @@ export function CaptureTransactionForm({
             />
           ) : null}
 
-          <CaptureSurface>
-            <Controller
-              control={control}
-              name="amount"
-              render={({ field }) => (
-                <AmountField
-                  id={amountId}
-                  label={t("amountLabel", { currency })}
-                  placeholder="0"
-                  value={typeof field.value === "number" ? field.value : null}
-                  onValueChange={(value) => field.onChange(value)}
-                  error={errors.amount ? t("errors.invalid") : undefined}
-                  required
-                  autoFocus
-                  enterKeyHint="done"
-                  data-testid="capture-amount"
-                  className={CAPTURE_AMOUNT_FIELD_CLASS}
-                />
-              )}
-            />
-          </CaptureSurface>
+          <Controller
+            control={control}
+            name="amount"
+            render={({ field }) => (
+              <TransactionAmountField
+                mode={direction}
+                currency={currency}
+                id={amountId}
+                label={t("amountLabel", { currency })}
+                placeholder={t("amountPlaceholder")}
+                value={typeof field.value === "number" ? field.value : null}
+                onValueChange={(value) => field.onChange(value)}
+                error={errors.amount ? t("errors.invalid") : undefined}
+                required
+                autoFocus
+                enterKeyHint="done"
+                data-testid="capture-amount"
+              />
+            )}
+          />
 
           {accounts.length === 0 ? (
             <StatusAlert
@@ -656,60 +640,16 @@ export function CaptureTransactionForm({
             <Controller
               control={control}
               name="accountId"
-              render={({ field }) =>
-                useCompactAccountPicker ? (
-                  <CaptureSurface testId="capture-account">
-                    <fieldset className="flex min-w-0 flex-col gap-(--space-2)">
-                      <legend className={CAPTURE_FIELDSET_LEGEND_CLASS}>
-                        {accountLabel}
-                      </legend>
-                      <ChoiceTileGroup
-                        hint={
-                          selectedAccount?.type === AccountType.CREDIT_CARD
-                            ? t("creditCardHint")
-                            : undefined
-                        }
-                      >
-                        {accounts.map((account) => (
-                          <ChoiceTile
-                            key={account.id}
-                            label={captureAccountChoiceLabel(
-                              tCatalog,
-                              account,
-                              t("creditCardLabel"),
-                              tTypes(account.type),
-                            )}
-                            selected={field.value === account.id}
-                            onPress={() =>
-                              handleAccountChange(account.id, field.onChange)
-                            }
-                            role="radio"
-                            icon={
-                              <AppIcon
-                                icon={
-                                  moneyAccountVisualFor(
-                                    account.type,
-                                    account.iconKey,
-                                  ).icon
-                                }
-                                size="sm"
-                              />
-                            }
-                          />
-                        ))}
-                      </ChoiceTileGroup>
-                      {errors.accountId ? (
-                        <Text size="sm" className="text-danger">
-                          {t("errors.no_account")}
-                        </Text>
-                      ) : null}
-                    </fieldset>
-                  </CaptureSurface>
-                ) : (
-                  <SelectField
+              render={({ field }) => (
+                <Card className="gap-0 overflow-hidden p-0">
+                  <TransactionAccountField
                     id="capture-account"
                     label={accountLabel}
-                    description={t("accountHint")}
+                    description={
+                      <span className="block px-(--space-3) pb-(--space-3)">
+                        {t("accountHint")}
+                      </span>
+                    }
                     value={field.value}
                     onChange={(value) =>
                       handleAccountChange(value, field.onChange)
@@ -720,18 +660,18 @@ export function CaptureTransactionForm({
                     }
                     required
                     data-testid="capture-account"
-                    options={accounts.map((account) => ({
-                      id: account.id,
-                      label: captureAccountChoiceLabel(
+                    accounts={accounts}
+                    currency={currency}
+                    accountLabel={(account) =>
+                      captureAccountChoiceLabel(
                         tCatalog,
                         account,
                         t("creditCardLabel"),
-                        tTypes(account.type),
-                      ),
-                    }))}
+                      )
+                    }
                   />
-                )
-              }
+                </Card>
+              )}
             />
           )}
 
@@ -739,12 +679,18 @@ export function CaptureTransactionForm({
             control={control}
             name="categoryId"
             render={({ field }) => (
-              <SelectField
+              <TransactionCategoryField
                 id="capture-category"
-                label={t("tagLabel")}
-                value={field.value ?? CAPTURE_CATEGORY_NONE_OPTION_ID}
+                label={t(
+                  direction === Direction.INCOME
+                    ? "incomeCategoryLabel"
+                    : "expenseCategoryLabel",
+                )}
+                value={field.value}
+                tags={tags}
+                jars={jars}
                 onChange={(value) => {
-                  if (value === CAPTURE_CATEGORY_NONE_OPTION_ID) {
+                  if (value === null) {
                     field.onChange(null);
                     setValue("jarId", null, { shouldValidate: true });
                     return;
@@ -758,40 +704,6 @@ export function CaptureTransactionForm({
                   );
                 }}
                 onBlur={field.onBlur}
-                data-testid="capture-category"
-                options={[
-                  {
-                    id: CAPTURE_CATEGORY_NONE_OPTION_ID,
-                    label: t("tagNone"),
-                  },
-                  ...tags.map((tag) => ({
-                    id: tag.id,
-                    textValue: localizeCatalogName(
-                      tCatalog,
-                      CatalogGroup.TAGS,
-                      tag.name,
-                    ),
-                    label: (
-                      <span className="flex items-center gap-(--space-2)">
-                        <AppIcon
-                          icon={
-                            categoryVisualFor({
-                              categoryId: tag.id,
-                              categoryName: tag.name,
-                              iconKey: tag.iconKey,
-                            }).icon
-                          }
-                          size="sm"
-                        />
-                        {localizeCatalogName(
-                          tCatalog,
-                          CatalogGroup.TAGS,
-                          tag.name,
-                        )}
-                      </span>
-                    ),
-                  })),
-                ]}
               />
             )}
           />
@@ -837,7 +749,7 @@ export function CaptureTransactionForm({
             control={control}
             name="transactionDate"
             render={({ field }) => (
-              <DatePickerField
+              <TransactionDateField
                 id={dateId}
                 label={t("effectiveDateLabel")}
                 value={field.value ?? ""}
@@ -972,7 +884,10 @@ export function CaptureTransactionForm({
             variant="primary"
             className="min-w-0 flex-[2] shadow-none"
             data-testid="capture-save"
+            isLoading={isPending}
             isDisabled={
+              !amountLabel ||
+              !selectedAccount ||
               isPending ||
               pendingSubmission != null ||
               !online ||
@@ -980,7 +895,11 @@ export function CaptureTransactionForm({
             }
             onPress={() => void openConfirmation()}
           >
-            {isPending ? t("saving") : t("save")}
+            {isPending
+              ? t("saving")
+              : t(
+                  direction === Direction.INCOME ? "saveIncome" : "saveExpense",
+                )}
           </Button>
         </BottomActionBar>
       </form>
@@ -992,7 +911,11 @@ export function CaptureTransactionForm({
           title={t("confirmTitle")}
           rows={confirmRows}
           secondaryLabel={t("back")}
-          primaryLabel={isPending ? t("saving") : t("save")}
+          primaryLabel={
+            isPending
+              ? t("saving")
+              : t(direction === Direction.INCOME ? "saveIncome" : "saveExpense")
+          }
           onClose={closeConfirmation}
           onConfirm={confirmSubmission}
         />

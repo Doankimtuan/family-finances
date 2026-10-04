@@ -17,7 +17,11 @@ import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
 import { Sheet, SheetActionFooter } from "@/shared/patterns";
 import { Button, ButtonVariant } from "@/shared/ui/button";
 import { AppIcon } from "@/shared/ui/app-icon";
+import { IconContainer } from "@/shared/ui/icon-container";
+import { TransactionFilterOption } from "./transaction-filter-option";
+import { categoryVisualFor, PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
+import { IconButton } from "@/shared/ui/icon-button";
 import { TextField } from "@/shared/ui/form";
 import {
   CatalogGroup,
@@ -134,7 +138,21 @@ export function TransactionsFilterBar({
       <form className="flex items-end gap-(--space-2)" onSubmit={submitSearch}>
         <TextField
           id="transactions-note-search"
-          label={t("noteSearchLabel")}
+          label={<span className="sr-only">{t("noteSearchLabel")}</span>}
+          placeholder={t("noteSearchPlaceholder")}
+          leadingIcon={<AppIcon icon={ACTION_ICONS.search} size="sm" />}
+          trailingElement={
+            <IconButton
+              aria-label={t("clearSearch")}
+              onPress={() => {
+                setSearchDraftState({ value: "", query });
+                if (query) apply(type, "", categoryIds, jarIds, selectedTagIds);
+              }}
+              data-testid="transactions-clear-search"
+            >
+              <AppIcon icon={ACTION_ICONS.close} size="sm" />
+            </IconButton>
+          }
           type="search"
           maxLength={TRANSACTION_SEARCH_MAX_LENGTH}
           value={searchDraft}
@@ -144,20 +162,19 @@ export function TransactionsFilterBar({
           fieldClassName="min-w-0 flex-1"
           data-testid="transactions-note-search"
         />
-        <Button
+        <button
           type="submit"
-          variant="secondary"
-          className="shrink-0"
+          className="sr-only"
+          tabIndex={-1}
           data-testid="transactions-note-search-submit"
         >
-          <AppIcon icon={ACTION_ICONS.search} size="sm" />
           {t("search")}
-        </Button>
+        </button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-(--space-2)">
+      <div className="flex items-center gap-(--space-2)">
         <div
-          className="flex max-w-full flex-wrap items-center gap-(--space-2)"
+          className="flex min-w-0 flex-1 items-center gap-(--space-2) overflow-x-auto"
           role="group"
           aria-label={t("filterLabel")}
         >
@@ -165,6 +182,7 @@ export function TransactionsFilterBar({
             <FilterChip
               key={value}
               selected={type === value}
+              className="px-(--space-3)"
               onPress={() =>
                 apply(value, query, categoryIds, jarIds, selectedTagIds)
               }
@@ -176,8 +194,8 @@ export function TransactionsFilterBar({
         </div>
         <Button
           type="button"
-          variant="secondary"
-          className="min-h-11"
+          variant={ButtonVariant.OUTLINED}
+          className="min-h-11 shrink-0 rounded-full gap-(--space-2) px-(--space-3) text-xs"
           onPress={openFilters}
           aria-label={t("openFilters", { count: advancedFilterCount })}
           data-testid="transactions-open-filters"
@@ -190,30 +208,116 @@ export function TransactionsFilterBar({
             </span>
           ) : null}
         </Button>
-        {hasActiveFilter ? (
+      </div>
+
+      {hasActiveFilter ? (
+        <div className="flex flex-wrap items-center gap-(--space-2) text-xs text-text-secondary">
+          <span>{t("activeFilters")}</span>
+          {categoryIds.map((id) => {
+            const category = availableCategories.find((item) => item.id === id);
+            if (!category) return null;
+            const name = localizeCatalogName(
+              tCatalog,
+              CatalogGroup.TAGS,
+              category.name,
+            );
+            return (
+              <Button
+                key={id}
+                variant={ButtonVariant.TONAL}
+                aria-label={t("removeFilter", { name })}
+                className="gap-(--space-1) px-(--space-2) text-xs"
+                onPress={() =>
+                  apply(
+                    type,
+                    query,
+                    categoryIds.filter((value) => value !== id),
+                    jarIds,
+                    selectedTagIds,
+                  )
+                }
+              >
+                {name}
+                <AppIcon icon={ACTION_ICONS.close} size="xs" />
+              </Button>
+            );
+          })}
+          {jarIds.map((id) => {
+            const jar = availableJars.find((item) => item.id === id);
+            if (!jar) return null;
+            const name = localizeCatalogName(
+              tCatalog,
+              CatalogGroup.JARS,
+              jar.name,
+            );
+            return (
+              <Button
+                key={id}
+                variant={ButtonVariant.OUTLINED}
+                aria-label={t("removeFilter", { name })}
+                className="gap-(--space-1) px-(--space-2) text-xs"
+                onPress={() =>
+                  apply(
+                    type,
+                    query,
+                    categoryIds,
+                    jarIds.filter((value) => value !== id),
+                    selectedTagIds,
+                  )
+                }
+              >
+                {name}
+                <AppIcon icon={ACTION_ICONS.close} size="xs" />
+              </Button>
+            );
+          })}
+          {selectedTagIds.map((id) => {
+            const tag = availableTags.find((item) => item.id === id);
+            if (!tag) return null;
+            return (
+              <Button
+                key={id}
+                variant={ButtonVariant.OUTLINED}
+                aria-label={t("removeFilter", { name: tag.name })}
+                className="gap-(--space-1) px-(--space-2) text-xs"
+                onPress={() =>
+                  apply(
+                    type,
+                    query,
+                    categoryIds,
+                    jarIds,
+                    selectedTagIds.filter((value) => value !== id),
+                  )
+                }
+              >
+                {tag.name}
+                <AppIcon icon={ACTION_ICONS.close} size="xs" />
+              </Button>
+            );
+          })}
           <Button
             type="button"
             variant={ButtonVariant.GHOST}
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="px-(--space-2) text-xs"
             onPress={() => apply(TransactionFilterType.ALL, "", [], [], [])}
             data-testid="transactions-clear-filters"
           >
             {t("clearFilters")}
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <Sheet isOpen={isOpen} onOpenChange={setIsOpen}>
-        <ActionSheetLayout>
+        <ActionSheetLayout className="px-0 pb-0 pt-(--space-4)">
           <ActionSheetLayout.Header>
             <Sheet.Heading className="text-lg font-semibold tracking-tight text-text-primary">
               {t("filterSheetTitle")}
             </Sheet.Heading>
           </ActionSheetLayout.Header>
           <ActionSheetLayout.Body>
-            <div className="flex flex-col gap-(--space-4)">
+            <div className="flex flex-col gap-(--space-6)">
               <fieldset className="flex flex-col gap-(--space-3)">
-                <legend className="text-sm font-medium text-text-primary">
+                <legend className="mb-(--space-3) text-sm font-semibold text-text-primary">
                   {t("categoryFilterLabel")}
                 </legend>
                 <TextField
@@ -222,6 +326,7 @@ export function TransactionsFilterBar({
                     <span className="sr-only">{t("categorySearchLabel")}</span>
                   }
                   placeholder={t("categorySearchLabel")}
+                  leadingIcon={<AppIcon icon={ACTION_ICONS.search} size="sm" />}
                   value={categorySearch}
                   onChange={(event) => setCategorySearch(event.target.value)}
                 />
@@ -229,11 +334,30 @@ export function TransactionsFilterBar({
                   {visibleCategories.map((category) => {
                     const selected = draftCategoryIds.includes(category.id);
                     return (
-                      <FilterChip
+                      <TransactionFilterOption
                         key={category.id}
+                        label={localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.TAGS,
+                          category.name,
+                        )}
+                        icon={
+                          <IconContainer size="sm" tone="neutral">
+                            <AppIcon
+                              icon={
+                                categoryVisualFor({
+                                  categoryId: category.id,
+                                  categoryName: category.name,
+                                }).icon
+                              }
+                              size="sm"
+                            />
+                          </IconContainer>
+                        }
+                        status={!category.isActive ? t("inactive") : undefined}
                         selected={selected}
-                        className="w-full justify-between rounded-[var(--radius-control)] border px-(--space-3) text-left"
-                        data-testid={`transactions-category-option-${category.id}`}
+
+                        testId={`transactions-category-option-${category.id}`}
                         onPress={() =>
                           setDraftCategoryIds((current) =>
                             current.includes(category.id)
@@ -241,28 +365,7 @@ export function TransactionsFilterBar({
                               : [...current, category.id],
                           )
                         }
-                      >
-                        <span className="min-w-0 flex-1 truncate">
-                          {localizeCatalogName(
-                            tCatalog,
-                            CatalogGroup.TAGS,
-                            category.name,
-                          )}
-                        </span>
-                        {!category.isActive ? (
-                          <span className="shrink-0 text-xs text-text-secondary">
-                            {t("inactive")}
-                          </span>
-                        ) : null}
-                        <span
-                          aria-hidden
-                          className="flex size-5 items-center justify-center rounded-full border border-current"
-                        >
-                          {selected ? (
-                            <AppIcon icon={ACTION_ICONS.check} size="xs" />
-                          ) : null}
-                        </span>
-                      </FilterChip>
+                      />
                     );
                   })}
                   {visibleCategories.length === 0 ? (
@@ -273,13 +376,14 @@ export function TransactionsFilterBar({
                 </div>
               </fieldset>
               <fieldset className="flex flex-col gap-(--space-3)">
-                <legend className="text-sm font-medium text-text-primary">
+                <legend className="mb-(--space-3) text-sm font-semibold text-text-primary">
                   {t("jarFilterLabel")}
                 </legend>
                 <TextField
                   id="transactions-jar-search"
                   label={<span className="sr-only">{t("jarSearchLabel")}</span>}
                   placeholder={t("jarSearchLabel")}
+                  leadingIcon={<AppIcon icon={ACTION_ICONS.search} size="sm" />}
                   value={jarSearch}
                   onChange={(event) => setJarSearch(event.target.value)}
                 />
@@ -287,11 +391,28 @@ export function TransactionsFilterBar({
                   {visibleJars.map((jar) => {
                     const selected = draftJarIds.includes(jar.id);
                     return (
-                      <FilterChip
+                      <TransactionFilterOption
                         key={jar.id}
+                        label={localizeCatalogName(
+                          tCatalog,
+                          CatalogGroup.JARS,
+                          jar.name,
+                        )}
+                        icon={
+                          <IconContainer size="sm" tone="primary">
+                            <AppIcon icon={PLAN_ICONS.jar} size="sm" />
+                          </IconContainer>
+                        }
+                        status={
+                          jar.isArchived
+                            ? t("archived")
+                            : jar.isPaused
+                              ? t("paused")
+                              : undefined
+                        }
                         selected={selected}
-                        className="w-full justify-between rounded-[var(--radius-control)] border px-(--space-3) text-left"
-                        data-testid={`transactions-jar-option-${jar.id}`}
+
+                        testId={`transactions-jar-option-${jar.id}`}
                         onPress={() =>
                           setDraftJarIds((current) =>
                             current.includes(jar.id)
@@ -299,32 +420,7 @@ export function TransactionsFilterBar({
                               : [...current, jar.id],
                           )
                         }
-                      >
-                        <span className="min-w-0 flex-1 truncate">
-                          {localizeCatalogName(
-                            tCatalog,
-                            CatalogGroup.JARS,
-                            jar.name,
-                          )}
-                        </span>
-                        {jar.isArchived ? (
-                          <span className="shrink-0 text-xs text-text-secondary">
-                            {t("archived")}
-                          </span>
-                        ) : jar.isPaused ? (
-                          <span className="shrink-0 text-xs text-text-secondary">
-                            {t("paused")}
-                          </span>
-                        ) : null}
-                        <span
-                          aria-hidden
-                          className="flex size-5 items-center justify-center rounded-full border border-current"
-                        >
-                          {selected ? (
-                            <AppIcon icon={ACTION_ICONS.check} size="xs" />
-                          ) : null}
-                        </span>
-                      </FilterChip>
+                      />
                     );
                   })}
                   {visibleJars.length === 0 ? (
@@ -335,13 +431,14 @@ export function TransactionsFilterBar({
                 </div>
               </fieldset>
               <fieldset className="flex flex-col gap-(--space-3)">
-                <legend className="text-sm font-medium text-text-primary">
+                <legend className="mb-(--space-3) text-sm font-semibold text-text-primary">
                   {t("tagFilterLabel")}
                 </legend>
                 <TextField
                   id="transactions-tag-search"
                   label={<span className="sr-only">{t("tagSearchLabel")}</span>}
                   placeholder={t("tagSearchLabel")}
+                  leadingIcon={<AppIcon icon={ACTION_ICONS.search} size="sm" />}
                   value={tagSearch}
                   onChange={(event) => setTagSearch(event.target.value)}
                 />
@@ -350,13 +447,20 @@ export function TransactionsFilterBar({
                     const selected = draftTagIds.includes(tag.id);
                     const visual = transactionTagVisualFor(tag);
                     return (
-                      <Button
+                      <TransactionFilterOption
                         key={tag.id}
-                        type="button"
-                        variant={ButtonVariant.GHOST}
-                        aria-pressed={selected}
+                        label={tag.name}
+                        icon={
+                          <span
+                            className={`flex size-8 shrink-0 items-center justify-center rounded-(--radius-control) ${visual.color.surface} ${visual.color.text}`}
+                          >
+                            <AppIcon icon={visual.icon} size="sm" />
+                          </span>
+                        }
+                        status={tag.archivedAt ? t("archived") : undefined}
+                        selected={selected}
                         isDisabled={Boolean(tag.archivedAt) && !selected}
-                        className={`flex min-h-11 w-full min-w-0 items-center justify-start gap-(--space-3) rounded-[var(--radius-control)] border px-(--space-3) text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring ${selected ? `${visual.color.surface} ${visual.color.border}` : "border-border-subtle bg-surface hover:bg-surface-hover"} ${tag.archivedAt && !selected ? "cursor-not-allowed opacity-45" : ""}`}
+                        testId={`transactions-tag-option-${tag.id}`}
                         onPress={() => {
                           setDraftTagIds(
                             selected
@@ -366,29 +470,7 @@ export function TransactionsFilterBar({
                                 : draftTagIds,
                           );
                         }}
-                      >
-                        <span
-                          className={`flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] ${visual.color.surface} ${visual.color.text}`}
-                        >
-                          <AppIcon icon={visual.icon} size="sm" />
-                        </span>
-                        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
-                          {tag.name}
-                        </span>
-                        {tag.archivedAt ? (
-                          <span className="text-xs text-text-secondary">
-                            {t("archived")}
-                          </span>
-                        ) : null}
-                        <span
-                          aria-hidden
-                          className={`flex size-5 items-center justify-center rounded-full border text-xs ${selected ? "border-accent bg-accent text-accent-fg" : "border-border-strong"}`}
-                        >
-                          {selected ? (
-                            <AppIcon icon={ACTION_ICONS.check} size="xs" />
-                          ) : null}
-                        </span>
-                      </Button>
+                      />
                     );
                   })}
                   {visibleTags.length === 0 ? (

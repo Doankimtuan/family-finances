@@ -1,3 +1,4 @@
+import { formatDate } from "@/shared/i18n/formatters";
 import { Link } from "@/i18n/navigation";
 import type { PendingInvitation } from "@/modules/tenancy/application/list-pending-invitations";
 import { TOGETHER_PATH } from "@/modules/tenancy/application/tenancy-constants";
@@ -33,7 +34,7 @@ export function TogetherInvitationPreview({
       <ul className="divide-y divide-divider">
         {invitations.map((invitation) => {
           const expiry = expiresLabel(
-            new Date(invitation.expiresAt).toLocaleDateString(locale),
+            formatDate(new Date(invitation.expiresAt), locale),
           );
           return (
             <li
@@ -48,7 +49,7 @@ export function TogetherInvitationPreview({
                 href={TOGETHER_PATH.INVITATIONS}
                 className="flex min-h-14 items-center gap-(--space-3) px-(--space-3) py-(--space-3) transition-[background-color] duration-(--duration-fast) hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none"
               >
-                <IconContainer tone={IconContainerTone.INFO} size="sm">
+                <IconContainer tone={IconContainerTone.WARNING} size="sm">
                   <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
                 </IconContainer>
                 <div className="min-w-0 flex-1">

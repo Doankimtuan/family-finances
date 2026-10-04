@@ -41,19 +41,25 @@ type ErrorCode =
 
 type Props = {
   jars: CaptureJarOption[];
+  defaultJarId?: string;
+  compact?: boolean;
 };
 
-function createCategoryDefaults() {
+function createCategoryDefaults(defaultJarId = "") {
   return {
     name: "",
     kind: TransactionDirection.EXPENSE,
-    mappedJarId: "",
+    mappedJarId: defaultJarId,
     iconKey: DEFAULT_CATEGORY_ICON_KEY,
   };
 }
 
 /** Category creation keeps jar mapping optional for both category kinds. */
-export function CreateCategoryForm({ jars }: Props) {
+export function CreateCategoryForm({
+  jars,
+  defaultJarId = "",
+  compact,
+}: Props) {
   const t = useTranslations("plan.jars.categoryForm");
   const tCatalog = useTranslations("catalog");
   const tIcons = useTranslations("common.iconPicker");
@@ -67,7 +73,7 @@ export function CreateCategoryForm({ jars }: Props) {
   const [kind, setKind] = useState<TransactionDirectionValue>(
     TransactionDirection.EXPENSE,
   );
-  const [mappedJarId, setMappedJarId] = useState("");
+  const [mappedJarId, setMappedJarId] = useState(defaultJarId);
   const [iconKey, setIconKey] = useState<CategoryIconKey>(
     DEFAULT_CATEGORY_ICON_KEY,
   );
@@ -75,7 +81,7 @@ export function CreateCategoryForm({ jars }: Props) {
   const [isPending, startTransition] = useTransition();
 
   const reset = () => {
-    const defaults = createCategoryDefaults();
+    const defaults = createCategoryDefaults(defaultJarId);
     setName(defaults.name);
     setKind(defaults.kind);
     setMappedJarId(defaults.mappedJarId);
@@ -145,8 +151,10 @@ export function CreateCategoryForm({ jars }: Props) {
   return (
     <>
       <Button
-        variant="secondary"
-        className="w-full"
+        variant={compact ? "ghost" : "secondary"}
+        className={
+          compact ? "min-h-11 w-auto px-0 text-xs text-primary" : "w-full"
+        }
         data-testid="category-create-open"
         isDisabled={!online}
         onPress={() => {
@@ -155,7 +163,7 @@ export function CreateCategoryForm({ jars }: Props) {
           setOpen(true);
         }}
       >
-        {online ? t("open") : t("errors.offline")}
+        {online ? t(compact ? "add" : "open") : t("errors.offline")}
       </Button>
       <Sheet isOpen={open} onOpenChange={(next) => !next && close()}>
         <ActionSheetLayout>

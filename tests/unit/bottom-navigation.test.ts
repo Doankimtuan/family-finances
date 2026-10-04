@@ -113,7 +113,7 @@ describe("BottomNavigation sub-route matching and standalone suppression", () =>
     const { isStandaloneFlowPath } =
       await import("@/shared/patterns/bottom-navigation");
 
-    expect(isStandaloneFlowPath(APP_PATH.MONEY_ADD)).toBe(true);
+    expect(isStandaloneFlowPath(APP_PATH.MONEY_ADD)).toBe(false);
     expect(isStandaloneFlowPath(APP_PATH.PLAN_RITUAL)).toBe(true);
     expect(isStandaloneFlowPath(APP_PATH.MONEY_SAVINGS_NEW)).toBe(true);
     expect(isStandaloneFlowPath(APP_PATH.MONEY_INVESTMENTS_NEW)).toBe(true);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -10,6 +10,10 @@ import {
   type JarKind as JarKindValue,
   type JarRolloverMode as JarRolloverModeValue,
 } from "@/modules/plan/application/client";
+import { cn } from "@/shared/utils/cn";
+import { PlanDisclosure } from "../../plan-disclosure";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/button";
 import { Card } from "@/shared/patterns/card";
 import { ActionSheetLayout } from "@/shared/patterns/action-sheet-layout";
@@ -30,6 +34,8 @@ import {
 } from "../jar-configuration-form";
 
 type Props = {
+  primaryAction?: ReactNode;
+  children?: ReactNode;
   jarId: string;
   state: JarStateValue;
   kind: JarKindValue;
@@ -46,6 +52,8 @@ type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
 
 export function JarDetailControls({
+  primaryAction,
+  children,
   jarId,
   state,
   kind,
@@ -91,15 +99,24 @@ export function JarDetailControls({
           description={t(`errors.${errorCode}`)}
         />
       ) : null}
-      <Button
-        variant="secondary"
-        className="w-full"
-        data-testid="jar-edit-open"
-        isDisabled={!online}
-        onPress={() => setEditing(true)}
+      <div
+        className={cn(
+          "grid items-stretch gap-(--space-2)",
+          primaryAction ? "grid-cols-2" : "grid-cols-1",
+        )}
       >
-        {t("editJar")}
-      </Button>
+        {primaryAction}
+        <Button
+          variant="outline"
+          className="h-auto min-h-11 w-full whitespace-normal px-(--space-2) py-(--space-2) text-xs"
+          leadingIcon={<AppIcon icon={ACTION_ICONS.edit} size="sm" />}
+          data-testid="jar-edit-open"
+          isDisabled={!online}
+          onPress={() => setEditing(true)}
+        >
+          {t("editJar")}
+        </Button>
+      </div>
       <Sheet isOpen={editing} onOpenChange={setEditing}>
         <ActionSheetLayout>
           {editing ? (
@@ -121,47 +138,54 @@ export function JarDetailControls({
           ) : null}
         </ActionSheetLayout>
       </Sheet>
-      <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
-        <Text size="sm" className="font-semibold text-text-primary">
-          {t("stateHeading")}
-        </Text>
-        <Text size="sm" tone="secondary">
-          {state === JarState.ACTIVE ? t("pauseHint") : t("resumeHint")}
-        </Text>
-        {state === JarState.ACTIVE ? (
-          <Button
-            variant="secondary"
-            className="w-full"
-            data-testid="jar-pause"
-            isDisabled={isPending || !online}
-            onPress={() => runState(JarState.PAUSED)}
-          >
-            {t("pause")}
-          </Button>
-        ) : null}
-        {state === JarState.PAUSED || state === JarState.ARCHIVED ? (
-          <Button
-            variant="secondary"
-            className="w-full"
-            data-testid="jar-resume"
-            isDisabled={isPending || !online}
-            onPress={() => runState(JarState.ACTIVE)}
-          >
-            {state === JarState.ARCHIVED ? t("unarchive") : t("resume")}
-          </Button>
-        ) : null}
-        {state !== JarState.ARCHIVED ? (
-          <Button
-            variant="danger"
-            className="w-full"
-            data-testid="jar-archive"
-            isDisabled={isPending || !online}
-            onPress={() => setConfirmArchive(true)}
-          >
-            {t("archive")}
-          </Button>
-        ) : null}
-      </Card>
+      {children}
+      <PlanDisclosure
+        showLabel={t("stateHeading")}
+        hideLabel={t("stateHeading")}
+        testId="jar-lifecycle-options"
+      >
+        <Card tone="soft" className="gap-(--space-3) p-(--space-4)">
+          <Text size="sm" className="font-semibold text-text-primary">
+            {t("stateHeading")}
+          </Text>
+          <Text size="sm" tone="secondary">
+            {state === JarState.ACTIVE ? t("pauseHint") : t("resumeHint")}
+          </Text>
+          {state === JarState.ACTIVE ? (
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="jar-pause"
+              isDisabled={isPending || !online}
+              onPress={() => runState(JarState.PAUSED)}
+            >
+              {t("pause")}
+            </Button>
+          ) : null}
+          {state === JarState.PAUSED || state === JarState.ARCHIVED ? (
+            <Button
+              variant="secondary"
+              className="w-full"
+              data-testid="jar-resume"
+              isDisabled={isPending || !online}
+              onPress={() => runState(JarState.ACTIVE)}
+            >
+              {state === JarState.ARCHIVED ? t("unarchive") : t("resume")}
+            </Button>
+          ) : null}
+          {state !== JarState.ARCHIVED ? (
+            <Button
+              variant="danger"
+              className="w-full"
+              data-testid="jar-archive"
+              isDisabled={isPending || !online}
+              onPress={() => setConfirmArchive(true)}
+            >
+              {t("archive")}
+            </Button>
+          ) : null}
+        </Card>
+      </PlanDisclosure>
       <Sheet isOpen={confirmArchive} onOpenChange={setConfirmArchive}>
         <ActionSheetLayout>
           <ActionSheetLayout.Header>

@@ -30,6 +30,13 @@ import {
   TransactionActivityBreakdownKind,
   TransactionProductEvent,
 } from "@/modules/ledger/application";
+import { FinancialAmount } from "@/shared/ui/financial-amount";
+import {
+  FinancialAmountTone,
+  FinancialAmountSize,
+} from "@/shared/ui/financial-amount-constants";
+import { AppIcon } from "@/shared/ui/app-icon";
+import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { SavingsEventKind } from "@/modules/savings/application/savings-constants";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
@@ -53,6 +60,7 @@ import {
 import { Page } from "@/shared/patterns/page";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { Text } from "@/shared/ui/text";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { StatusAlert } from "@/shared/ui/status-alert";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { TransactionTagEditor } from "../transaction-tag-editor";
@@ -70,7 +78,7 @@ const ACTIVITY_TONE_TO_AMOUNT_TONE: Record<
   AmountTone
 > = {
   [TransactionActivityTone.CREDIT]: AmountTone.CREDIT,
-  [TransactionActivityTone.DEBIT]: AmountTone.DEBIT,
+  [TransactionActivityTone.DEBIT]: AmountTone.EXPENSE,
   [TransactionActivityTone.REFUND]: AmountTone.REFUND,
   [TransactionActivityTone.NEUTRAL]: AmountTone.NEUTRAL,
 };
@@ -203,12 +211,6 @@ function TransferDetail({
         activity.destinationAccount.name,
       )
     : t("transferDetail.emptyValue");
-  const amountLabel = formatCurrency(
-    activity.amount,
-    activity.currency,
-    locale,
-    { maximumFractionDigits: 0 },
-  );
 
   return (
     <Page
@@ -224,15 +226,56 @@ function TransferDetail({
       }
     >
       <MoneyOfflineBanner />
-      <Card tone="elevated" className="gap-0 p-(--space-4)">
-        <Amount
-          label={t("transferDetail.event")}
-          amountLabel={amountLabel}
-          size="lg"
-          tone={AmountTone.NEUTRAL}
+      <Card tone="soft" className="gap-(--space-3) p-(--space-5)">
+        <Text size="sm" tone="secondary">
+          {t("transferDetail.event")}
+        </Text>
+        <FinancialAmount
+          value={activity.amount}
+          tone={FinancialAmountTone.TRANSFER}
+          size={FinancialAmountSize.DISPLAY_HERO}
+          showSign
         />
+        <StatusBadge tone={StatusBadgeTone.INFO}>
+          {t("transferDetail.balanced")}
+        </StatusBadge>
       </Card>
 
+      <Card
+        tone="soft"
+        className="gap-(--space-3) p-(--space-4)"
+        data-testid="transfer-route"
+      >
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <div className="min-w-0">
+            <Text size="sm" tone="secondary">
+              {t("transferDetail.from")}
+            </Text>
+            <Text weight="medium">{sourceName}</Text>
+          </div>
+          <FinancialAmount
+            value={activity.amount}
+            tone={FinancialAmountTone.EXPENSE}
+            showSign
+          />
+        </div>
+        <div className="self-center text-transfer" aria-hidden="true">
+          <AppIcon icon={FINANCE_ICONS.transfer} size="md" />
+        </div>
+        <div className="flex items-center justify-between gap-(--space-3)">
+          <div className="min-w-0">
+            <Text size="sm" tone="secondary">
+              {t("transferDetail.to")}
+            </Text>
+            <Text weight="medium">{destinationName}</Text>
+          </div>
+          <FinancialAmount
+            value={activity.amount}
+            tone={FinancialAmountTone.INCOME}
+            showSign
+          />
+        </div>
+      </Card>
       <TransactionFactsCard title={t("transferDetail.routeTitle")}>
         <TransactionFactRow
           label={t("transferDetail.from")}
@@ -247,6 +290,14 @@ function TransferDetail({
           value={
             <span className="tabular-nums">
               {formatEffectiveDate(activity.effectiveDate, locale)}
+            </span>
+          }
+        />
+        <TransactionFactRow
+          label={t("transferDetail.auditId")}
+          value={
+            <span className="break-all font-mono text-xs">
+              {activity.relatedTransactionIds.join(" · ")}
             </span>
           }
         />
@@ -438,7 +489,7 @@ export default async function TransactionDetailPage({ params }: Props) {
       }
     >
       <MoneyOfflineBanner />
-      <Card tone="elevated" className="gap-0 p-(--space-4)">
+      <Card tone="soft" className="gap-(--space-3) p-(--space-5)">
         <Amount
           label={t("detailPage.amount")}
           amountLabel={signed}
@@ -446,6 +497,12 @@ export default async function TransactionDetailPage({ params }: Props) {
           kind={FinancialNumberKind.MOVEMENT}
           tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
         />
+        <Text size="sm" weight="medium">
+          {transactionContextTitle(tx, tCatalog, t)}
+        </Text>
+        <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
+          {t(`status.${statusKey}`)}
+        </StatusBadge>
       </Card>
 
       {activity.breakdown.kind ===
@@ -503,6 +560,10 @@ export default async function TransactionDetailPage({ params }: Props) {
       ) : null}
 
       <TransactionFactsCard title={t("detailPage.context")}>
+        <TransactionFactRow
+          label={t("detailPage.auditId")}
+          value={<span className="break-all font-mono text-xs">{tx.id}</span>}
+        />
         <TransactionFactRow
           label={t("detailPage.account")}
           value={
@@ -704,6 +765,11 @@ export default async function TransactionDetailPage({ params }: Props) {
         </section>
       ) : null}
 
+      {canCorrect || canRefund ? (
+        <Text size="sm" tone="secondary">
+          {t("detailPage.immutableNotice")}
+        </Text>
+      ) : null}
       {canCorrect ? (
         <Link
           href={moneyTransactionCorrectPath(tx.id)}

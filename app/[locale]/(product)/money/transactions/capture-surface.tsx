@@ -19,7 +19,7 @@ export function CaptureSurface({
   return (
     <Card
       tone="elevated"
-      className={cn("gap-(--space-3) p-(--space-4)", className)}
+      className={cn("gap-(--space-3) p-(--space-4) shadow-none", className)}
       data-testid={testId}
     >
       {children}

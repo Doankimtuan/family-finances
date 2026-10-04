@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Card } from "@/shared/patterns/card";
@@ -36,8 +35,7 @@ export default async function MoneyTransactionAddLoading() {
       contentClassName="gap-(--space-5) pb-0"
       topBar={
         <TopAppBar
-          variant="form"
-          backHref={APP_PATH.MONEY_TRANSACTIONS}
+          variant="primary"
           title={t("capture")}
           subtitle={t("captureForm.subtitle")}
         />

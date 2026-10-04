@@ -100,6 +100,8 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { cn } from "@/shared/utils/cn";
 import { PlanPeriodSelect } from "./plan-period-select";
+import { PlanHistorySummary } from "./plan-history-summary";
+import { PlanPrivacyToggle } from "./plan-privacy-toggle";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -302,6 +304,11 @@ async function PlanCriticalSection({
   const summary = data.budgetSummary;
   const amount = (value: number) =>
     formatCurrency(value, data.currency, locale, { maximumFractionDigits: 0 });
+  const compactAmount = (value: number) =>
+    formatCurrency(value, data.currency, locale, {
+      notation: "compact",
+      maximumFractionDigits: 2,
+    });
   const incomeValue =
     data.periodIncome > 0
       ? amount(data.periodIncome)
@@ -346,48 +353,62 @@ async function PlanCriticalSection({
     ? t("home.monthlyUsage", { percent: usagePercentLabel })
     : undefined;
   const periodOptions = [
-    data.currentPeriodMonth,
-    ...data.historyMonths.filter((month) => month !== data.currentPeriodMonth),
+    ...new Set([
+      data.currentPeriodMonth,
+      data.periodMonth,
+      ...data.historyMonths,
+    ]),
   ].map((month) => ({
     value: month,
     label: formatPlanPeriod(month, locale, t),
+    shortLabel: formatDate(new Date(`${month}T00:00:00Z`), locale, {
+      month: "short",
+      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    }),
   }));
 
   return (
     <MotionReveal>
       <div className="flex flex-col gap-(--space-3)">
-        <div className="flex items-center justify-between gap-(--space-2)">
+        <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
           <PlanPeriodSelect
             label={t("home.periodSelectorLabel")}
             loadingLabel={t("home.periodLoading")}
             options={periodOptions}
             selectedMonth={data.periodMonth}
+            historical={data.isHistorical}
+            previousLabel={t("home.previousMonth")}
+            nextLabel={t("home.nextMonth")}
           />
-          <StatusBadge
-            tone={
-              data.isHistorical
-                ? StatusBadgeTone.NEUTRAL
-                : StatusBadgeTone.POSITIVE
-            }
-            className={cn(
-              "min-h-8 shrink-0 px-(--space-3) text-xs",
-              data.isHistorical
-                ? "border-border-subtle bg-surface-muted text-text-secondary"
-                : "border-primary/25 bg-primary/10 text-primary",
-            )}
-          >
-            <span
-              className="size-1.5 rounded-full bg-current"
-              aria-hidden="true"
-            />
-            {data.isHistorical
-              ? t("home.historyReadOnly")
-              : t(
-                  data.assistMode === PlanAssistMode.MANUAL
-                    ? "home.assistManual"
-                    : "home.assistAssisted",
-                )}
-          </StatusBadge>
+          {!data.isHistorical ? (
+            <StatusBadge
+              tone={
+                data.isHistorical
+                  ? StatusBadgeTone.NEUTRAL
+                  : StatusBadgeTone.POSITIVE
+              }
+              className={cn(
+                "min-h-8 shrink-0 px-(--space-3) text-xs",
+                data.isHistorical
+                  ? "border-border-subtle bg-surface-muted text-text-secondary"
+                  : "border-primary/25 bg-primary/10 text-primary",
+              )}
+            >
+              <AppIcon
+                icon={
+                  data.isHistorical ? PLAN_ICONS.lockedPeriod : PLAN_ICONS.jar
+                }
+                size={AppIconSize.XS}
+              />
+              {data.isHistorical
+                ? t("home.historyReadOnly")
+                : t(
+                    data.assistMode === PlanAssistMode.MANUAL
+                      ? "home.assistManual"
+                      : "home.assistAssisted",
+                  )}
+            </StatusBadge>
+          ) : null}
         </div>
         {data.isHistorical && !data.historyAvailable ? (
           <StatusAlert
@@ -401,56 +422,103 @@ async function PlanCriticalSection({
               <StatusAlert
                 variant="warning"
                 title={t("home.historyIncompleteTitle")}
-                description={t("home.historyIncompleteBody", {
-                  count: data.historyMissingJarSnapshotCount,
-                })}
+                description={
+                  <span className="text-text-secondary">
+                    {t("home.historyIncompleteBody", {
+                      count: data.historyMissingJarSnapshotCount,
+                    })}
+                  </span>
+                }
               />
             ) : null}
-            <PlanHubHero
-              attentionLabel={t(
-                overBudgetJars.length > 0
-                  ? "home.planAttention"
-                  : "home.planOnTrack",
-                { count: overBudgetJars.length },
-              )}
-              attentionTone={
-                overBudgetJars.length > 0
-                  ? StatusBadgeTone.WARNING
-                  : StatusBadgeTone.POSITIVE
-              }
-              dayProgressLabel={progressLabel}
-              dayProgressPercent={monthProgress?.percent ?? null}
-              todayLabel={t("home.today")}
-              activeJarSummary={
-                data.isHistorical
-                  ? t("home.historyJarSummary", { count: periodJars.length })
-                  : t("home.activeJarSummary", {
-                      count: data.activeJars.length,
-                    })
-              }
-              incomeLabel={t("home.factIncome")}
-              incomeValue={incomeValue}
-              usagePercent={summary?.usagePercent ?? null}
-              usageLabel={usageLabel}
-              overBudgetSpendShare={overBudgetSpendShare}
-              plannedLabel={t("home.metricPlanned")}
-              plannedValue={
-                summary ? amount(summary.budgetAmount) : summaryUnavailable
-              }
-              spentLabel={t("home.metricSpent")}
-              spentValue={
-                summary ? amount(summary.spentAmount) : summaryUnavailable
-              }
-              spentDetail={
-                usagePercentLabel
-                  ? t("home.monthlyUsageDetail", { percent: usagePercentLabel })
-                  : undefined
-              }
-              remainingLabel={t("home.metricRemaining")}
-              remainingValue={
-                summary ? amount(summary.remainingAmount) : summaryUnavailable
-              }
-            />
+            {data.isHistorical ? (
+              <PlanHistorySummary
+                readOnlyLabel={t("home.historyReadOnly")}
+                closedLabel={t("home.historyClosed")}
+                notice={t("home.historyNotice")}
+                metrics={[
+                  {
+                    label: t("home.historyPlanned"),
+                    value: summary
+                      ? compactAmount(summary.budgetAmount)
+                      : summaryUnavailable,
+                    detail: t("home.historyJarSummary", {
+                      count: periodJars.length,
+                    }),
+                    testId: "plan-summary-planned",
+                  },
+                  {
+                    label: t("home.historySpent"),
+                    value: summary
+                      ? compactAmount(summary.spentAmount)
+                      : summaryUnavailable,
+                    detail: usagePercentLabel
+                      ? t("home.monthlyUsageDetail", {
+                          percent: usagePercentLabel,
+                        })
+                      : undefined,
+                    testId: "plan-summary-spent",
+                  },
+                  {
+                    label: t("home.metricRemaining"),
+                    value: summary
+                      ? compactAmount(summary.remainingAmount)
+                      : summaryUnavailable,
+                    testId: "plan-summary-remaining",
+                  },
+                ]}
+                usageLabel={usageLabel}
+                usagePercent={summary?.usagePercent ?? null}
+              />
+            ) : (
+              <PlanHubHero
+                attentionLabel={t(
+                  overBudgetJars.length > 0
+                    ? "home.planAttention"
+                    : "home.planOnTrack",
+                  { count: overBudgetJars.length },
+                )}
+                attentionTone={
+                  overBudgetJars.length > 0
+                    ? StatusBadgeTone.WARNING
+                    : StatusBadgeTone.POSITIVE
+                }
+                dayProgressLabel={progressLabel}
+                dayProgressPercent={monthProgress?.percent ?? null}
+                todayLabel={t("home.today")}
+                activeJarSummary={
+                  data.isHistorical
+                    ? t("home.historyJarSummary", { count: periodJars.length })
+                    : t("home.activeJarSummary", {
+                        count: data.activeJars.length,
+                      })
+                }
+                incomeLabel={t("home.factIncome")}
+                incomeValue={incomeValue}
+                usagePercent={summary?.usagePercent ?? null}
+                usageLabel={usageLabel}
+                overBudgetSpendShare={overBudgetSpendShare}
+                plannedLabel={t("home.metricPlanned")}
+                plannedValue={
+                  summary ? amount(summary.budgetAmount) : summaryUnavailable
+                }
+                spentLabel={t("home.metricSpent")}
+                spentValue={
+                  summary ? amount(summary.spentAmount) : summaryUnavailable
+                }
+                spentDetail={
+                  usagePercentLabel
+                    ? t("home.monthlyUsageDetail", {
+                        percent: usagePercentLabel,
+                      })
+                    : undefined
+                }
+                remainingLabel={t("home.metricRemaining")}
+                remainingValue={
+                  summary ? amount(summary.remainingAmount) : summaryUnavailable
+                }
+              />
+            )}
           </>
         )}
       </div>
@@ -612,7 +680,12 @@ async function PlanJarsSection({
   if (data.isHistorical) {
     const historyTitle = (
       <PlanSectionTitle>
-        {t("home.jarSectionCount", { count: data.historyJars.length })}
+        <span className="text-xs font-semibold tracking-wide text-text-secondary uppercase">
+          {t("home.historyPerformance", {
+            count: data.historyJars.length,
+            period: formatPlanPeriod(data.periodMonth, locale, t),
+          })}
+        </span>
       </PlanSectionTitle>
     );
     if (!data.historyAvailable) return null;
@@ -636,72 +709,116 @@ async function PlanJarsSection({
       <Section
         title={historyTitle}
         testId="plan-home-jars"
-        contentClassName="gap-(--space-2)"
+        contentClassName="gap-(--space-3)"
       >
-        {data.historyJars.map((jar) => {
-          const metrics = jar.metrics;
-          const name = localizeCatalogName(data.tCatalog, "jars", jar.name);
-          const usageLabel = t("home.jarUsage", {
-            spent: formatAmount(metrics.spentAmount),
-            planned: formatAmount(metrics.budgetAmount),
-          });
-          const statusLabel = getJarStatusLabel(metrics);
-          const isOverspent = metrics.state === JarBudgetState.OVERSPENT;
-          return (
-            <Card
-              key={jar.id}
-              tone="elevated"
-              className="gap-(--space-3) p-(--space-3)"
-              data-testid={`plan-history-jar-${jar.id}`}
-            >
-              <div className="flex min-w-0 items-center gap-(--space-3)">
-                <IconContainer tone={IconContainerTone.NEUTRAL} size="md">
-                  <AppIcon icon={PLAN_ICONS.jar} />
-                </IconContainer>
-                <div className="min-w-0 flex-1">
-                  <Text size="sm" weight="semibold" className="truncate">
-                    {name}
-                  </Text>
-                  <Text size="xs" tone="muted" className="mt-(--space-1)">
-                    <FinancialValue>{usageLabel}</FinancialValue>
-                  </Text>
-                </div>
-                <div className="shrink-0 text-right">
-                  <Text
-                    size="sm"
-                    weight="semibold"
-                    tone={isOverspent ? "danger" : "primary"}
-                    tabular
-                    data-financial-kind={FinancialNumberKind.INTENTION}
-                  >
-                    <FinancialValue>
-                      {metrics.remainingAmount < 0 ? "+" : ""}
-                      {formatAmount(Math.abs(metrics.remainingAmount))}
-                    </FinancialValue>
-                  </Text>
-                  {statusLabel ? (
+        <Text size="xs" tone="secondary">
+          {t("home.historyJarHealth", {
+            overspent: data.historyJars.filter(
+              (jar) => jar.metrics.state === JarBudgetState.OVERSPENT,
+            ).length,
+            total: data.historyJars.length,
+          })}
+        </Text>
+        <Card tone="default" className="gap-0 overflow-hidden p-0">
+          {data.historyJars.map((jar) => {
+            const metrics = jar.metrics;
+            const name = localizeCatalogName(data.tCatalog, "jars", jar.name);
+            const usageLabel = t("home.jarUsage", {
+              spent: formatAmount(metrics.spentAmount),
+              planned: formatAmount(metrics.budgetAmount),
+            });
+            const statusLabel = getJarStatusLabel(metrics);
+            const isOverspent = metrics.state === JarBudgetState.OVERSPENT;
+            return (
+              <div
+                key={jar.id}
+                className="flex flex-col gap-(--space-2) border-b border-divider-subtle p-(--space-3) last:border-b-0"
+                data-testid={`plan-history-jar-${jar.id}`}
+              >
+                <div className="flex min-w-0 items-center gap-(--space-3)">
+                  <IconContainer tone={IconContainerTone.NEUTRAL} size="sm">
+                    <AppIcon icon={PLAN_ICONS.jar} />
+                  </IconContainer>
+                  <div className="min-w-0 flex-1">
+                    <Text size="xs" weight="semibold" className="text-pretty">
+                      {name}
+                    </Text>
+                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                      <FinancialValue>{usageLabel}</FinancialValue>
+                    </Text>
+                  </div>
+                  <div className="max-w-1/2 shrink-0 text-right">
                     <Text
                       size="xs"
-                      tone={isOverspent ? "danger" : "muted"}
-                      className="mt-(--space-1)"
+                      weight="semibold"
+                      tone={isOverspent ? "danger" : "primary"}
+                      tabular
+                      data-financial-kind={FinancialNumberKind.INTENTION}
                     >
-                      {statusLabel}
+                      <FinancialValue>
+                        {isOverspent
+                          ? t("home.historyOverspentAmount", {
+                              amount: formatAmount(
+                                Math.abs(metrics.remainingAmount),
+                              ),
+                            })
+                          : t("home.historyRemainingAmount", {
+                              amount: formatAmount(metrics.remainingAmount),
+                            })}
+                      </FinancialValue>
                     </Text>
-                  ) : null}
+                    {statusLabel ? (
+                      <Text
+                        size="xs"
+                        tone={isOverspent ? "danger" : "secondary"}
+                        className="mt-(--space-1)"
+                      >
+                        {statusLabel}
+                      </Text>
+                    ) : null}
+                  </div>
                 </div>
+                {metrics.budgetAmount > 0 ? (
+                  <Progress
+                    value={metrics.usagePercent}
+                    label={usageLabel}
+                    showLabel={false}
+                    indicatorClassName={isOverspent ? "bg-danger" : undefined}
+                    trackClassName="h-(--space-1)"
+                    privacyAware
+                  />
+                ) : null}
               </div>
-              {metrics.budgetAmount > 0 ? (
-                <Progress
-                  value={metrics.usagePercent}
-                  label={usageLabel}
-                  showLabel={false}
-                  indicatorClassName={isOverspent ? "bg-danger" : undefined}
-                  privacyAware
-                />
-              ) : null}
-            </Card>
-          );
-        })}
+            );
+          })}
+        </Card>
+        <div className="flex flex-col gap-(--space-2)">
+          <Link
+            href={{
+              pathname: APP_PATH.PLAN_RITUAL,
+              query: { [PLAN_MONTH_QUERY]: data.periodMonth },
+            }}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className="flex min-h-11 items-center justify-center gap-(--space-2) rounded-(--radius-control) border border-border-subtle bg-surface px-(--space-3) text-sm font-semibold focus-visible:outline-2 focus-visible:outline-focus-ring"
+            data-testid="plan-history-review"
+          >
+            <AppIcon icon={PLAN_ICONS.monthlyReview} size={AppIconSize.SM} />
+            {t("home.historyReview", {
+              period: formatPlanPeriod(data.periodMonth, locale, t),
+            })}
+          </Link>
+          <Link
+            href={APP_PATH.PLAN}
+            prefetch={PRODUCT_LINK_PREFETCH}
+            className="flex min-h-11 items-center justify-center gap-(--space-1) text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
+            data-testid="plan-history-current"
+          >
+            <AppIcon icon={ACTION_ICONS.back} size={AppIconSize.XS} />
+            {t("home.historyCurrent", {
+              period: formatPlanPeriod(data.currentPeriodMonth, locale, t),
+            })}
+          </Link>
+        </div>
       </Section>
     );
   }
@@ -734,7 +851,7 @@ async function PlanJarsSection({
       ) : (
         <PlanJarFilterList
           locale={locale}
-          title={t("home.jarSectionCount", { count: previewJars.length })}
+          title={t("home.jarSectionCount", { count: data.activeJars.length })}
           labels={{
             group: t("home.jarFilterAria"),
             all: t("home.jarFilterAll"),
@@ -794,6 +911,20 @@ async function PlanJarsSection({
           })}
         />
       )}
+      {data.activeJars.length > previewJars.length ? (
+        <Link
+          href={APP_PATH.PLAN_JARS}
+          prefetch={PRODUCT_LINK_PREFETCH}
+          className={cn(
+            PLAN_INLINE_LINK_CLASS,
+            "mt-(--space-2) justify-center gap-(--space-2)",
+          )}
+          data-testid="plan-view-all-jars"
+        >
+          {t("home.viewAllJars")}
+          <AppIcon icon={ACTION_ICONS.forward} size={AppIconSize.XS} />
+        </Link>
+      ) : null}
     </Section>
   );
 }
@@ -1003,7 +1134,8 @@ async function PlanAllocationAction({
   t: LooseTranslator;
 }) {
   const data = await dataPromise;
-  if (data.isHistorical) return null;
+  if (data.isHistorical)
+    return <PlanPrivacyToggle testId="plan-history-privacy" onSurface />;
   return (
     <Link
       href={APP_PATH.PLAN_JARS}
@@ -1120,7 +1252,18 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
       topBar={
         <TopAppBar
           variant={TopAppBarVariant.PRIMARY}
-          title={t("home.title")}
+          title={
+            <div className="flex flex-wrap items-center gap-(--space-2)">
+              <h1 className="text-xl font-bold tracking-tight">
+                {t("home.title")}
+              </h1>
+              {isHistoricalRequest ? (
+                <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
+                  {t("home.historyTitle")}
+                </StatusBadge>
+              ) : null}
+            </div>
+          }
           subtitle={t("home.subtitle")}
           trailing={
             <Suspense fallback={null}>
@@ -1129,7 +1272,7 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
           }
         />
       }
-      contentClassName="px-(--space-5) pt-(--space-5)"
+      contentClassName="pt-(--space-1)"
     >
       <PlanOfflineBanner />
       <Suspense fallback={<PlanContextSkeleton />}>

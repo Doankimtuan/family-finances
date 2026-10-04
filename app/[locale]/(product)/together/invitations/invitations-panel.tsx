@@ -11,6 +11,8 @@ import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
 import { useStatusAlert } from "@/providers/status-alert-provider";
 import type { PendingInvitation } from "@/modules/tenancy/application/list-pending-invitations";
+import { ProductActionStatus } from "@/modules/tenancy/application/product-action-error";
+import { formatDate } from "@/shared/i18n/formatters";
 import { invitePath } from "@/modules/tenancy/application/tenancy-constants";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
@@ -44,7 +46,7 @@ function PendingInvitationRow({
   const t = useTranslations("together.invitations");
   const link = inviteShareUrl(locale, invite.token);
   const expiry = t("expires", {
-    date: new Date(invite.expiresAt).toLocaleDateString(locale),
+    date: formatDate(new Date(invite.expiresAt), locale),
   });
 
   return (
@@ -58,7 +60,7 @@ function PendingInvitationRow({
     >
       <div className="flex min-h-14 flex-col gap-(--space-2) px-(--space-3) py-(--space-3)">
         <div className="flex items-start gap-(--space-3)">
-          <IconContainer tone={IconContainerTone.INFO} size="sm">
+          <IconContainer tone={IconContainerTone.WARNING} size="sm">
             <AppIcon icon={UTILITY_ICONS.notification} size="sm" />
           </IconContainer>
           <div className="min-w-0 flex-1">
@@ -81,7 +83,7 @@ function PendingInvitationRow({
             </Text>
           </div>
         </div>
-        <div className="flex items-center gap-(--space-2)">
+        <div className="flex items-center gap-(--space-2) border-t border-divider pt-(--space-2)">
           <Button
             variant={ButtonVariant.SECONDARY}
             className="min-h-11 min-w-0 flex-1"
@@ -107,8 +109,10 @@ function PendingInvitationRow({
 
 export function InvitationsPanel({
   initialInvitations,
+  showHeading = true,
 }: {
   initialInvitations: PendingInvitation[];
+  showHeading?: boolean;
 }) {
   const t = useTranslations("together.invitations");
   const locale = useLocale();
@@ -137,7 +141,7 @@ export function InvitationsPanel({
     statusAlert.hide();
     startTransition(async () => {
       const result = await revokeInvitationAction(invitationId);
-      if (result.status === "success") {
+      if (result.status === ProductActionStatus.SUCCESS) {
         setInvitationToRevoke(null);
         router.refresh();
         return;
@@ -154,7 +158,8 @@ export function InvitationsPanel({
     try {
       await navigator.clipboard.writeText(link);
       setCopiedId(id);
-    } catch {
+    } catch (error) {
+      console.error("Invitation clipboard copy failed", { error });
       statusAlert.show({
         variant: AlertVariant.DANGER,
         title: t("pendingTitle"),
@@ -168,14 +173,16 @@ export function InvitationsPanel({
       className="flex flex-col gap-(--space-4)"
       data-testid="together-invitations"
     >
-      <SectionHeader
-        title={t("pendingTitle")}
-        description={
-          initialInvitations.length > 0
-            ? t("pendingDescription")
-            : t("emptyDescription")
-        }
-      />
+      {showHeading ? (
+        <SectionHeader
+          title={t("pendingTitle")}
+          description={
+            initialInvitations.length > 0
+              ? t("pendingDescription")
+              : t("emptyDescription")
+          }
+        />
+      ) : null}
       {initialInvitations.length === 0 ? (
         <EmptyState
           title={t("emptyTitle")}

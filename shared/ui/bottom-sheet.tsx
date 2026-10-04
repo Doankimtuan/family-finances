@@ -42,11 +42,11 @@ export function BottomSheetContent({
         "bg-scrim backdrop-blur-xs transition-opacity duration-(--duration-normal)",
       )}
     >
-      <Drawer.Content placement="bottom" className="h-dvh max-w-[440px]">
+      <Drawer.Content placement="bottom" className="h-dvh justify-center">
         <Drawer.Dialog
           data-testid={testId}
           className={cn(
-            "vinha-sheet-dialog w-full rounded-t-(--radius-overlay) bg-surface-elevated",
+            "vinha-sheet-dialog w-full max-w-(--app-viewport-max) rounded-t-(--radius-overlay) bg-surface-elevated",
             "border-t border-border-subtle shadow-[var(--elevation-2)]",
             "flex max-h-[min(90dvh,720px)] min-h-0 flex-col overflow-hidden",
             "[backface-visibility:hidden] [contain:layout_paint]",

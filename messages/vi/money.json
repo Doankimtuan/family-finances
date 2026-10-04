@@ -1676,7 +1676,18 @@
     "personalJarSuggestion": "Danh mục gợi ý hũ {jar}. Hãy chọn nếu muốn tính khoản chi này vào Plan.",
     "personalJarUnmapped": "Không tính vào Plan gia đình",
     "planIncluded": "Có · {jar}",
-    "planExcluded": "Không tính vào Plan gia đình"
+    "planExcluded": "Không tính vào Plan gia đình",
+    "expenseCategoryLabel": "Hạng mục chi tiêu",
+    "incomeCategoryLabel": "Nguồn thu nhập",
+    "saveExpense": "Lưu chi tiêu",
+    "saveIncome": "Lưu thu nhập",
+    "categorySearch": "Tìm hạng mục",
+    "categoryEmpty": "Không tìm thấy hạng mục",
+    "categoryClose": "Xong",
+    "accountBalance": "Số dư",
+    "today": "Hôm nay",
+    "yesterday": "Hôm qua",
+    "amountPlaceholder": "Nhập số tiền"
   },
   "transferForm": {
     "amountLabel": "Số tiền ({currency})",
@@ -1726,7 +1737,8 @@
       "offline": "Cần kết nối để lưu.",
       "need_two_accounts": "Cần hai tài khoản thanh khoản.",
       "unknown": "Không lưu được. Thử lại."
-    }
+    },
+    "amountPlaceholder": "Nhập số tiền"
   },
   "transferDetail": {
     "title": "Chuyển tiền",
@@ -1738,7 +1750,9 @@
     "date": "Ngày hiệu lực",
     "note": "Ghi chú",
     "emptyValue": "—",
-    "neutrality": "Tiền được chuyển giữa hai tài khoản của bạn. Khoản này không được tính là thu nhập hay chi tiêu."
+    "neutrality": "Tiền được chuyển giữa hai tài khoản của bạn. Khoản này không được tính là thu nhập hay chi tiêu.",
+    "balanced": "Hai vế cân bằng",
+    "auditId": "Bút toán sổ cái"
   },
   "accountsPage": {
     "title": "Tài khoản & Ví",
@@ -2045,7 +2059,7 @@
   },
   "transactionsPage": {
     "title": "Giao dịch",
-    "subtitle": "Thu, chi và các lần chuyển tiền",
+    "subtitle": "Thu, chi và chuyển tiền gia đình",
     "filterLabel": "Loại giao dịch",
     "tagFilterLabel": "Nhãn",
     "noteSearchLabel": "Tìm trong ghi chú",
@@ -2069,14 +2083,14 @@
     "noCategoriesMatch": "Không tìm thấy danh mục phù hợp",
     "noJarsMatch": "Không tìm thấy hũ phù hợp",
     "loadingMore": "Đang tải thêm giao dịch…",
-    "allLoaded": "Đã tải hết giao dịch",
+    "allLoaded": "Đã tải đủ {count} giao dịch",
     "activitiesLoaded": "Đã tải {count} giao dịch",
     "loadMoreError": "Không tải thêm được giao dịch.",
     "loadMore": "Tải thêm",
     "filters": {
       "all": "Tất cả",
-      "expense": "Chi",
-      "income": "Thu",
+      "expense": "Chi tiêu",
+      "income": "Thu nhập",
       "transfer": "Chuyển tiền",
       "investment": "Đầu tư",
       "savings": "Tiết kiệm",
@@ -2117,7 +2131,16 @@
     "relationship": {
       "partiallyRefunded": "Đã hoàn một phần",
       "fullyRefunded": "Đã hoàn toàn bộ"
-    }
+    },
+    "addFirst": "Thêm giao dịch đầu tiên",
+    "noteSearchPlaceholder": "Tìm trong ghi chú…",
+    "clearSearch": "Xoá tìm kiếm",
+    "activeFilters": "Đang lọc:",
+    "removeFilter": "Bỏ lọc: {name}",
+    "addTransaction": "Ghi giao dịch",
+    "dayCount": "{count} việc",
+    "dailyIncome": "Thu",
+    "dailyExpense": "Chi"
   },
   "transactionTags": {
     "title": "Nhãn giao dịch",
@@ -2247,7 +2270,9 @@
     "readErrorBody": "Chưa thể tải sự kiện này lúc này. Thử lại nhé.",
     "familyPlan": "Plan gia đình",
     "planIncluded": "Có · {jar}",
-    "planExcluded": "Không tính vào Plan gia đình"
+    "planExcluded": "Không tính vào Plan gia đình",
+    "auditId": "Bút toán sổ cái",
+    "immutableNotice": "Giao dịch đã hạch toán được giữ nguyên. Điều chỉnh hoặc hoàn tiền tạo bút toán đối ứng và giữ lại lịch sử."
   },
   "status": {
     "pending_mapping": "Cần phân loại",

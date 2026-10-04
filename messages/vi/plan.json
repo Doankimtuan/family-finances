@@ -44,7 +44,7 @@
     "createKindLabel": "Loại",
     "createSubmit": "Tạo hũ",
     "createCancel": "Huỷ",
-    "backToPlan": "Về Plan",
+    "backToPlan": "Kế hoạch",
     "backToList": "Về danh sách hũ",
     "planLabel": "Kế hoạch",
     "planPercent": "{percent}% thu nhập",
@@ -171,7 +171,8 @@
         "correction_invalid": "Không áp dụng được hiệu chỉnh đó.",
         "immutable": "Không thể sửa giao dịch tại chỗ. Hãy dùng Sửa đúng hoặc Hoàn tiền.",
         "unknown": "Có lỗi xảy ra. Thử lại."
-      }
+      },
+      "add": "Thêm danh mục"
     },
     "notBalanceTitle": "Không phải số dư ngân hàng",
     "notBalanceBody": "Số kế hoạch và dịch chuyển năng lực chỉ là ý định. Tiền thật nằm ở Money.",
@@ -233,7 +234,24 @@
     "spentLabel": "Đã chi",
     "remainingLabel": "Còn lại",
     "enabledLabel": "Bật",
-    "allocationMeaning": "Phân bổ là ý định trong Plan, không phải số dư ngân hàng."
+    "allocationMeaning": "Phân bổ là ý định trong Plan, không phải số dư ngân hàng.",
+    "linkedCategoriesTitle": "Danh mục được gắn",
+    "linkedCategoriesEmpty": "Hũ này chưa được gắn danh mục nào.",
+    "linkedCategoriesUnavailable": "Chưa thể tải danh mục được gắn.",
+    "recentActivityTitle": "Giao dịch gần đây",
+    "recentActivityEmpty": "Chưa có giao dịch nào được gắn với hũ này.",
+    "recentActivityUnavailable": "Tạm thời chưa tải được giao dịch của hũ.",
+    "recentActivityFallback": "Giao dịch được gắn với hũ",
+    "detailQuotaSubtitle": "Chi tiết hạn mức hũ",
+    "detailQuotaHeading": "Hạn mức tháng này",
+    "detailPeriod": "Kế hoạch tháng {period}",
+    "detailInvariant": "Hũ kế hoạch là hạn mức chi tiêu dự kiến của gia đình, không phải tài khoản ngân hàng riêng biệt.",
+    "detailAdjust": "Điều chỉnh phân bổ hũ",
+    "detailCategories": "Danh mục liên kết vào hũ ({count})",
+    "detailCategoriesHint": "Chi tiêu thuộc các danh mục này được ghi nhận vào hũ {name}.",
+    "detailViewAll": "Xem tất cả",
+    "detailReviewReport": "Xem báo cáo tháng",
+    "detailRemainingPeriod": "Còn {percent}% ({days} ngày còn lại)"
   },
   "goals": {
     "title": "Mục tiêu",
@@ -838,7 +856,20 @@
     "upcomingExpected": "Dự kiến",
     "upcomingTitle": "Khoản chi sắp tới",
     "viewAll": "Xem tất cả",
-    "viewAllJars": "Xem tất cả hũ"
+    "viewAllJars": "Xem tất cả hũ",
+    "previousMonth": "Tháng trước",
+    "nextMonth": "Tháng sau",
+    "historyTitle": "Lịch sử",
+    "historyClosed": "Đã kết thúc",
+    "historyNotice": "Kỳ kế hoạch này đã kết thúc. Số liệu ngân sách đã lưu được giữ để tra cứu đối soát; không còn nhận thao tác điều chỉnh phân bổ tại đây.",
+    "historyPlanned": "Tổng kế hoạch",
+    "historySpent": "Thực tế đã chi",
+    "historyPerformance": "Hiệu suất {count} hũ ngân sách ({period})",
+    "historyJarHealth": "{overspent} hũ vượt hạn mức · {total} hũ có dữ liệu",
+    "historyOverspentAmount": "Vượt {amount}",
+    "historyRemainingAmount": "Dư {amount}",
+    "historyReview": "Xem Nhìn lại tháng — {period}",
+    "historyCurrent": "Về tháng hiện tại ({period})"
   },
   "recommendations": {
     "title": "Gợi ý",

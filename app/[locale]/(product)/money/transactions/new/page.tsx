@@ -15,10 +15,11 @@ import {
   DEFAULT_CURRENCY,
   TransactionDirection,
   MoneyCaptureMode,
+  MONEY_CAPTURE_MODE_OPTIONS,
   TRANSACTION_ACCOUNT_QUERY_PARAM,
   TRANSACTION_CAPTURE_MODE_QUERY_PARAM,
 } from "@/modules/ledger/application";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { TopAppBar, TopAppBarVariant } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
 import { MoneyCaptureEntry } from "../money-capture-entry";
@@ -73,21 +74,20 @@ export default async function MoneyTransactionAddPage({
       ? requestedAccountId
       : undefined;
   const initialMode =
-    query[TRANSACTION_CAPTURE_MODE_QUERY_PARAM] === MoneyCaptureMode.TRANSFER
-      ? MoneyCaptureMode.TRANSFER
-      : MoneyCaptureMode.EXPENSE;
+    MONEY_CAPTURE_MODE_OPTIONS.find(
+      (mode) => mode === query[TRANSACTION_CAPTURE_MODE_QUERY_PARAM],
+    ) ?? MoneyCaptureMode.EXPENSE;
 
   return (
     <Page
       testId="money-transaction-add"
-      className="h-full min-h-0"
-      contentClassName="min-h-0 pb-0"
+      className="shrink-0"
+      contentClassName="pb-0"
       topBar={
         <TopAppBar
           title={t("capture")}
           subtitle={t("captureForm.subtitle")}
-          variant="form"
-          backHref={APP_PATH.MONEY_TRANSACTIONS}
+          variant={TopAppBarVariant.PRIMARY}
         />
       }
     >

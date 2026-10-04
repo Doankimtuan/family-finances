@@ -133,15 +133,15 @@ export function dateGroupLabel(
 ) {
   const today = todayIsoDate();
   const age = differenceInUtcCalendarDays(date, today);
-  if (age === 0) return labels.today;
-  if (age === 1) return labels.yesterday;
   const isCurrentYear = date.slice(0, 4) === today.slice(0, 4);
-  return formatDate(new Date(`${date}T00:00:00Z`), locale, {
-    weekday: "short",
-    month: "short",
+  const formattedDate = formatDate(new Date(`${date}T00:00:00Z`), locale, {
+    month: "long",
     day: "numeric",
     ...(isCurrentYear ? {} : { year: "numeric" }),
   });
+  if (age === 0) return `${labels.today}, ${formattedDate}`;
+  if (age === 1) return `${labels.yesterday}, ${formattedDate}`;
+  return formattedDate;
 }
 
 export function activityRelationshipLabel(

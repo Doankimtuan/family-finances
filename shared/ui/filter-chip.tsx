@@ -50,7 +50,9 @@ export function FilterChip({
       )}
     >
       {icon ? <span className="flex shrink-0">{icon}</span> : null}
-      <span>{children}</span>
+      <span className="flex min-w-0 flex-1 items-center justify-center gap-(--space-2)">
+        {children}
+      </span>
       {count !== undefined ? (
         <span
           className={cn(

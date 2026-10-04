@@ -23,6 +23,7 @@ export type SelectFieldProps = {
   description?: ReactNode;
   error?: ReactNode;
   labelClassName?: string;
+  triggerClassName?: string;
   required?: boolean;
   isDisabled?: boolean;
   className?: string;
@@ -49,6 +50,7 @@ export function SelectField({
   description,
   error,
   labelClassName,
+  triggerClassName,
   required,
   isDisabled,
   className,
@@ -81,7 +83,7 @@ export function SelectField({
       >
         {/* HeroUI v3 Select strips `aria-invalid` from the trigger; the
             FormField error link (aria-describedby) carries the error a11y. */}
-        <Select.Trigger className="w-full">
+        <Select.Trigger className={triggerClassName ?? "w-full"}>
           <Select.Value />
           <Select.Indicator />
         </Select.Trigger>

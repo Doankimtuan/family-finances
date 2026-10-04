@@ -21,13 +21,11 @@ import {
   TogetherPrimaryLink,
   TogetherStatusStrip,
   TogetherStatusTone,
-  TopAppBar,
 } from "@/shared/patterns";
-import { HeaderPill } from "@/shared/patterns/top-app-bar";
 import { MotionReveal } from "@/shared/motion";
 import { Avatar, AvatarFallback } from "@/shared/ui/avatar";
 import { AppIcon } from "@/shared/ui/app-icon";
-import { IconContainer } from "@/shared/ui/icon-container";
+import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import {
   ACTION_ICONS,
   FINANCE_ICONS,
@@ -36,8 +34,10 @@ import {
 } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
-import { TogetherHeaderTab } from "@/shared/patterns/together-header-tab";
 import { TogetherInvitationPreview } from "./together-invitation-preview";
+import { InvitationsPanel } from "./invitations/invitations-panel";
+import { TogetherOverviewHeader } from "./together-overview-header";
+import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
 import { TogetherMemberPreview } from "./together-member-preview";
 import { memberInitials } from "./together-member-identity";
 import { isHouseholdAdmin } from "./together-presentations";
@@ -52,9 +52,8 @@ export default async function Page({ params }: Props) {
     localeParam,
     nextPath: TOGETHER_PATH.ROOT,
   });
-  const [t, tNavigation, result, pendingInvitations] = await Promise.all([
+  const [t, result, pendingInvitations] = await Promise.all([
     getTranslations("together"),
-    getTranslations("navigation"),
     listHouseholdMembers(),
     listPendingInvitations(),
   ]);
@@ -74,21 +73,22 @@ export default async function Page({ params }: Props) {
     <ProductPage
       testId="together-overview-page"
       topBar={
-        <TopAppBar
-          variant="primary"
+        <TogetherOverviewHeader
+          eyebrow={t("header.eyebrow")}
           title={t("header.headline")}
-          subtitle={t("header.supporting")}
-          meta={<TogetherHeaderTab label={tNavigation("together")} active />}
-          status={<HeaderPill tone="info">{roleLabel}</HeaderPill>}
+          supporting={t("header.supporting")}
+          roleLabel={roleLabel}
+          settingsLabel={t("settingsLink")}
         />
       }
+      contentClassName="pt-0"
     >
       <MotionReveal>
         <Card tone="elevated" className="gap-(--space-4) p-(--space-4)">
-          <div className="flex items-center gap-(--space-3)">
+          <div className="flex items-start gap-(--space-3)">
             <TogetherHeroAvatars members={result.members} />
             <div className="min-w-0 flex-1">
-              <Text className="break-words text-lg font-semibold tracking-tight text-pretty text-text-primary">
+              <Text className="break-words text-base font-semibold tracking-tight text-pretty text-text-primary">
                 {householdName}
               </Text>
               <Text
@@ -99,13 +99,29 @@ export default async function Page({ params }: Props) {
                 {t("header.meta", { count: result.members.length })}
               </Text>
             </div>
+            <StatusBadge tone={StatusBadgeTone.POSITIVE} className="shrink-0">
+              {t("householdActive")}
+            </StatusBadge>
           </div>
-          <Text
-            size="xs"
-            className="border-t border-divider pt-(--space-3) text-text-secondary text-pretty"
-          >
-            {t("roleContext", { role: roleLabel })}
-          </Text>
+          <div className="flex items-start gap-(--space-2) border-t border-divider pt-(--space-3)">
+            <AppIcon
+              icon={UTILITY_ICONS.shield}
+              size="sm"
+              className="shrink-0 text-primary"
+            />
+            <Text
+              size="xs"
+              tone="secondary"
+              className="text-pretty leading-relaxed"
+            >
+              <span className="font-medium text-text-primary">
+                {t("roleContext", { role: roleLabel })}:{" "}
+              </span>
+              {isAdmin
+                ? t("overviewAdminResponsibility")
+                : t("overviewPartnerResponsibility")}
+            </Text>
+          </div>
         </Card>
       </MotionReveal>
 
@@ -123,13 +139,22 @@ export default async function Page({ params }: Props) {
       <section className="flex flex-col gap-(--space-3)">
         <SectionHeader
           title={t("membersTitle")}
-          description={t("membersDescription")}
+          description={
+            <Text size="xs" tone="secondary">
+              {t("membersDescription")}
+            </Text>
+          }
           action={
             <Link
               href={TOGETHER_PATH.MEMBERS}
               data-testid="together-members-link"
             >
               {t("membersLink")}
+              <AppIcon
+                icon={ACTION_ICONS.forward}
+                size="xs"
+                className="ml-(--space-1)"
+              />
             </Link>
           }
         />
@@ -167,27 +192,30 @@ export default async function Page({ params }: Props) {
         <section className="flex flex-col gap-(--space-3)">
           <SectionHeader
             title={t("invitedTitle")}
-            description={t("invitedDescription")}
             action={
               <Link href={TOGETHER_PATH.INVITATIONS}>
                 {t("viewInvitationsWithCount", { count: pendingCount })}
               </Link>
             }
           />
-          <TogetherInvitationPreview
-            invitations={pendingInvitations}
-            locale={localeParam}
-            pendingLabel={t("invitations.pendingTitle")}
-            expiresLabel={(date) => t("invitations.expires", { date })}
-          />
+          {isAdmin ? (
+            <InvitationsPanel
+              initialInvitations={pendingInvitations}
+              showHeading={false}
+            />
+          ) : (
+            <TogetherInvitationPreview
+              invitations={pendingInvitations}
+              locale={localeParam}
+              pendingLabel={t("invitations.pendingTitle")}
+              expiresLabel={(date) => t("invitations.expires", { date })}
+            />
+          )}
         </section>
       ) : null}
 
       <section className="flex flex-col gap-(--space-3)">
-        <SectionHeader
-          title={t("collaborationTitle")}
-          description={t("collaborationDescription")}
-        />
+        <SectionHeader title={t("collaborationTitle")} />
         <TogetherNavGroup>
           {pendingCount === 0 ? (
             <TogetherNavRow
@@ -202,21 +230,21 @@ export default async function Page({ params }: Props) {
           <TogetherNavRow
             href={TOGETHER_PATH.POLICIES}
             appearance={TogetherNavAppearance.GROUPED}
-            icon={FINANCE_ICONS.wallet}
+            icon={FINANCE_ICONS.ledger}
             title={t("policiesLink")}
             description={t("managePoliciesDescription")}
             testId="together-policies-link"
           />
-          <TogetherNavRow
-            href={TOGETHER_PATH.PREFERENCES}
-            appearance={TogetherNavAppearance.GROUPED}
-            icon={UTILITY_ICONS.settings}
-            title={t("preferences.title")}
-            description={t("managePreferencesDescription")}
-            testId="together-preferences-link"
-          />
         </TogetherNavGroup>
       </section>
+      <TogetherNavRow
+        href={TOGETHER_PATH.SETTINGS}
+        icon={UTILITY_ICONS.settings}
+        iconTone={IconContainerTone.NEUTRAL}
+        title={t("overviewSettingsTitle")}
+        description={t("overviewSettingsDescription")}
+        testId="together-settings-link"
+      />
     </ProductPage>
   );
 }

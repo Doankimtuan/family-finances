@@ -21,7 +21,7 @@ import { FinancialValue } from "./financial-value";
 const JAR_INTENTION_ROW_CLASS =
   "flex min-h-14 items-center gap-(--space-3) px-(--space-4) py-(--space-2) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
 const JAR_COMPACT_ROW_CLASS =
-  "flex min-h-11 items-center gap-(--space-3) px-(--space-4) pt-(--space-4) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
+  "flex min-h-11 items-center gap-(--space-3) px-(--space-4) py-(--space-3) transition-[background-color,transform] duration-(--duration-fast) hover:bg-surface-hover active:scale-(--press-scale) motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring";
 
 function financialLeaf(value: ReactNode) {
   return isValidElement(value) ? (
@@ -87,49 +87,46 @@ function JarCardBody({
         <div className="min-w-0 flex-1">
           {compact ? (
             <>
-              <div className="flex min-w-0 items-center gap-(--space-2)">
+              <div className="flex min-w-0 items-start justify-between gap-(--space-3)">
                 <Text
                   size="sm"
                   weight="semibold"
-                  className="min-w-0 flex-1 truncate text-text-primary"
+                  className="min-w-0 text-pretty text-text-primary"
                 >
                   {name}
                 </Text>
-                <StatusBadge
-                  tone={StatusBadgeTone.NEUTRAL}
-                  className="shrink-0"
-                >
-                  {kindLabel}
-                </StatusBadge>
                 {amountLabel ? (
                   <Text
                     size="sm"
                     weight="semibold"
                     tone={overspent ? "danger" : "primary"}
                     tabular
-                    className="shrink-0 tracking-tight"
+                    className="shrink-0 whitespace-nowrap tracking-tight"
                     data-financial-kind={FinancialNumberKind.INTENTION}
                   >
                     {amountLabel}
                   </Text>
                 ) : null}
               </div>
-              <div className="mt-(--space-1) flex min-w-0 items-center justify-between gap-(--space-2)">
-                {usageLabel ? (
-                  <Text size="xs" tone="muted" className="min-w-0">
-                    <FinancialValue>{usageLabel}</FinancialValue>
-                  </Text>
-                ) : null}
+              <div className="mt-(--space-1) flex flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+                <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
+                  {kindLabel}
+                </StatusBadge>
                 {secondaryLabel ? (
-                  <Text
-                    size="xs"
-                    tone={overspent ? "danger" : "muted"}
-                    className="shrink-0 text-right"
-                  >
+                  <Text size="xs" tone={overspent ? "danger" : "secondary"}>
                     {secondaryLabel}
                   </Text>
                 ) : null}
               </div>
+              {usageLabel ? (
+                <Text
+                  size="xs"
+                  tone="secondary"
+                  className="mt-(--space-2) text-pretty"
+                >
+                  <FinancialValue>{usageLabel}</FinancialValue>
+                </Text>
+              ) : null}
             </>
           ) : (
             <>
@@ -178,19 +175,14 @@ function JarCardBody({
         ) : null}
       </div>
       {showProgress ? (
-        <div
-          className={
-            compact
-              ? "px-(--space-4) pt-(--space-3) pb-(--space-4)"
-              : "px-(--space-4) pb-(--space-3)"
-          }
-        >
+        <div className="px-(--space-4) pb-(--space-3)">
           <Progress
             value={usagePercent}
             max={100}
             label={usageLabel != null ? String(usageLabel) : undefined}
             showLabel={!compact}
             privacyAware
+            trackClassName={compact ? "h-(--space-1)" : undefined}
             indicatorClassName={overspent ? "bg-danger" : undefined}
           />
         </div>

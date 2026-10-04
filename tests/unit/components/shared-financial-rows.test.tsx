@@ -46,8 +46,15 @@ describe("Shared Financial & Row Components — Implementation 05", () => {
     });
 
     it("renders pre-formatted label strings when provided", () => {
-      render(<FinancialAmount amountLabel="12.500.000 ₫" />);
+      render(
+        <FinancialAmount
+          amountLabel="12.500.000 ₫"
+          tone={FinancialAmountTone.INCOME}
+          showSign
+        />,
+      );
       expect(screen.getByText("12.500.000 ₫")).toBeInTheDocument();
+      expect(document.body.textContent).toBe("12.500.000 ₫");
     });
 
     it("renders sign glyphs when showSign is true", () => {

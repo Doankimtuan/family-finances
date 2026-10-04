@@ -82,7 +82,7 @@ export function TogetherMemberRow({
       <div
         className={cn(
           "flex min-h-11 gap-(--space-3)",
-          compact ? "items-start justify-between" : "items-start",
+          compact ? "items-center justify-between" : "items-start",
         )}
       >
         {compact ? (
@@ -104,9 +104,17 @@ export function TogetherMemberRow({
           </IconContainer>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-(--space-2) gap-y-(--space-1)">
+          <div
+            className={cn(
+              "flex min-w-0 items-center gap-x-(--space-2) gap-y-(--space-1)",
+              !compact && "flex-wrap",
+            )}
+          >
             {compact ? (
-              <span className="min-w-0 break-words text-sm font-semibold text-text-primary">
+              <span
+                className="min-w-0 truncate text-sm font-medium text-text-primary"
+                title={name}
+              >
                 {name}
               </span>
             ) : (
@@ -128,19 +136,19 @@ export function TogetherMemberRow({
                 </Text>
               )
             ) : null}
-            {compact ? (
-              <StatusBadge
-                tone={roleBadgeTone}
-                className="shrink-0"
-                data-testid={roleTestId}
-              >
-                {roleLabel}
-              </StatusBadge>
-            ) : null}
           </div>
+          {compact ? (
+            <StatusBadge
+              tone={roleBadgeTone}
+              className="mt-(--space-1)"
+              data-testid={roleTestId}
+            >
+              {roleLabel}
+            </StatusBadge>
+          ) : null}
           {member.email && member.displayName ? (
             compact ? (
-              <p className="mt-(--space-1) break-all text-xs font-normal text-text-muted">
+              <p className="mt-(--space-1) truncate text-xs font-normal text-text-secondary">
                 {member.email}
               </p>
             ) : (
@@ -167,7 +175,7 @@ export function TogetherMemberRow({
           </div>
         ) : null}
         {compact && activeLabel ? (
-          <span className="flex shrink-0 items-center gap-(--space-1) pt-(--space-1) text-xs text-success">
+          <span className="flex shrink-0 items-center gap-(--space-1) text-xs text-success">
             <span
               className="inline-block size-2 rounded-full bg-success"
               aria-hidden="true"
