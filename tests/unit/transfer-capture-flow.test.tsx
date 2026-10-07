@@ -99,6 +99,42 @@ describe("TransferCaptureFlow", () => {
     expect(screen.getByRole("option", { name: /Bank/ })).toBeInTheDocument();
   });
 
+  it("keeps independent transfer fields while account references resolve", async () => {
+    const view = render(
+      <TransferCaptureFlow
+        accounts={[]}
+        accountsReady={false}
+        currency="VND"
+      />,
+    );
+    fireEvent.change(screen.getByTestId("transfer-amount"), {
+      target: { value: "50000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "yesterday" }));
+    fireEvent.change(screen.getByLabelText("noteLabel"), {
+      target: { value: "typed before accounts" },
+    });
+    const form = screen.getByTestId("money-transfer-form");
+    expect(screen.getByTestId("transfer-preview-continue")).toBeDisabled();
+
+    view.rerender(
+      <TransferCaptureFlow accounts={accounts} accountsReady currency="VND" />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("transfer-preview-continue")).toBeEnabled(),
+    );
+    expect(screen.getByTestId("money-transfer-form")).toBe(form);
+    expect(screen.getByTestId("transfer-amount")).not.toHaveValue("");
+    expect(screen.getByLabelText("noteLabel")).toHaveValue(
+      "typed before accounts",
+    );
+    expect(screen.getByRole("button", { name: "yesterday" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
   it("returns to the form with one typed error after server failure", async () => {
     renderFlow();
     fillTransfer();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useEffect, useId, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -69,10 +69,15 @@ import { todayIsoDate } from "@/shared/utils/iso-date";
 
 type Props = {
   accounts: LedgerAccount[];
+  accountsReady?: boolean;
   expenseTags: CategoryTag[];
+  expenseTagsReady?: boolean;
   incomeTags: CategoryTag[];
+  incomeTagsReady?: boolean;
   jars: CaptureJarOption[];
+  jarsReady?: boolean;
   transactionTags: TransactionTag[];
+  transactionTagsReady?: boolean;
   currency: string;
   initialDirection?: TransactionDirection;
   initialAccountId?: string;
@@ -184,10 +189,15 @@ function createDefaultValues(
  */
 export function CaptureTransactionForm({
   accounts,
+  accountsReady = true,
   expenseTags,
+  expenseTagsReady = true,
   incomeTags,
+  incomeTagsReady = true,
   jars,
+  jarsReady = true,
   transactionTags,
+  transactionTagsReady = true,
   currency,
   initialDirection = Direction.EXPENSE,
   initialAccountId,
@@ -236,6 +246,9 @@ export function CaptureTransactionForm({
   const tags = direction === Direction.INCOME ? incomeTags : expenseTags;
   const selectedAccount = accounts.find((account) => account.id === accountId);
   const selectedCategory = tags.find((tag) => tag.id === categoryId);
+  const categoriesReady =
+    direction === Direction.INCOME ? incomeTagsReady : expenseTagsReady;
+  const requiredReferencesReady = accountsReady && categoriesReady;
   const isPersonalExpense =
     direction === Direction.EXPENSE &&
     selectedAccount?.financialScope === FINANCIAL_SCOPE.PERSONAL;
@@ -265,6 +278,31 @@ export function CaptureTransactionForm({
     direction,
     selectedAccount?.type,
   );
+
+  useEffect(() => {
+    if (!accountsReady || accountId || !accounts.length) return;
+    const defaultAccount =
+      accounts.find((account) => account.id === initialAccountId) ??
+      accounts[0];
+    if (!defaultAccount) return;
+    setValue("accountId", defaultAccount.id, { shouldValidate: false });
+    setValue(
+      "jarId",
+      direction === Direction.EXPENSE &&
+        defaultAccount.financialScope === FINANCIAL_SCOPE.PERSONAL
+        ? null
+        : (selectedCategory?.jarId ?? null),
+      { shouldValidate: false },
+    );
+  }, [
+    accountId,
+    accounts,
+    accountsReady,
+    direction,
+    initialAccountId,
+    selectedCategory,
+    setValue,
+  ]);
 
   const handleAccountChange = (
     nextAccountId: string,
@@ -426,6 +464,7 @@ export function CaptureTransactionForm({
       : [];
 
   const openConfirmation = handleSubmit((values) => {
+    if (!requiredReferencesReady) return;
     statusAlert.hide();
     if (!online) {
       showCaptureError(CLIENT_ACTION_ERROR_CODE.OFFLINE);
@@ -630,7 +669,7 @@ export function CaptureTransactionForm({
             )}
           />
 
-          {accounts.length === 0 ? (
+          {accountsReady && accounts.length === 0 ? (
             <StatusAlert
               variant="warning"
               title={t("errors.no_account")}
@@ -659,6 +698,10 @@ export function CaptureTransactionForm({
                       errors.accountId ? t("errors.no_account") : undefined
                     }
                     required
+                    isDisabled={!accountsReady}
+                    placeholder={
+                      accountsReady ? undefined : t("referencesLoading")
+                    }
                     data-testid="capture-account"
                     accounts={accounts}
                     currency={currency}
@@ -689,6 +732,8 @@ export function CaptureTransactionForm({
                 value={field.value}
                 tags={tags}
                 jars={jars}
+                isDisabled={!categoriesReady}
+                isLoading={!categoriesReady}
                 onChange={(value) => {
                   if (value === null) {
                     field.onChange(null);
@@ -717,7 +762,11 @@ export function CaptureTransactionForm({
                   id="capture-family-jar"
                   label={t("personalJarLabel")}
                   description={personalJarHint}
-                  value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+                  value={
+                    jarsReady
+                      ? (field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID)
+                      : ""
+                  }
                   onChange={(value) =>
                     field.onChange(
                       value === CAPTURE_JAR_UNMAPPED_OPTION_ID ? null : value,
@@ -726,20 +775,26 @@ export function CaptureTransactionForm({
                   onBlur={field.onBlur}
                   error={errors.jarId ? t("errors.invalid") : undefined}
                   data-testid="capture-family-jar"
-                  options={[
-                    {
-                      id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
-                      label: t("personalJarUnmapped"),
-                    },
-                    ...jars.map((jar) => ({
-                      id: jar.id,
-                      label: localizeCatalogName(
-                        tCatalog,
-                        CatalogGroup.JARS,
-                        jar.name,
-                      ),
-                    })),
-                  ]}
+                  isDisabled={!jarsReady}
+                  placeholder={jarsReady ? undefined : t("referencesLoading")}
+                  options={
+                    jarsReady
+                      ? [
+                          {
+                            id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                            label: t("personalJarUnmapped"),
+                          },
+                          ...jars.map((jar) => ({
+                            id: jar.id,
+                            label: localizeCatalogName(
+                              tCatalog,
+                              CatalogGroup.JARS,
+                              jar.name,
+                            ),
+                          })),
+                        ]
+                      : []
+                  }
                 />
               )}
             />
@@ -778,12 +833,12 @@ export function CaptureTransactionForm({
               {t("moreDetails")}
             </summary>
             <div className="flex flex-col gap-(--space-4) border-t border-border-subtle pb-(--space-3) pt-(--space-4)">
-              {!isPersonalExpense ? (
+              {accountsReady && !isPersonalExpense ? (
                 <Text size="sm" tone="secondary">
                   {jarHint}
                 </Text>
               ) : null}
-              {!isPersonalExpense ? (
+              {accountsReady && !isPersonalExpense ? (
                 <Controller
                   control={control}
                   name="jarId"
@@ -791,7 +846,11 @@ export function CaptureTransactionForm({
                     <SelectField
                       id="capture-jar"
                       label={t("jarLabel")}
-                      value={field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID}
+                      value={
+                        jarsReady
+                          ? (field.value ?? CAPTURE_JAR_UNMAPPED_OPTION_ID)
+                          : ""
+                      }
                       onChange={(value) =>
                         field.onChange(
                           value === CAPTURE_JAR_UNMAPPED_OPTION_ID
@@ -802,20 +861,28 @@ export function CaptureTransactionForm({
                       onBlur={field.onBlur}
                       error={errors.jarId ? t("errors.invalid") : undefined}
                       data-testid="capture-jar"
-                      options={[
-                        {
-                          id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
-                          label: t("jarUnmapped"),
-                        },
-                        ...jars.map((jar) => ({
-                          id: jar.id,
-                          label: localizeCatalogName(
-                            tCatalog,
-                            CatalogGroup.JARS,
-                            jar.name,
-                          ),
-                        })),
-                      ]}
+                      isDisabled={!jarsReady}
+                      placeholder={
+                        jarsReady ? undefined : t("referencesLoading")
+                      }
+                      options={
+                        jarsReady
+                          ? [
+                              {
+                                id: CAPTURE_JAR_UNMAPPED_OPTION_ID,
+                                label: t("jarUnmapped"),
+                              },
+                              ...jars.map((jar) => ({
+                                id: jar.id,
+                                label: localizeCatalogName(
+                                  tCatalog,
+                                  CatalogGroup.JARS,
+                                  jar.name,
+                                ),
+                              })),
+                            ]
+                          : []
+                      }
                     />
                   )}
                 />
@@ -828,15 +895,21 @@ export function CaptureTransactionForm({
                   <Text size="sm" tone="secondary">
                     {t("transactionTagsHint")}
                   </Text>
-                  <TransactionTagSelector
-                    availableTags={transactionTags}
-                    selectedIds={selectedTransactionTagIds}
-                    onChange={(value) =>
-                      setValue("transactionTagIds", value, {
-                        shouldValidate: true,
-                      })
-                    }
-                  />
+                  {transactionTagsReady ? (
+                    <TransactionTagSelector
+                      availableTags={transactionTags}
+                      selectedIds={selectedTransactionTagIds}
+                      onChange={(value) =>
+                        setValue("transactionTagIds", value, {
+                          shouldValidate: true,
+                        })
+                      }
+                    />
+                  ) : (
+                    <Text size="sm" tone="secondary" role="status">
+                      {t("referencesLoading")}
+                    </Text>
+                  )}
                 </div>
               </fieldset>
             </div>
@@ -891,6 +964,7 @@ export function CaptureTransactionForm({
               isPending ||
               pendingSubmission != null ||
               !online ||
+              !requiredReferencesReady ||
               accounts.length === 0
             }
             onPress={() => void openConfirmation()}

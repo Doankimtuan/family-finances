@@ -1,0 +1,1369 @@
+{
+  "title": "Accounts Phase 8.1 runtime evidence",
+  "collectedOn": "2026-10-05",
+  "environment": {
+    "mode": "Next.js dev",
+    "nextVersion": "16.3.1",
+    "locale": "vi",
+    "browser": "Brave Browser",
+    "viewport": {
+      "width": 1391,
+      "height": 1359
+    },
+    "armsAlternated": true,
+    "samplesPerArm": {
+      "coldish": 1,
+      "warm": 10
+    }
+  },
+  "controlDefinition": "Identical current source and data path; control invokes getCreditCardDetail only after getAccount resolves. Candidate starts the same query after authorized active-card type resolves.",
+  "timingResolution": "Server phase markers use performance.now with fractional milliseconds. Supabase fetch timings use the existing performance trace, rounded to the nearest millisecond.",
+  "samples": {
+    "candidate": [
+      {
+        "sample": "cold-ish",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 1122.745,
+            "durationMs": 1122.745
+          },
+          "authorizedCardContext": {
+            "startMs": 1123.638,
+            "endMs": 2036.748,
+            "durationMs": 913.11
+          },
+          "selectedBalanceRpc": {
+            "startMs": 1130.259,
+            "endMs": 1885.215,
+            "durationMs": 754.956
+          },
+          "ownerValidation": {
+            "startMs": 2038.972,
+            "endMs": 2337.959,
+            "durationMs": 298.987
+          },
+          "getAccount": {
+            "startMs": 1122.762,
+            "endMs": 2338.262,
+            "durationMs": 1215.5
+          },
+          "cardSettings": {
+            "startMs": 2049.429,
+            "endMs": 2372.429,
+            "durationMs": 323,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 2049.429,
+            "endMs": 2695.429,
+            "durationMs": 646,
+            "status": 200
+          },
+          "summaryReadyMs": 2699.568,
+          "routeCompletionMs": 2700.179
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 288.8,
+          "billingMonths": 288.8
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-1",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 324.159,
+            "durationMs": 324.159
+          },
+          "authorizedCardContext": {
+            "startMs": 325.098,
+            "endMs": 628.514,
+            "durationMs": 303.416
+          },
+          "selectedBalanceRpc": {
+            "startMs": 329.612,
+            "endMs": 617.144,
+            "durationMs": 287.532
+          },
+          "ownerValidation": {
+            "startMs": 628.549,
+            "endMs": 911.78,
+            "durationMs": 283.231
+          },
+          "getAccount": {
+            "startMs": 324.17,
+            "endMs": 911.914,
+            "durationMs": 587.744
+          },
+          "cardSettings": {
+            "startMs": 632.622,
+            "endMs": 941.622,
+            "durationMs": 309,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 632.622,
+            "endMs": 1098.622,
+            "durationMs": 466,
+            "status": 200
+          },
+          "summaryReadyMs": 1100.654,
+          "routeCompletionMs": 1101.045
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 279.3,
+          "billingMonths": 279.3
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-2",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 338.2,
+            "durationMs": 338.2
+          },
+          "authorizedCardContext": {
+            "startMs": 338.577,
+            "endMs": 634.725,
+            "durationMs": 296.148
+          },
+          "selectedBalanceRpc": {
+            "startMs": 342.467,
+            "endMs": 632.446,
+            "durationMs": 289.979
+          },
+          "ownerValidation": {
+            "startMs": 634.824,
+            "endMs": 919.066,
+            "durationMs": 284.242
+          },
+          "getAccount": {
+            "startMs": 338.215,
+            "endMs": 919.263,
+            "durationMs": 581.048
+          },
+          "cardSettings": {
+            "startMs": 643.883,
+            "endMs": 1254.883,
+            "durationMs": 611,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 643.883,
+            "endMs": 1290.883,
+            "durationMs": 647,
+            "status": 200
+          },
+          "summaryReadyMs": 1293.77,
+          "routeCompletionMs": 1294.461
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 275.4,
+          "billingMonths": 275.4
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-3",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 676.772,
+            "durationMs": 676.772
+          },
+          "authorizedCardContext": {
+            "startMs": 677.257,
+            "endMs": 1082.584,
+            "durationMs": 405.327
+          },
+          "selectedBalanceRpc": {
+            "startMs": 689.157,
+            "endMs": 1390.408,
+            "durationMs": 701.251
+          },
+          "ownerValidation": {
+            "startMs": 1082.611,
+            "endMs": 1349.189,
+            "durationMs": 266.578
+          },
+          "getAccount": {
+            "startMs": 676.801,
+            "endMs": 1390.492,
+            "durationMs": 713.691
+          },
+          "cardSettings": {
+            "startMs": 1088.284,
+            "endMs": 1718.284,
+            "durationMs": 630,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1089.284,
+            "endMs": 1602.284,
+            "durationMs": 513,
+            "status": 200
+          },
+          "summaryReadyMs": 1720.628,
+          "routeCompletionMs": 1720.986
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 302.2,
+          "billingMonths": 301.2
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-4",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 387.573,
+            "durationMs": 387.573
+          },
+          "authorizedCardContext": {
+            "startMs": 387.955,
+            "endMs": 679.635,
+            "durationMs": 291.68
+          },
+          "selectedBalanceRpc": {
+            "startMs": 393.836,
+            "endMs": 679.27,
+            "durationMs": 285.434
+          },
+          "ownerValidation": {
+            "startMs": 679.675,
+            "endMs": 1300.758,
+            "durationMs": 621.083
+          },
+          "getAccount": {
+            "startMs": 387.588,
+            "endMs": 1300.872,
+            "durationMs": 913.284
+          },
+          "cardSettings": {
+            "startMs": 683.739,
+            "endMs": 961.739,
+            "durationMs": 278,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 683.739,
+            "endMs": 1292.739,
+            "durationMs": 609,
+            "status": 200
+          },
+          "summaryReadyMs": 1326.371,
+          "routeCompletionMs": 1327.009
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 278,
+          "billingMonths": 609
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-5",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 306.22,
+            "durationMs": 306.22
+          },
+          "authorizedCardContext": {
+            "startMs": 306.598,
+            "endMs": 640.259,
+            "durationMs": 333.661
+          },
+          "selectedBalanceRpc": {
+            "startMs": 311.013,
+            "endMs": 598.312,
+            "durationMs": 287.299
+          },
+          "ownerValidation": {
+            "startMs": 640.455,
+            "endMs": 961.102,
+            "durationMs": 320.647
+          },
+          "getAccount": {
+            "startMs": 306.233,
+            "endMs": 961.25,
+            "durationMs": 655.017
+          },
+          "cardSettings": {
+            "startMs": 645.12,
+            "endMs": 953.12,
+            "durationMs": 308,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 645.12,
+            "endMs": 1113.12,
+            "durationMs": 468,
+            "status": 200
+          },
+          "summaryReadyMs": 1118.754,
+          "routeCompletionMs": 1119.076
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 308,
+          "billingMonths": 316.1
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-6",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 307.746,
+            "durationMs": 307.746
+          },
+          "authorizedCardContext": {
+            "startMs": 308.106,
+            "endMs": 619.96,
+            "durationMs": 311.854
+          },
+          "selectedBalanceRpc": {
+            "startMs": 311.989,
+            "endMs": 596.696,
+            "durationMs": 284.707
+          },
+          "ownerValidation": {
+            "startMs": 620.006,
+            "endMs": 899.927,
+            "durationMs": 279.921
+          },
+          "getAccount": {
+            "startMs": 307.757,
+            "endMs": 900.08,
+            "durationMs": 592.323
+          },
+          "cardSettings": {
+            "startMs": 626.858,
+            "endMs": 927.858,
+            "durationMs": 301,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 627.858,
+            "endMs": 932.858,
+            "durationMs": 305,
+            "status": 200
+          },
+          "summaryReadyMs": 935.111,
+          "routeCompletionMs": 935.378
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 273.2,
+          "billingMonths": 272.2
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-7",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 326.895,
+            "durationMs": 326.895
+          },
+          "authorizedCardContext": {
+            "startMs": 327.296,
+            "endMs": 898.957,
+            "durationMs": 571.661
+          },
+          "selectedBalanceRpc": {
+            "startMs": 331.931,
+            "endMs": 820.227,
+            "durationMs": 488.296
+          },
+          "ownerValidation": {
+            "startMs": 899.026,
+            "endMs": 1180.005,
+            "durationMs": 280.979
+          },
+          "getAccount": {
+            "startMs": 326.907,
+            "endMs": 1180.191,
+            "durationMs": 853.284
+          },
+          "cardSettings": {
+            "startMs": 907.744,
+            "endMs": 1198.744,
+            "durationMs": 291,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 908.744,
+            "endMs": 1368.744,
+            "durationMs": 460,
+            "status": 200
+          },
+          "summaryReadyMs": 1372.441,
+          "routeCompletionMs": 1373.021
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 272.4,
+          "billingMonths": 271.4
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-8",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 314.15,
+            "durationMs": 314.15
+          },
+          "authorizedCardContext": {
+            "startMs": 314.839,
+            "endMs": 701.118,
+            "durationMs": 386.279
+          },
+          "selectedBalanceRpc": {
+            "startMs": 320.332,
+            "endMs": 686.905,
+            "durationMs": 366.573
+          },
+          "ownerValidation": {
+            "startMs": 701.174,
+            "endMs": 971.433,
+            "durationMs": 270.259
+          },
+          "getAccount": {
+            "startMs": 314.166,
+            "endMs": 971.592,
+            "durationMs": 657.426
+          },
+          "cardSettings": {
+            "startMs": 707.626,
+            "endMs": 998.626,
+            "durationMs": 291,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 707.626,
+            "endMs": 1245.626,
+            "durationMs": 538,
+            "status": 200
+          },
+          "summaryReadyMs": 1248.604,
+          "routeCompletionMs": 1249.192
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 264,
+          "billingMonths": 264
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-9",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 353.594,
+            "durationMs": 353.594
+          },
+          "authorizedCardContext": {
+            "startMs": 355.119,
+            "endMs": 979.217,
+            "durationMs": 624.098
+          },
+          "selectedBalanceRpc": {
+            "startMs": 359.631,
+            "endMs": 647.674,
+            "durationMs": 288.043
+          },
+          "ownerValidation": {
+            "startMs": 979.262,
+            "endMs": 1290.521,
+            "durationMs": 311.259
+          },
+          "getAccount": {
+            "startMs": 353.604,
+            "endMs": 1290.654,
+            "durationMs": 937.05
+          },
+          "cardSettings": {
+            "startMs": 986.35,
+            "endMs": 1284.35,
+            "durationMs": 298,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 986.35,
+            "endMs": 1624.35,
+            "durationMs": 638,
+            "status": 200
+          },
+          "summaryReadyMs": 1628.869,
+          "routeCompletionMs": 1629.743
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 298,
+          "billingMonths": 304.3
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-10",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 317.028,
+            "durationMs": 317.028
+          },
+          "authorizedCardContext": {
+            "startMs": 317.595,
+            "endMs": 713.447,
+            "durationMs": 395.852
+          },
+          "selectedBalanceRpc": {
+            "startMs": 322.708,
+            "endMs": 711.57,
+            "durationMs": 388.862
+          },
+          "ownerValidation": {
+            "startMs": 713.502,
+            "endMs": 1001.327,
+            "durationMs": 287.825
+          },
+          "getAccount": {
+            "startMs": 317.04,
+            "endMs": 1001.395,
+            "durationMs": 684.355
+          },
+          "cardSettings": {
+            "startMs": 719.649,
+            "endMs": 995.649,
+            "durationMs": 276,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 720.649,
+            "endMs": 990.649,
+            "durationMs": 270,
+            "status": 200
+          },
+          "summaryReadyMs": 1031.312,
+          "routeCompletionMs": 1032.096
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 276,
+          "billingMonths": 270
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      }
+    ],
+    "control": [
+      {
+        "sample": "cold-ish",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 681.819,
+            "durationMs": 681.819
+          },
+          "authorizedCardContext": {
+            "startMs": 687.151,
+            "endMs": 1345.082,
+            "durationMs": 657.931
+          },
+          "selectedBalanceRpc": {
+            "startMs": 694.1,
+            "endMs": 992.773,
+            "durationMs": 298.673
+          },
+          "ownerValidation": {
+            "startMs": 1345.171,
+            "endMs": 1613.866,
+            "durationMs": 268.695
+          },
+          "getAccount": {
+            "startMs": 681.837,
+            "endMs": 1613.959,
+            "durationMs": 932.122
+          },
+          "cardSettings": {
+            "startMs": 1635.707,
+            "endMs": 2532.707,
+            "durationMs": 897,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1635.707,
+            "endMs": 2255.707,
+            "durationMs": 620,
+            "status": 200
+          },
+          "summaryReadyMs": 2535.111,
+          "routeCompletionMs": 2535.692
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-1",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 307.412,
+            "durationMs": 307.412
+          },
+          "authorizedCardContext": {
+            "startMs": 307.82,
+            "endMs": 606.05,
+            "durationMs": 298.23
+          },
+          "selectedBalanceRpc": {
+            "startMs": 311.691,
+            "endMs": 611.46,
+            "durationMs": 299.769
+          },
+          "ownerValidation": {
+            "startMs": 606.076,
+            "endMs": 871.584,
+            "durationMs": 265.508
+          },
+          "getAccount": {
+            "startMs": 307.419,
+            "endMs": 871.774,
+            "durationMs": 564.355
+          },
+          "cardSettings": {
+            "startMs": 888.244,
+            "endMs": 1342.244,
+            "durationMs": 454,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 889.244,
+            "endMs": 1338.244,
+            "durationMs": 449,
+            "status": 200
+          },
+          "summaryReadyMs": 1347.184,
+          "routeCompletionMs": 1347.553
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-2",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 304.193,
+            "durationMs": 304.193
+          },
+          "authorizedCardContext": {
+            "startMs": 304.425,
+            "endMs": 582.226,
+            "durationMs": 277.801
+          },
+          "selectedBalanceRpc": {
+            "startMs": 309.358,
+            "endMs": 597.733,
+            "durationMs": 288.375
+          },
+          "ownerValidation": {
+            "startMs": 582.273,
+            "endMs": 849.857,
+            "durationMs": 267.584
+          },
+          "getAccount": {
+            "startMs": 304.204,
+            "endMs": 850.064,
+            "durationMs": 545.86
+          },
+          "cardSettings": {
+            "startMs": 868.09,
+            "endMs": 1380.09,
+            "durationMs": 512,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 868.09,
+            "endMs": 1748.09,
+            "durationMs": 880,
+            "status": 200
+          },
+          "summaryReadyMs": 1758.445,
+          "routeCompletionMs": 1758.921
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-3",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 297.246,
+            "durationMs": 297.246
+          },
+          "authorizedCardContext": {
+            "startMs": 298.202,
+            "endMs": 624.992,
+            "durationMs": 326.79
+          },
+          "selectedBalanceRpc": {
+            "startMs": 304.616,
+            "endMs": 619.755,
+            "durationMs": 315.139
+          },
+          "ownerValidation": {
+            "startMs": 625.024,
+            "endMs": 895.209,
+            "durationMs": 270.185
+          },
+          "getAccount": {
+            "startMs": 297.258,
+            "endMs": 895.378,
+            "durationMs": 598.12
+          },
+          "cardSettings": {
+            "startMs": 912.106,
+            "endMs": 1425.106,
+            "durationMs": 513,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 912.106,
+            "endMs": 1419.106,
+            "durationMs": 507,
+            "status": 200
+          },
+          "summaryReadyMs": 1443.99,
+          "routeCompletionMs": 1444.853
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-4",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 656.184,
+            "durationMs": 656.184
+          },
+          "authorizedCardContext": {
+            "startMs": 656.471,
+            "endMs": 1023.829,
+            "durationMs": 367.358
+          },
+          "selectedBalanceRpc": {
+            "startMs": 662.804,
+            "endMs": 1023.373,
+            "durationMs": 360.569
+          },
+          "ownerValidation": {
+            "startMs": 1023.87,
+            "endMs": 1306.537,
+            "durationMs": 282.667
+          },
+          "getAccount": {
+            "startMs": 656.198,
+            "endMs": 1306.715,
+            "durationMs": 650.517
+          },
+          "cardSettings": {
+            "startMs": 1326.539,
+            "endMs": 1930.539,
+            "durationMs": 604,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1326.539,
+            "endMs": 2291.539,
+            "durationMs": 965,
+            "status": 200
+          },
+          "summaryReadyMs": 2294.049,
+          "routeCompletionMs": 2294.464
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-5",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 309.43,
+            "durationMs": 309.43
+          },
+          "authorizedCardContext": {
+            "startMs": 309.858,
+            "endMs": 606.095,
+            "durationMs": 296.237
+          },
+          "selectedBalanceRpc": {
+            "startMs": 315.856,
+            "endMs": 611.479,
+            "durationMs": 295.623
+          },
+          "ownerValidation": {
+            "startMs": 606.153,
+            "endMs": 890.014,
+            "durationMs": 283.861
+          },
+          "getAccount": {
+            "startMs": 309.443,
+            "endMs": 890.166,
+            "durationMs": 580.723
+          },
+          "cardSettings": {
+            "startMs": 907.266,
+            "endMs": 1368.266,
+            "durationMs": 461,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 907.266,
+            "endMs": 1402.266,
+            "durationMs": 495,
+            "status": 200
+          },
+          "summaryReadyMs": 1404.168,
+          "routeCompletionMs": 1404.502
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-6",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 382.47,
+            "durationMs": 382.47
+          },
+          "authorizedCardContext": {
+            "startMs": 382.938,
+            "endMs": 686.761,
+            "durationMs": 303.823
+          },
+          "selectedBalanceRpc": {
+            "startMs": 389.01,
+            "endMs": 692.636,
+            "durationMs": 303.626
+          },
+          "ownerValidation": {
+            "startMs": 686.823,
+            "endMs": 964.65,
+            "durationMs": 277.827
+          },
+          "getAccount": {
+            "startMs": 382.484,
+            "endMs": 964.828,
+            "durationMs": 582.344
+          },
+          "cardSettings": {
+            "startMs": 985.869,
+            "endMs": 1431.869,
+            "durationMs": 446,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 986.869,
+            "endMs": 1481.869,
+            "durationMs": 495,
+            "status": 200
+          },
+          "summaryReadyMs": 1486.867,
+          "routeCompletionMs": 1487.409
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-7",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 307.497,
+            "durationMs": 307.497
+          },
+          "authorizedCardContext": {
+            "startMs": 308.511,
+            "endMs": 973.286,
+            "durationMs": 664.775
+          },
+          "selectedBalanceRpc": {
+            "startMs": 313.564,
+            "endMs": 599.947,
+            "durationMs": 286.383
+          },
+          "ownerValidation": {
+            "startMs": 973.336,
+            "endMs": 1245.395,
+            "durationMs": 272.059
+          },
+          "getAccount": {
+            "startMs": 307.511,
+            "endMs": 1245.562,
+            "durationMs": 938.051
+          },
+          "cardSettings": {
+            "startMs": 1264.128,
+            "endMs": 2053.128,
+            "durationMs": 789,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1264.128,
+            "endMs": 1745.128,
+            "durationMs": 481,
+            "status": 200
+          },
+          "summaryReadyMs": 2064.277,
+          "routeCompletionMs": 2065.598
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-8",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 416.848,
+            "durationMs": 416.848
+          },
+          "authorizedCardContext": {
+            "startMs": 422.114,
+            "endMs": 742.075,
+            "durationMs": 319.961
+          },
+          "selectedBalanceRpc": {
+            "startMs": 437.124,
+            "endMs": 722.353,
+            "durationMs": 285.229
+          },
+          "ownerValidation": {
+            "startMs": 742.122,
+            "endMs": 1011.508,
+            "durationMs": 269.386
+          },
+          "getAccount": {
+            "startMs": 417.193,
+            "endMs": 1011.826,
+            "durationMs": 594.633
+          },
+          "cardSettings": {
+            "startMs": 1033.976,
+            "endMs": 1458.976,
+            "durationMs": 425,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1033.976,
+            "endMs": 1452.976,
+            "durationMs": 419,
+            "status": 200
+          },
+          "summaryReadyMs": 1467.794,
+          "routeCompletionMs": 1470.131
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-9",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 386.516,
+            "durationMs": 386.516
+          },
+          "authorizedCardContext": {
+            "startMs": 386.834,
+            "endMs": 666.104,
+            "durationMs": 279.27
+          },
+          "selectedBalanceRpc": {
+            "startMs": 390.586,
+            "endMs": 1019.022,
+            "durationMs": 628.436
+          },
+          "ownerValidation": {
+            "startMs": 666.198,
+            "endMs": 933.09,
+            "durationMs": 266.892
+          },
+          "getAccount": {
+            "startMs": 386.529,
+            "endMs": 1019.141,
+            "durationMs": 632.612
+          },
+          "cardSettings": {
+            "startMs": 1033.093,
+            "endMs": 1960.093,
+            "durationMs": 927,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 1033.093,
+            "endMs": 1458.093,
+            "durationMs": 425,
+            "status": 200
+          },
+          "summaryReadyMs": 1961.354,
+          "routeCompletionMs": 1961.609
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      },
+      {
+        "sample": "warm-10",
+        "serverTimelineMs": {
+          "session": {
+            "startMs": 0,
+            "endMs": 303.594,
+            "durationMs": 303.594
+          },
+          "authorizedCardContext": {
+            "startMs": 304.035,
+            "endMs": 600.856,
+            "durationMs": 296.821
+          },
+          "selectedBalanceRpc": {
+            "startMs": 307.844,
+            "endMs": 595.608,
+            "durationMs": 287.764
+          },
+          "ownerValidation": {
+            "startMs": 600.932,
+            "endMs": 893.785,
+            "durationMs": 292.853
+          },
+          "getAccount": {
+            "startMs": 303.605,
+            "endMs": 893.991,
+            "durationMs": 590.386
+          },
+          "cardSettings": {
+            "startMs": 912.661,
+            "endMs": 1490.661,
+            "durationMs": 578,
+            "status": 200
+          },
+          "billingMonths": {
+            "startMs": 912.661,
+            "endMs": 1494.661,
+            "durationMs": 582,
+            "status": 200
+          },
+          "summaryReadyMs": 1598.77,
+          "routeCompletionMs": 1599.904
+        },
+        "overlapWithGetAccountMs": {
+          "settings": 0,
+          "billingMonths": 0
+        },
+        "requestCounts": {
+          "getUser": 1,
+          "activeMembership": 1,
+          "selectedAccount": 1,
+          "householdCurrency": 1,
+          "selectedBalanceRpc": 1,
+          "ownerValidation": 1,
+          "cardSettings": 1,
+          "billingMonths": 1
+        }
+      }
+    ]
+  },
+  "browserWarmSummary": {
+    "clickToRscStartMs": {
+      "candidate": {
+        "p50": 2.6,
+        "p75": 3.3
+      },
+      "control": {
+        "p50": 2.4,
+        "p75": 2.7
+      }
+    },
+    "clickToHeroInsertedMs": {
+      "candidate": {
+        "p50": 1385.7,
+        "p75": 1483.5
+      },
+      "control": {
+        "p50": 1674.6,
+        "p75": 2061.5
+      }
+    },
+    "clickToHeroReadableMs": {
+      "candidate": {
+        "p50": 1393.9,
+        "p75": 1491.2
+      },
+      "control": {
+        "p50": 1683.9,
+        "p75": 2070.7
+      }
+    },
+    "clickToRscResponseEndMs": {
+      "candidate": {
+        "p50": 2122.2,
+        "p75": 2289.8
+      },
+      "control": {
+        "p50": 2114.1,
+        "p75": 2176.5
+      }
+    },
+    "summaryReadyToHeroReadableMs": {
+      "candidate": {
+        "p50": 80,
+        "p75": 91
+      },
+      "control": {
+        "p50": 93.2,
+        "p75": 96.5
+      }
+    }
+  },
+  "browserEvidence": {
+    "validSamplesPerArm": 11,
+    "uniqueRscRequestPerSample": true,
+    "deferredMarkersReadyPerArm": {
+      "candidate": "11/11",
+      "control": "11/11"
+    },
+    "rootHeroAndDueNodesStablePerArm": {
+      "candidate": "11/11",
+      "control": "11/11"
+    },
+    "financialFingerprintMatchesAcrossArms": "11/11"
+  },
+  "privacy": "No account, household, membership, request, credential, or financial values are included."
+}

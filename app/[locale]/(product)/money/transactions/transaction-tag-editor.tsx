@@ -13,12 +13,14 @@ type Props = {
   transactionId: string;
   initialTags: TransactionTag[];
   availableTags: TransactionTag[];
+  disabled?: boolean;
 };
 
 export function TransactionTagEditor({
   transactionId,
   initialTags,
   availableTags,
+  disabled = false,
 }: Props) {
   const t = useTranslations("money.detailPage");
   const [selectedIds, setSelectedIds] = useState(() =>
@@ -65,7 +67,7 @@ export function TransactionTagEditor({
           setSaved(false);
         }}
         onConfirm={save}
-        disabled={isPending}
+        disabled={isPending || disabled}
       />
       {saved ? (
         <Text size="sm" className="text-success" aria-live="polite">

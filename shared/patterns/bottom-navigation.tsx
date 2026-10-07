@@ -54,6 +54,10 @@ export function isStandaloneFlowPath(pathname: string): boolean {
 }
 
 export function isPathInTab(pathname: string, href: ProductTabPath): boolean {
+  // Capture is the centered Record action, not a selected Money route.
+  if (href === APP_PATH.MONEY && pathname === APP_PATH.MONEY_ADD) {
+    return false;
+  }
   if (
     href === APP_PATH.HOME &&
     (pathname === APP_PATH.HEALTH || pathname.startsWith(`${APP_PATH.HEALTH}/`))

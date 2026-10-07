@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { setLocale } from "@/i18n/set-locale";
 import { Link, redirect } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
+import {
+  withPerfSpan,
+  PERF_TRACE_OP,
+} from "@/modules/platform/application/perf-trace";
 import {
   APP_PATH,
   moneyAccountPath,
 } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import {
   listTransactionEvents,
   listTransactionTags,
@@ -53,15 +53,10 @@ export default async function TransactionsListPage({
   searchParams,
 }: Props) {
   const { locale: rawLocale } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
-
-  const user = await getSessionUser();
-  if (!user) return redirect({ href: APP_PATH.LOGIN, locale });
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) return redirect({ href: APP_PATH.ONBOARD, locale });
+  const { locale } = await withPerfSpan(
+    PERF_TRACE_OP.TRANSACTION_SESSION_GATE,
+    () => requireProductSession({ localeParam: rawLocale }),
+  );
 
   const sp = await searchParams;
   const parsedFilters = transactionEventFilterSchema.safeParse({
@@ -83,15 +78,17 @@ export default async function TransactionsListPage({
   });
   if (sp.cursor) redirect({ href: currentHref, locale });
 
-  const [t, tMoney, result, filterOptions, availableTags] = await Promise.all([
+  const filterOptionsPromise = listTransactionFilterOptions();
+  const transactionTagsPromise = listTransactionTags({ includeArchived: true });
+  const [t, tMoney, result] = await Promise.all([
     getTranslations("money.transactionsPage"),
     getTranslations("money"),
-    listTransactionEvents({
-      ...filters,
-      limit: TRANSACTION_LIST_PAGE_SIZE,
-    }),
-    listTransactionFilterOptions(),
-    listTransactionTags({ includeArchived: true }),
+    withPerfSpan(PERF_TRACE_OP.TRANSACTION_EVENT_LOADER, () =>
+      listTransactionEvents({
+        ...filters,
+        limit: TRANSACTION_LIST_PAGE_SIZE,
+      }),
+    ),
   ]);
 
   const hasActiveFilter =
@@ -180,10 +177,9 @@ export default async function TransactionsListPage({
         query={filters.q ?? ""}
         categoryIds={filters.categoryIds}
         jarIds={filters.jarIds}
-        availableTags={availableTags ?? []}
-        availableCategories={filterOptions?.categories ?? []}
-        availableJars={filterOptions?.jars ?? []}
         selectedTagIds={filters.tagIds}
+        filterOptionsPromise={filterOptionsPromise}
+        transactionTagsPromise={transactionTagsPromise}
       />
 
       {result === null ? (

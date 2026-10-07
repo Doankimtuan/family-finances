@@ -62,6 +62,15 @@ import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-m
 import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { getPlanPulse } from "@/modules/plan/application/queries/get-plan-pulse";
 import { getRealPosition } from "@/modules/ledger/application/queries/get-real-position";
+import { getTransactionReadResult } from "@/modules/ledger/application/queries/get-transaction";
+import {
+  AccountType,
+  DEFAULT_CURRENCY,
+  TransactionLedgerType,
+  TransactionReadStatus,
+  TransactionStatus,
+} from "@/modules/ledger/application/ledger-constants";
+import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 
 function pulseClient() {
   return {
@@ -170,6 +179,10 @@ describe("request-local query cache", () => {
       "modules/ledger/application/queries/list-credit-cards.ts",
       "utf8",
     );
+    const transactions = readFileSync(
+      "modules/ledger/application/queries/get-transaction.ts",
+      "utf8",
+    );
     const serverClient = readFileSync(
       "modules/platform/supabase/server.ts",
       "utf8",
@@ -185,6 +198,9 @@ describe("request-local query cache", () => {
     expect(position).not.toMatch(/loadRealPosition\([^)]*account/i);
     expect(cards).toContain(
       "export const listCreditCards = cache(loadCreditCards)",
+    );
+    expect(transactions).toContain(
+      "export const getTransactionReadResult = cache(loadTransactionReadResult)",
     );
     expect(serverClient).toContain(
       "export const createSupabaseServerClient = cache(",
@@ -241,6 +257,59 @@ describe("request-local query cache", () => {
     requestCache.beginRequest();
     await getPlanPulse();
     expect(createSupabaseServerClient).toHaveBeenCalledTimes(2);
+  });
+
+  it("deduplicates the authorized transaction base read within one request", async () => {
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "u1",
+      householdId: "h1",
+      membershipId: "m1",
+    });
+    const row = {
+      id: "transaction-id",
+      account_id: "account-id",
+      type: TransactionLedgerType.EXPENSE,
+      amount: 100,
+      currency: DEFAULT_CURRENCY,
+      transaction_date: "2026-10-01",
+      note: null,
+      category_id: null,
+      jar_id: null,
+      status: TransactionStatus.POSTED,
+      transfer_group_id: null,
+      loan_payment_id: null,
+      savings_event_kind: null,
+      reverses_transaction_id: null,
+      corrects_transaction_id: null,
+      is_reversal: false,
+      created_at: "2026-10-01T00:00:00.000Z",
+      accounts: {
+        name: "Cash",
+        type: AccountType.CASH,
+        financial_scope: FINANCIAL_SCOPE.HOUSEHOLD,
+      },
+      categories: null,
+      jars: null,
+      transaction_tag_assignments: [],
+    };
+    const query = {
+      select: () => query,
+      eq: () => query,
+      maybeSingle: async () => ({ data: row, error: null }),
+    };
+    const from = vi.fn(() => query);
+    vi.mocked(createSupabaseServerClient).mockResolvedValue({ from } as never);
+
+    const [first, second] = await Promise.all([
+      getTransactionReadResult(row.id),
+      getTransactionReadResult(row.id),
+    ]);
+
+    expect(first).toEqual(second);
+    expect(first.status).toBe(TransactionReadStatus.OK);
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(assertMoneyActionAllowed).toHaveBeenCalledTimes(1);
   });
 
   it("deduplicates getRealPosition within one request", async () => {

@@ -1,18 +1,15 @@
 import { getTranslations } from "next-intl/server";
-import { setLocale } from "@/i18n/set-locale";
-import { redirect } from "@/i18n/navigation";
-import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import {
+  withPerfSpan,
+  PERF_TRACE_OP,
+} from "@/modules/platform/application/perf-trace";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import {
   isCaptureAccountType,
-  listAccountsForCapture,
+  listCaptureAccountReferences,
   listCaptureJars,
   listCategoryTags,
   listTransactionTags,
-  DEFAULT_CURRENCY,
   TransactionDirection,
   MoneyCaptureMode,
   MONEY_CAPTURE_MODE_OPTIONS,
@@ -38,41 +35,31 @@ export default async function MoneyTransactionAddPage({
 }: Props) {
   const { locale: rawLocale } = await params;
   const query = await searchParams;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
-
-  const user = await getSessionUser();
-  if (!user) {
-    return redirect({ href: APP_PATH.LOGIN, locale });
-  }
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) {
-    return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
-
-  const [t, listed, expenseTags, incomeTags, jars, transactionTags] =
-    await Promise.all([
-      getTranslations("money"),
-      listAccountsForCapture(),
-      listCategoryTags(TransactionDirection.EXPENSE),
-      listCategoryTags(TransactionDirection.INCOME),
-      listCaptureJars(),
-      listTransactionTags(),
-    ]);
-  const accounts = (listed?.accounts ?? []).filter(
-    (account) =>
-      !account.isArchived &&
-      account.canMutate &&
-      isCaptureAccountType(account.type),
+  await withPerfSpan(PERF_TRACE_OP.TRANSACTION_SESSION_GATE, () =>
+    requireProductSession({ localeParam: rawLocale }),
   );
+
+  const accountReferences = listCaptureAccountReferences();
+  const accountsPromise = accountReferences.accounts.then(
+    (accounts) =>
+      accounts?.filter(
+        (account) =>
+          !account.isArchived &&
+          account.canMutate &&
+          isCaptureAccountType(account.type),
+      ) ?? [],
+  );
+  const expenseTagsPromise = listCategoryTags(TransactionDirection.EXPENSE);
+  const incomeTagsPromise = listCategoryTags(TransactionDirection.INCOME);
+  const jarsPromise = listCaptureJars();
+  const transactionTagsPromise = listTransactionTags();
+  const [t, currency] = await Promise.all([
+    getTranslations("money"),
+    accountReferences.currency,
+  ]);
   const requestedAccountId = query[TRANSACTION_ACCOUNT_QUERY_PARAM];
   const initialAccountId =
-    typeof requestedAccountId === "string" &&
-    accounts.some((account) => account.id === requestedAccountId)
-      ? requestedAccountId
-      : undefined;
+    typeof requestedAccountId === "string" ? requestedAccountId : undefined;
   const initialMode =
     MONEY_CAPTURE_MODE_OPTIONS.find(
       (mode) => mode === query[TRANSACTION_CAPTURE_MODE_QUERY_PARAM],
@@ -93,12 +80,12 @@ export default async function MoneyTransactionAddPage({
     >
       <MoneyOfflineBanner />
       <MoneyCaptureEntry
-        accounts={accounts}
-        expenseTags={expenseTags ?? []}
-        incomeTags={incomeTags ?? []}
-        jars={jars ?? []}
-        transactionTags={transactionTags ?? []}
-        currency={listed?.currency ?? DEFAULT_CURRENCY}
+        accountsPromise={accountsPromise}
+        expenseTagsPromise={expenseTagsPromise}
+        incomeTagsPromise={incomeTagsPromise}
+        jarsPromise={jarsPromise}
+        transactionTagsPromise={transactionTagsPromise}
+        currency={currency}
         initialAccountId={initialAccountId}
         initialMode={initialMode}
       />

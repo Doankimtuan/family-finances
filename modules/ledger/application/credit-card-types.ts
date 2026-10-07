@@ -63,7 +63,6 @@ export type CreditCardSummary = {
 
 export type CreditCardDetail = CreditCardSummary & {
   months: CardBillingMonth[];
-  items: CardBillingItem[];
 };
 
 function asBillingStatus(value: string): CardBillingMonthStatusValue {

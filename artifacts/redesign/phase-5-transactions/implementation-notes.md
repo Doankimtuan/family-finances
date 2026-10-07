@@ -21,7 +21,7 @@ Add Transaction answers: can I record a normal movement in about 15 seconds?
 
 ## Add Transaction composition
 
-1. Form `TopAppBar` — back to Transactions (existing)
+1. Main-screen `TopAppBar` — no Back button; Add Transaction is the center primary-navigation action
 2. Mode: expense / income / transfer (existing)
 3. Amount (dominant, numeric `inputMode`, autofocus)
 4. Account
@@ -36,12 +36,12 @@ Add Transaction answers: can I record a normal movement in about 15 seconds?
 
 - Date grouping reused `effectiveDate`; Today/Yesterday stay i18n keys.
 - Filters stay URL-backed (`type`, `tags`, `cursor`). Chips wrap instead of a clipped horizontal strip.
-- Search deferred: events list has no `q`.
+- Search notes is supported by the list query; it matches note text.
 - Empty CTA uses existing `APP_PATH.MONEY_ADD`. Filtered empty clears filters.
 - Load failure uses shared `ErrorState`.
 - Signed amounts keep sign + tone + assistive movement copy. Color is not the only cue.
 - Optional jar/tags are disclosed so the default path is amount → account → category → save.
-- Save still opens the existing confirmation sheet; mutation payload unchanged.
+- Save opens the existing confirmation sheet; successful recording shows the existing receipt. Mutation payload is unchanged.
 - Account test session: view-only; no capture save in browser.
 
 ## Shared components reused

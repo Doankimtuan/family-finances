@@ -1,0 +1,226 @@
+{
+  "phase": "Accounts Phase 6",
+  "collectedOn": "2026-10-05",
+  "scope": "Credit Card Detail progressive rendering",
+  "measurement": {
+    "control": "Frozen pre-Phase-6 / Phase 5 source",
+    "candidate": "Final Phase 6 source",
+    "sameAuthenticatedBrowserAndAccount": true,
+    "sameLocalEnvironment": true,
+    "throttling": false,
+    "controlWarmSamples": 3,
+    "candidateWarmSamples": 10,
+    "units": "milliseconds",
+    "p50": "median; midpoint for even sample sizes",
+    "p75": "nearest rank",
+    "firstPostChangeColdishSample": {
+      "hero": 3103,
+      "fullDetail": 3396,
+      "inWarmSeries": false
+    }
+  },
+  "spansMs": {
+    "sessionGatePhase5Reference": {
+      "samples": [880, 664, 376, 293, 294, 296, 315, 665, 298, 301],
+      "p50": 308,
+      "p75": 664,
+      "phase6Remeasured": false
+    },
+    "controlClickToHeroAndFull": [1695, 1629, 2626],
+    "phase6ClickToHero": [
+      1914, 1155, 1543, 2559, 1868, 1952, 1675, 1593, 1140, 1492
+    ],
+    "phase6ClickToActivity": [
+      1914, 1155, 1543, 2559, 1868, 1952, 1675, 1593, 1457, 1492
+    ],
+    "phase6ClickToInstallmentAndEligibilityCombined": [
+      2482, 1748, 2125, 3294, 2150, 1952, 1999, 1906, 1749, 2189
+    ],
+    "phase6ClickToPaymentAccounts": [
+      2482, 1748, 1748, 2849, 2458, 1952, 1999, 1906, 1457, 1763
+    ],
+    "phase6ClickToFullDetail": [
+      2482, 1748, 2125, 3294, 2458, 1952, 1999, 1906, 1749, 2189
+    ],
+    "summaries": {
+      "control": {
+        "n": 3,
+        "p50": 1695,
+        "p75": 2626
+      },
+      "hero": {
+        "n": 10,
+        "p50": 1634,
+        "p75": 1914
+      },
+      "activity": {
+        "n": 10,
+        "p50": 1634,
+        "p75": 1914
+      },
+      "installmentAndEligibilityCombined": {
+        "n": 10,
+        "p50": 2062,
+        "p75": 2189
+      },
+      "paymentAccounts": {
+        "n": 10,
+        "p50": 1929,
+        "p75": 2458
+      },
+      "fullDetail": {
+        "n": 10,
+        "p50": 2062,
+        "p75": 2458
+      }
+    }
+  },
+  "requestCountsPerCardVisit": [
+    {
+      "operation": "getUser",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "activeMembership",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "selectedAccountRowIncludingDuplicate",
+      "before": 2,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "householdCurrencyContextIncludingDuplicate",
+      "before": 2,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "selectedBalanceRpc",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "recentTransactions",
+      "before": 0,
+      "after": 0,
+      "criticalAfter": false
+    },
+    {
+      "operation": "cardSettings",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "billingMonths",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": true
+    },
+    {
+      "operation": "billingItems",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": false
+    },
+    {
+      "operation": "installments",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": false
+    },
+    {
+      "operation": "eligiblePurchases",
+      "before": "1 path: transactions + plans",
+      "after": "same path",
+      "criticalAfter": false
+    },
+    {
+      "operation": "relatedTransactionLookup",
+      "before": "0 or 1 conditional",
+      "after": "same conditional",
+      "criticalAfter": false
+    },
+    {
+      "operation": "listAccounts",
+      "before": 1,
+      "after": 1,
+      "criticalAfter": false
+    }
+  ],
+  "criticalCardDetailQueries": {
+    "before": [
+      "duplicate household/currency",
+      "duplicate account row",
+      "settings",
+      "billing months",
+      "billing items"
+    ],
+    "criticalAfter": ["settings", "billing months"],
+    "deferredAfter": ["billing items"]
+  },
+  "browserVerification": {
+    "detailLoadedFromAccounts": true,
+    "summaryAndOwnershipVisible": true,
+    "deferredFallbacksObserved": [
+      "payment accounts",
+      "installment/eligibility action",
+      "billing activity"
+    ],
+    "rootAndHeroDomNodesPersisted": true,
+    "responsiveViewports": [390, 440, 768, 1280],
+    "noHorizontalOverflow": true,
+    "maxAppShellWidth": 440,
+    "darkTheme": true,
+    "lightTheme": true,
+    "reducedMotion": true,
+    "visibleKeyboardFocus": true,
+    "paymentSheetOpenedAndDismissed": true,
+    "mutationsSubmitted": false,
+    "backAddedRequests": {
+      "rscFlight": 0,
+      "accountsRoute": 0,
+      "auth": 0,
+      "membership": 0
+    },
+    "restoredRoute": "/vi/money"
+  },
+  "failureIsolation": {
+    "activityFailureShowsAlert": true,
+    "installmentFailureHidesAction": true,
+    "eligibilityFailureHidesAction": true,
+    "paymentAccountFailureDisablesPayment": true,
+    "focusedFailureTests": 4
+  },
+  "validation": {
+    "focusedTestsPassed": 100,
+    "focusedFilesPassed": 12,
+    "fullSuitePassed": 1734,
+    "fullSuiteFailed": 5,
+    "lintPassed": true,
+    "diffCheckPassed": true,
+    "typecheckPassed": false,
+    "typecheckBlocker": "HomeTranslator/Translator errors in home-streaming-sections.tsx at lines 99 and 340",
+    "productionCompilationPassed": true,
+    "productionBuildTypecheckPassed": false,
+    "fullSuiteFailureAreas": [
+      "HEAD i18n key parity mismatch: en lacks savingsPage.summaryCaption",
+      "Privacy test expects break-words while unchanged card hero uses truncate",
+      "Three presentation tests render InlineAlert without NextIntlClientProvider"
+    ]
+  },
+  "privacy": {
+    "identifiersRemoved": true,
+    "financialValuesRemoved": true,
+    "credentialsRemoved": true,
+    "rawPayloadsRemoved": true
+  },
+  "decision": "ACCOUNTS PHASE 6 SUCCESS — PROCEED TO ACCOUNTS PHASE 7"
+}

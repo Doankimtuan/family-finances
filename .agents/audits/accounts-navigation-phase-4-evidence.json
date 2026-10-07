@@ -1,0 +1,119 @@
+{
+  "phase": "Accounts Phase 4",
+  "date": "2026-10-04",
+  "scope": "Liquid Account Detail progressive rendering",
+  "decision": "ACCOUNTS PHASE 4 PARTIAL — INVESTIGATE BEFORE PHASE 5",
+  "sanitization": {
+    "credentials_included": false,
+    "account_identifiers_included": false,
+    "names_included": false,
+    "financial_payloads_included": false,
+    "mutations_performed": false
+  },
+  "environment": {
+    "application": "localhost Next.js development server",
+    "browser": "Brave / Chromium",
+    "locale": "vi",
+    "viewport_css_px": [390, 844],
+    "cpu_throttling": false,
+    "network_throttling": false,
+    "app_process_was_cold": false,
+    "comparison": "Frozen pre-Phase-4 source and final source were swapped in the same running app and browser; both arms used the same selected liquid account and Accounts-row navigation."
+  },
+  "benchmark": {
+    "measurement": "Accounts-row click to first non-zero layout box for each milestone, recorded by a browser MutationObserver.",
+    "first_sample_note": "First route sample after each source swap; the browser and development server were already warm.",
+    "warm_repetitions": 3,
+    "milestones": {
+      "A": "data-testid=account-detail-hero",
+      "B": "data-testid=account-recent-activity-ready in Phase 4; existing activity section in control",
+      "C": "max(A, B) for the liquid branch"
+    },
+    "control_samples_ms": {
+      "A": [1907.8, 1696.7, 1749.6, 1722.3],
+      "B": [1907.8, 1696.7, 1749.6, 1722.3],
+      "C": [1907.8, 1696.7, 1749.6, 1722.3]
+    },
+    "phase4_samples_ms": {
+      "A": [2109.1, 2082.3, 1722.4, 1721.7],
+      "B": [2109.1, 2082.3, 1722.4, 1721.7],
+      "C": [2109.1, 2082.3, 1722.4, 1721.7]
+    },
+    "warm_medians_ms": {
+      "control": { "A": 1722.3, "B": 1722.3, "C": 1722.3 },
+      "phase4": { "A": 1722.4, "B": 1722.4, "C": 1722.4 },
+      "delta": { "A": 0.1, "B": 0.1, "C": 0.1 }
+    },
+    "first_sample_delta_ms": { "A": 201.3, "B": 201.3, "C": 201.3 },
+    "interpretation": "The paired warm median did not demonstrate an earlier hero. The first final-source pass was slower and browser development timings varied; no performance win is claimed."
+  },
+  "network": {
+    "before_control_total_remote_operations": 10,
+    "after_phase4_total_source_derived_for_sampled_shared_account": 6,
+    "after_phase4_trace_available": false,
+    "after_count_basis": "Final route promise graph plus React request-local cache; generic listAccounts household/accounts, owner lookup, and balance RPC subtree is absent from the liquid branch.",
+    "operations": {
+      "getUser": { "before": 1, "after": 1 },
+      "active_membership": { "before": 1, "after": 1 },
+      "selected_household_and_account_reads": { "before": 2, "after": 2 },
+      "selected_owner_membership": {
+        "before_sampled_shared": 0,
+        "after_sampled_shared": 0,
+        "personal_account_conditional": true
+      },
+      "selected_balance_rpc": { "before": 1, "after": 1 },
+      "recent_transactions": { "before": 1, "after": 1 },
+      "generic_list_household_and_accounts_reads": { "before": 2, "after": 0 },
+      "generic_list_owner_lookup": {
+        "before_sampled_inventory": 1,
+        "after": 0
+      },
+      "generic_list_balance_rpc": { "before": 1, "after": 0 }
+    }
+  },
+  "financial_correctness": {
+    "selected_balance_source": "Existing server-side ledger balance RPC via getAccount",
+    "selected_owner_validation_retained": true,
+    "can_mutate_known_before_actions_render": true,
+    "archived_and_inaccessible_accounts_fail_closed": true,
+    "activity_failure_is_local": true,
+    "mutation_commands_changed": false
+  },
+  "browser_verification": {
+    "responsive_widths_checked_px": [390, 440, 768, 1280],
+    "horizontal_overflow": false,
+    "direct_locales_checked": ["en", "vi"],
+    "themes_checked": ["dark", "light"],
+    "reduced_motion_checked": true,
+    "keyboard_focus_checked": true,
+    "settings_overlay_open_escape_checked": true,
+    "activity_rows_rendered": true,
+    "empty_and_error_activity_unit_covered": true,
+    "hero_and_detail_root_dom_identity_preserved": true,
+    "accounts_back_restoration_checked": true,
+    "back_rsc_auth_membership_accounts_reloads": 0,
+    "create_account_and_card_smoke_checked": true,
+    "financial_forms_submitted": false
+  },
+  "credit_card_spot_check": {
+    "control_samples_ms": [3092, 2635, 2437, 1898],
+    "phase4_samples_ms": [3053, 2249, 1794, 1834],
+    "control_warm_median_ms": 2437,
+    "phase4_warm_median_ms": 1834,
+    "result": "No slower in this measured run; the liquid-only activity scheduling change does not execute for card routes."
+  },
+  "validation": {
+    "focused_files": 18,
+    "focused_tests_passed": 147,
+    "full_test_files_passed": 252,
+    "full_test_failures": 5,
+    "known_full_suite_failures": [
+      "English/Vietnamese money catalog parity: savingsPage.summaryCaption",
+      "Existing Money IA privacy test expects break-words but current account hero uses truncate",
+      "Three Credit Card presentation tests lack NextIntlClientProvider"
+    ],
+    "lint": "passed",
+    "typecheck": "blocked by two existing HomeTranslator/Translator errors in home-streaming-sections.tsx at lines 99 and 340",
+    "production_build": "not rerun; baseline typecheck errors remain"
+  }
+}

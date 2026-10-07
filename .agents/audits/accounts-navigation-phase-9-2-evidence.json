@@ -1,0 +1,424 @@
+{
+  "phase": "accounts-navigation-phase-9.2",
+  "collectedOn": "2026-10-05",
+  "classification": "verified-beneficial",
+  "percentiles": "linear type-7, milliseconds rounded to nearest integer",
+  "harness": {
+    "controlPort": 3121,
+    "candidatePort": 3122,
+    "nextVersion": "16.3.1",
+    "mode": "dev-turbopack",
+    "isolatedDisposableCopies": true,
+    "sameEnvironment": true,
+    "sameSupabaseProject": true,
+    "existingAuthenticatedProfile": true,
+    "authCookiesManufactured": false,
+    "serviceRoleUsed": false,
+    "port3000Touched": false,
+    "productionSourceChanged": false,
+    "databaseChanged": false,
+    "temporaryCopiesRemoved": true,
+    "benchmarkServersStopped": true
+  },
+  "preflight": {
+    "controlAuthenticated": true,
+    "candidateAuthenticated": true,
+    "accountDetailOpenedBoth": true,
+    "samePersonalCardRoute": true,
+    "authUserStatus": 200,
+    "membershipStatus": 200
+  },
+  "primaryFixtureCapability": {
+    "type": "credit_card",
+    "scope": "personal",
+    "ownerStatus": "active",
+    "isOwnedByMe": false,
+    "canMutate": false,
+    "archived": false,
+    "available": true,
+    "currency": "VND",
+    "cardActionStates": {
+      "matchedSpotChecks": 1,
+      "payPresent": true,
+      "payDisabled": true,
+      "chargePresent": true,
+      "chargeDisabled": true,
+      "installmentPresent": true,
+      "installmentDisabled": true,
+      "controlCandidateMatch": true
+    }
+  },
+  "requestTopologyPerWarmDetail": {
+    "control": {
+      "authenticatedUser": 1,
+      "activeMembership": 1,
+      "accountAndCurrency": 2,
+      "selectedBalanceRpc": 1,
+      "selectedOwnerFollowup": 1,
+      "cardSettings": 1,
+      "billingMonths": 1,
+      "totalCriticalRequests": 8
+    },
+    "candidate": {
+      "authenticatedUser": 1,
+      "activeMembership": 1,
+      "accountAndCurrency": 2,
+      "selectedBalanceRpc": 1,
+      "selectedOwnerFollowup": 0,
+      "cardSettings": 1,
+      "billingMonths": 1,
+      "totalCriticalRequests": 7
+    },
+    "deferredPaymentAccountLoaderExcluded": true,
+    "httpStatus200ForCriticalRequests": true
+  },
+  "authenticatedEmbedProof": {
+    "candidateWarmSamples": 10,
+    "relationReturnedObject": 10,
+    "ownerIdMatchesAccountOwner": 10,
+    "householdMatchesAuthorizedHousehold": 10,
+    "isActiveExactlyTrue": 10,
+    "ownerFollowupRequests": 0,
+    "controlOwnerFollowupRequests": 10
+  },
+  "capabilityAndHeroParity": {
+    "warmPairs": 10,
+    "capabilityFingerprintMatches": 10,
+    "financialHeroFingerprintMatchesAfterSettle": 10,
+    "settleAfterFullRscMs": 400,
+    "regionsCompared": [
+      "credit-card-hero",
+      "card-due-lead",
+      "account-settings",
+      "financial-ownership-badge"
+    ],
+    "initialImmediateSnapshot": {
+      "matchingPairs": 6,
+      "totalPairs": 10
+    },
+    "followupRegionProbe": {
+      "differenceRegion": "card-due-lead",
+      "stableAfterSettle": true
+    },
+    "regionButtonStatePairsMatch": 10,
+    "rawFinancialValuesPersisted": false
+  },
+  "contextCost": {
+    "accountHeadersMs": {
+      "control": {
+        "min": 253,
+        "p50": 279,
+        "p75": 569,
+        "max": 718
+      },
+      "candidate": {
+        "min": 260,
+        "p50": 288,
+        "p75": 331,
+        "max": 428
+      }
+    },
+    "accountCompleteMs": {
+      "control": {
+        "min": 257,
+        "p50": 284,
+        "p75": 576,
+        "max": 723
+      },
+      "candidate": {
+        "min": 266,
+        "p50": 294,
+        "p75": 336,
+        "max": 434
+      }
+    },
+    "decodedJsonBytes": {
+      "control": {
+        "min": 231,
+        "p50": 231,
+        "p75": 231,
+        "max": 231
+      },
+      "candidate": {
+        "min": 367,
+        "p50": 367,
+        "p75": 367,
+        "max": 367
+      }
+    },
+    "mappingMs": {
+      "control": {
+        "min": 0,
+        "p50": 0,
+        "p75": 0,
+        "max": 0.2
+      },
+      "candidate": {
+        "min": 0,
+        "p50": 0,
+        "p75": 0,
+        "max": 0.1
+      }
+    }
+  },
+  "phase5BalanceOverlap": {
+    "controlStartedBeforeContextEnd": 10,
+    "candidateStartedBeforeContextEnd": 10,
+    "overlapMs": {
+      "control": {
+        "min": 261,
+        "p50": 287,
+        "p75": 289,
+        "max": 357
+      },
+      "candidate": {
+        "min": 273,
+        "p50": 292,
+        "p75": 295,
+        "max": 359
+      }
+    }
+  },
+  "phase8CardSummaryOverlap": {
+    "control": {
+      "settingsStartedBeforeGetAccountEnd": 10,
+      "billingMonthsStartedBeforeGetAccountEnd": 10,
+      "settingsOverlapMs": {
+        "p50": 283,
+        "p75": 288
+      },
+      "billingMonthsOverlapMs": {
+        "p50": 284,
+        "p75": 288
+      }
+    },
+    "candidate": {
+      "settingsStartedBeforeGetAccountEnd": 4,
+      "billingMonthsStartedBeforeGetAccountEnd": 4,
+      "settingsOverlapMs": {
+        "p50": 0,
+        "p75": 13
+      },
+      "billingMonthsOverlapMs": {
+        "p50": 0,
+        "p75": 13
+      }
+    },
+    "candidateSummaryAndHeroStillImproved": true
+  },
+  "warmPerformanceMs": {
+    "accountContext": {
+      "control": {
+        "min": 286,
+        "p50": 302,
+        "p75": 581,
+        "max": 728
+      },
+      "candidate": {
+        "min": 289,
+        "p50": 302,
+        "p75": 340,
+        "max": 654
+      }
+    },
+    "ownerFollowup": {
+      "control": {
+        "min": 267,
+        "p50": 291,
+        "p75": 295,
+        "max": 334
+      },
+      "candidate": {
+        "min": 0,
+        "p50": 0,
+        "p75": 0,
+        "max": 0
+      }
+    },
+    "selectedBalance": {
+      "control": {
+        "min": 261,
+        "p50": 295,
+        "p75": 311,
+        "max": 357
+      },
+      "candidate": {
+        "min": 273,
+        "p50": 298,
+        "p75": 349,
+        "max": 653
+      }
+    },
+    "getAccount": {
+      "control": {
+        "min": 557,
+        "p50": 595,
+        "p75": 905,
+        "max": 1017
+      },
+      "candidate": {
+        "min": 293,
+        "p50": 329,
+        "p75": 422,
+        "max": 657
+      }
+    },
+    "summaryReady": {
+      "control": {
+        "min": 305,
+        "p50": 397,
+        "p75": 525,
+        "max": 859
+      },
+      "candidate": {
+        "min": 297,
+        "p50": 355,
+        "p75": 420,
+        "max": 559
+      }
+    },
+    "routeComplete": {
+      "control": {
+        "min": 894,
+        "p50": 1249,
+        "p75": 1424,
+        "max": 1713
+      },
+      "candidate": {
+        "min": 900,
+        "p50": 1078,
+        "p75": 1132,
+        "max": 1293
+      }
+    },
+    "clickToReadableHero": {
+      "control": {
+        "min": 1204,
+        "p50": 1556,
+        "p75": 1657,
+        "max": 1928
+      },
+      "candidate": {
+        "min": 1084,
+        "p50": 1328,
+        "p75": 1399,
+        "max": 1822
+      }
+    },
+    "clickToRscStart": {
+      "control": {
+        "min": 42,
+        "p50": 76,
+        "p75": 141,
+        "max": 362
+      },
+      "candidate": {
+        "min": 41,
+        "p50": 120,
+        "p75": 261,
+        "max": 483
+      }
+    },
+    "rscDuration": {
+      "control": {
+        "min": 1673,
+        "p50": 2169,
+        "p75": 2437,
+        "max": 2735
+      },
+      "candidate": {
+        "min": 1401,
+        "p50": 1546,
+        "p75": 1722,
+        "max": 2204
+      }
+    },
+    "clickToRscEnd": {
+      "control": {
+        "min": 1719,
+        "p50": 2308,
+        "p75": 2568,
+        "max": 2815
+      },
+      "candidate": {
+        "min": 1452,
+        "p50": 1759,
+        "p75": 1995,
+        "max": 2271
+      }
+    },
+    "samplesPerArm": 10,
+    "allDetailRscStatus200": true,
+    "sameFixtureEverySample": true
+  },
+  "coldishBrowserVisit": {
+    "samplesPerArm": 1,
+    "postPreflight": true,
+    "serverCompileCold": false,
+    "heroVisibleMs": {
+      "control": 1841,
+      "candidate": 1660
+    },
+    "clickToFullRscMs": {
+      "control": 2861,
+      "candidate": 2336
+    },
+    "status200Both": true
+  },
+  "householdRegression": {
+    "matchedPairs": 2,
+    "capabilityMatched": true,
+    "controlOwnerFollowups": 0,
+    "candidateOwnerFollowups": 0,
+    "candidateEmbeddedRelationAbsentAsExpected": true,
+    "contextP50Ms": {
+      "control": 300,
+      "candidate": 339,
+      "delta": 39
+    },
+    "heroP50Ms": {
+      "control": 1138,
+      "candidate": 1313,
+      "delta": 175
+    },
+    "smallSample": true
+  },
+  "personalLiquidRegression": {
+    "matchedPairs": 2,
+    "type": "checking",
+    "scope": "personal",
+    "ownerStatus": "active",
+    "isOwnedByMe": false,
+    "canMutate": false,
+    "candidateEmbeddedOwnerEvidenceCorrect": true,
+    "controlOwnerFollowup": 1,
+    "candidateOwnerFollowup": 0,
+    "balanceRpcStatus": 200,
+    "heroBalanceFingerprintMatches": true,
+    "activityReadyAtHero": false,
+    "activityReadyAfterDeferredWait": true,
+    "backReturnedToAccounts": true
+  },
+  "validation": {
+    "focusedFiles": 12,
+    "focusedTestsPassed": 114,
+    "lintPassed": true,
+    "typecheckPassed": false,
+    "typecheckErrors": 2,
+    "typecheckBaseline": "HomeTranslator/Translator type mismatch in home-streaming-sections.tsx",
+    "formatCheckPassed": false,
+    "formatWarnings": 195,
+    "formatWarningsBaseline": true,
+    "buildRun": false,
+    "buildSkippedBecauseTypecheckBaselineFails": true
+  },
+  "classificationEvidence": {
+    "ownerFollowupEliminated": true,
+    "capabilityMatches": true,
+    "authenticatedRlsEmbedVerified": true,
+    "getAccountP50Improved": true,
+    "summaryP50Improved": true,
+    "heroP50Improved": true,
+    "phase8OverlapFullyPreserved": false
+  }
+}

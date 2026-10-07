@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-06",
+  "environment": {
+    "browser": "authenticated local browser session",
+    "server": "local Next.js development server",
+    "comparisonViewport": {
+      "width": 1920,
+      "height": 943
+    },
+    "comparisonSampleCountPerPath": 5,
+    "percentile": "nearest-rank"
+  },
+  "sameRunWarmPathSamplesMs": {
+    "transactionsListToAdd": {
+      "control": [2224, 1356, 2191, 1664, 1375],
+      "phase2": [1748, 2237, 1157, 1353, 1014],
+      "controlP50": 1664,
+      "controlP75": 2191,
+      "phase2P50": 1353,
+      "phase2P75": 1748,
+      "p50DeltaMs": -311,
+      "p50DeltaPercent": -18.7
+    },
+    "bottomNavigationToAdd": {
+      "control": [1577, 1609, 1249, 1246, 2334],
+      "phase2": [1230, 1063, 1571, 1025, 1007],
+      "controlP50": 1577,
+      "controlP75": 1609,
+      "phase2P50": 1063,
+      "phase2P75": 1230,
+      "p50DeltaMs": -514,
+      "p50DeltaPercent": -32.6
+    }
+  },
+  "phase2ReadinessSamplesMs": {
+    "expense": [
+      [1448, 1768, 1453, 1783, 1768],
+      [1014, 1302, 1018, 1310, 1302],
+      [1109, 1425, 1115, 1434, 1425],
+      [927, 1249, 1249, 1267, 1249],
+      [1106, 1403, 1114, 1675, 1403]
+    ],
+    "incomeAfterModeChoice": [
+      [1416, 1424, 1425, 1437, 1425],
+      [1253, 1386, 1269, 1393, 1386],
+      [1268, 1378, 1278, 1387, 1378],
+      [1713, 1923, 1924, 1947, 1924],
+      [1426, 1546, 1441, 1557, 1546]
+    ],
+    "columnOrder": [
+      "initial fields usable",
+      "account choices ready",
+      "active category ready",
+      "optional jar and tag references ready",
+      "required current-mode form ready"
+    ],
+    "expenseP50P75Ms": [
+      [1106, 1109],
+      [1403, 1425],
+      [1115, 1249],
+      [1434, 1675],
+      [1403, 1425]
+    ],
+    "incomeAfterModeChoiceP50P75Ms": [
+      [1416, 1426],
+      [1424, 1546],
+      [1425, 1441],
+      [1437, 1557],
+      [1425, 1546]
+    ]
+  },
+  "coldishDirectRouteSampleMs": {
+    "cacheDisabled": true,
+    "browserSessionAndServerWarm": true,
+    "initialFieldsUsable": 1147,
+    "includedInWarmPathComparison": false
+  },
+  "rscResponseTailProbeMs": {
+    "sampleCount": 1,
+    "rscRequestStartedAfterClickMarker": 31,
+    "firstByteAfterClickMarker": 94,
+    "controlsInteractiveAfterClickMarker": 1046,
+    "responseEndAfterClickMarker": 1133,
+    "controlsBeforeResponseEnd": 87,
+    "firstByteToControls": 952,
+    "limitation": "Resource Timing does not identify the first useful Flight segment; route prefetch/cache may affect this probe."
+  },
+  "browserChecks": {
+    "realBrowserInputBeforeReferencesReady": {
+      "referencesPendingAtMilestoneA": true,
+      "sameFormAfterResolution": true,
+      "amountPreserved": true,
+      "datePreserved": true,
+      "notePreserved": true,
+      "modePreserved": true,
+      "submitted": false
+    },
+    "directRoutes": {
+      "englishExpense": true,
+      "vietnameseExpense": true,
+      "incomeModeQuery": true,
+      "vietnameseTransferModeQuery": true,
+      "transferFieldsBeforeAccounts": true,
+      "transferAccountsEventuallyReady": true
+    },
+    "history": {
+      "bottomNavigationAddThenBrowserBackRestoredTransactionsList": true,
+      "listRowsAfterReturn": 25,
+      "detailAppBackIssuedAdditionalListRscRequest": false
+    },
+    "responsive": {
+      "widths": [390, 440, 768, 1280],
+      "lightThemeNoHorizontalOverflow": true,
+      "darkThemeNoHorizontalOverflow": true,
+      "appFrameWidthsPerViewport": [390, 440, 440, 440],
+      "reducedMotionMediaMatched": true,
+      "keyboardFocusVisible": true,
+      "accountPickerOpenedAndDismissed": true,
+      "categoryPickerOpenedAndDismissed": true
+    },
+    "currentBrowserConsoleErrors": 0,
+    "transactionWrites": 0
+  }
+}

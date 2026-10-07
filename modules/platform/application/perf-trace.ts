@@ -15,6 +15,13 @@ export const PERF_TRACE_OP = {
   AUTH_GET_USER: "auth.getUser",
   AUTH_GET_CLAIMS: "auth.getClaims",
   MEMBERSHIP_RESOLVE: "membership.resolve",
+  TRANSACTION_SESSION_GATE: "transactions.session-gate",
+  TRANSACTION_EVENT_LOADER: "transactions.event-loader",
+  TRANSACTION_DETAIL_TRANSFER_PAIR: "transactions.detail.transfer-pair",
+  TRANSACTION_DETAIL_AUDIT_CHAIN: "transactions.detail.audit-chain",
+  TRANSACTION_DETAIL_TAG_OPTIONS: "transactions.detail.tag-options",
+  TRANSACTION_DETAIL_HERO_READY: "transactions.detail.hero-ready",
+  TRANSACTION_DETAIL_ROUTE_RETURN: "transactions.detail.route-return",
 } as const;
 
 export function isPerfTraceEnabled(): boolean {

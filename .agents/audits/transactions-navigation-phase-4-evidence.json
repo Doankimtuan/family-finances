@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-06",
+  "scenario": "Authenticated local development app; Vietnamese Money to Transactions List navigation",
+  "control": {
+    "warmFirstRowsAndFilterReadyMs": [1880, 1816, 1803, 2026, 1731],
+    "warmRscDurationMs": [1260, 1181, 1191, 1410, 1135],
+    "firstRowsAndFilterReadyP50P75Ms": [1816, 1880],
+    "rscDurationP50P75Ms": [1191, 1260]
+  },
+  "phase4": {
+    "preliminaryNonCold": {
+      "firstRowsMs": 2666,
+      "rscDurationMs": 2053,
+      "excludedFromWarmSummary": true
+    },
+    "warmSamples": [
+      {
+        "firstRowsMs": 1788,
+        "filterBarVisibleMs": 1788,
+        "allReferencesUiReadyMs": 1788,
+        "rscDurationMs": 1170,
+        "ttfbMs": 58,
+        "rowsAfterRscMs": 80,
+        "visibleRows": 25
+      },
+      {
+        "firstRowsMs": 1713,
+        "filterBarVisibleMs": 1713,
+        "allReferencesUiReadyMs": 1713,
+        "rscDurationMs": 1116,
+        "ttfbMs": 36,
+        "rowsAfterRscMs": 80,
+        "visibleRows": 25
+      },
+      {
+        "firstRowsMs": 1807,
+        "filterBarVisibleMs": 1807,
+        "allReferencesUiReadyMs": 1807,
+        "rscDurationMs": 1186,
+        "ttfbMs": 74,
+        "rowsAfterRscMs": 96,
+        "visibleRows": 25
+      },
+      {
+        "firstRowsMs": 1898,
+        "filterBarVisibleMs": 1898,
+        "allReferencesUiReadyMs": 1898,
+        "rscDurationMs": 1304,
+        "ttfbMs": 41,
+        "rowsAfterRscMs": 75,
+        "visibleRows": 25
+      },
+      {
+        "firstRowsMs": 1728,
+        "filterBarVisibleMs": 1728,
+        "allReferencesUiReadyMs": 1728,
+        "rscDurationMs": 1128,
+        "ttfbMs": 87,
+        "rowsAfterRscMs": 78,
+        "visibleRows": 25
+      }
+    ],
+    "firstRowsAndFilterReadyP50P75Ms": [1788, 1807],
+    "rscDurationP50P75Ms": [1170, 1186],
+    "ttfbP50P75Ms": [58, 74],
+    "rowsAfterRscP50P75Ms": [80, 80]
+  },
+  "browserChecks": {
+    "locales": ["en", "vi"],
+    "transferFilterQueryPreserved": true,
+    "filterSheetOpenedAfterReferencesReady": true,
+    "phase2AddRouteAndCaptureRootVisible": true,
+    "viewportsPx": [390, 440, 768, 1280],
+    "colorSchemes": ["light", "dark"],
+    "horizontalOverflow": false,
+    "detailBackRestoredFilterAndRows": true,
+    "detailBackScrollBeforeAfterPx": [200, 200],
+    "listRscRequestsOnBack": 0,
+    "listRootObjectIdentityOnBack": false
+  },
+  "sourceRequestTopology": {
+    "transactionEventLoaderCallsPerListRoute": 1,
+    "filterOptionsLoaderCallsPerListRoute": 1,
+    "categoryQueriesInsideFilterOptionsLoader": 1,
+    "jarQueriesInsideFilterOptionsLoader": 1,
+    "tagLoaderCallsPerListRoute": 1,
+    "internalRuntimeScanAndGroupBatchCountsObserved": false,
+    "reason": "Server-side Supabase requests are hidden from browser Resource Timing; no app terminal was attached and VINHA_PERF_TRACE was disabled."
+  },
+  "validation": {
+    "fullUnitTests": {
+      "passed": 1759,
+      "failed": 5,
+      "failedFiles": 3,
+      "transactionsPhase4Failures": 0
+    },
+    "lint": "passed",
+    "typecheck": "existing home-streaming-sections.tsx translator type mismatches at lines 99 and 340",
+    "formatCheck": "repository-wide failure in 196 files",
+    "build": "skipped because active development server uses shared .next output"
+  },
+  "decision": "TRANSACTIONS PHASE 4 COMPLETE — FILTER SPLIT NOT PERFORMANCE-RELEVANT"
+}

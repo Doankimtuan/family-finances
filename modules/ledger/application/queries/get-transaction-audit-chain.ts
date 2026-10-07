@@ -1,10 +1,12 @@
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
+import { TransactionReadStatus } from "../ledger-constants";
 import {
   mapTransactionRow,
   type LedgerTransaction,
 } from "../transaction-types";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
+import { getTransactionReadResult } from "./get-transaction";
 
 export type TransactionAuditChain = {
   original: LedgerTransaction;
@@ -43,33 +45,15 @@ export async function getTransactionAuditChain(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: root, error } = await supabase
-      .from("transactions")
-      .select(TX_SELECT)
-      .eq("household_id", gate.householdId)
-      .eq("id", transactionId)
-      .maybeSingle();
+    const rootResult = await getTransactionReadResult(transactionId);
+    if (rootResult.status !== TransactionReadStatus.OK) return null;
 
-    if (error || !root) {
-      if (error) {
-        logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION_AUDIT_CHAIN, {
-          householdId: gate.householdId,
-          transactionId,
-        });
-      }
-      return null;
-    }
-
+    const root = rootResult.transaction;
     const originalId =
-      (root as { reverses_transaction_id?: string | null })
-        .reverses_transaction_id ??
-      (root as { corrects_transaction_id?: string | null })
-        .corrects_transaction_id ??
-      transactionId;
-
-    const { data: originalRow } =
+      root.reversesTransactionId ?? root.correctsTransactionId ?? transactionId;
+    const originalResult =
       originalId === transactionId
-        ? { data: root }
+        ? { data: root, error: null }
         : await supabase
             .from("transactions")
             .select(TX_SELECT)
@@ -77,11 +61,21 @@ export async function getTransactionAuditChain(
             .eq("id", originalId)
             .maybeSingle();
 
+    if (originalResult.error) {
+      logLedgerFailure(
+        originalResult.error,
+        LEDGER_OPERATION.GET_TRANSACTION_AUDIT_CHAIN,
+        { householdId: gate.householdId, transactionId },
+      );
+      return null;
+    }
+    const originalRow = originalResult.data;
+
     if (!originalRow) {
       return null;
     }
 
-    const [{ data: reversals }, { data: corrections }] = await Promise.all([
+    const [reversalResult, correctionResult] = await Promise.all([
       supabase
         .from("transactions")
         .select(TX_SELECT)
@@ -96,12 +90,28 @@ export async function getTransactionAuditChain(
         .order("created_at", { ascending: true }),
     ]);
 
+    if (reversalResult.error || correctionResult.error) {
+      for (const error of [reversalResult.error, correctionResult.error]) {
+        if (error) {
+          logLedgerFailure(
+            error,
+            LEDGER_OPERATION.GET_TRANSACTION_AUDIT_CHAIN,
+            { householdId: gate.householdId, transactionId },
+          );
+        }
+      }
+      return null;
+    }
+
     return {
-      original: normalize(originalRow as Record<string, unknown>),
-      reversals: (reversals ?? []).map((row) =>
+      original:
+        originalId === transactionId
+          ? root
+          : normalize(originalRow as Record<string, unknown>),
+      reversals: (reversalResult.data ?? []).map((row) =>
         normalize(row as Record<string, unknown>),
       ),
-      corrections: (corrections ?? []).map((row) =>
+      corrections: (correctionResult.data ?? []).map((row) =>
         normalize(row as Record<string, unknown>),
       ),
     };

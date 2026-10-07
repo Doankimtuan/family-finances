@@ -1,4 +1,9 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
+import {
+  PERF_TRACE_OP,
+  withPerfSpan,
+} from "@/modules/platform/application/perf-trace";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import {
   mapTransactionRow,
@@ -23,6 +28,7 @@ import {
   TRANSACTION_LEDGER_TYPE_VALUES,
   TransactionLedgerType,
   TransactionReadStatus,
+  TransactionStatus,
   type TransactionLedgerType as TransactionLedgerTypeValue,
 } from "../ledger-constants";
 import { LEDGER_OPERATION, logLedgerFailure } from "../ledger-error";
@@ -63,6 +69,29 @@ const TRANSFER_LEDGER_TYPES = new Set<TransactionLedgerTypeValue>([
   TransactionLedgerType.TRANSFER_IN,
 ]);
 
+function isCompleteTransferGroup(rows: readonly LedgerTransaction[]): boolean {
+  if (rows.length !== TRANSFER_LEDGER_TYPES.size) return false;
+
+  const source = rows.find(
+    (row) => row.type === TransactionLedgerType.TRANSFER_OUT,
+  );
+  const destination = rows.find(
+    (row) => row.type === TransactionLedgerType.TRANSFER_IN,
+  );
+  if (!source || !destination) return false;
+
+  return (
+    source.id !== destination.id &&
+    source.accountId !== destination.accountId &&
+    source.status === TransactionStatus.POSTED &&
+    destination.status === TransactionStatus.POSTED &&
+    source.amount === destination.amount &&
+    source.currency === destination.currency &&
+    source.transactionDate === destination.transactionDate &&
+    source.savingsEventKind === destination.savingsEventKind
+  );
+}
+
 async function enrichProductEvent(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   row: LedgerTransaction,
@@ -86,6 +115,84 @@ async function enrichProductEvent(
   };
 }
 
+async function activityForSelectedTransaction(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  householdId: string,
+  transactionId: string,
+  row: LedgerTransaction,
+): Promise<TransactionActivity | null> {
+  if (row.loanPaymentId) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select(TX_SELECT)
+      .eq("household_id", householdId)
+      .eq("loan_payment_id", row.loanPaymentId);
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
+        householdId,
+        transactionId,
+      });
+      return null;
+    }
+    return (
+      createTransactionActivities(
+        (data ?? []).map((paymentRow) =>
+          normalizeJoinedRow(paymentRow as Record<string, unknown>),
+        ),
+      ).find((activity) => activity.loanPaymentId === row.loanPaymentId) ?? null
+    );
+  }
+
+  if (!TRANSFER_LEDGER_TYPES.has(row.type)) {
+    const activity = createTransactionActivities([row])[0];
+    return activity ? enrichProductEvent(supabase, row, activity) : null;
+  }
+  if (!row.transferGroupId) return null;
+
+  const { data, error } = await withPerfSpan(
+    PERF_TRACE_OP.TRANSACTION_DETAIL_TRANSFER_PAIR,
+    async () =>
+      await supabase
+        .from("transactions")
+        .select(TX_SELECT)
+        .eq("household_id", householdId)
+        .eq("transfer_group_id", row.transferGroupId)
+        .in("type", [
+          TransactionLedgerType.TRANSFER_OUT,
+          TransactionLedgerType.TRANSFER_IN,
+        ]),
+  );
+  if (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
+      householdId,
+      transactionId,
+      transferGroupId: row.transferGroupId,
+    });
+    return null;
+  }
+  const groupRows = (data ?? []).map((groupRow) =>
+    normalizeJoinedRow(groupRow as Record<string, unknown>),
+  );
+
+  if (
+    !isCompleteTransferGroup(groupRows) ||
+    !groupRows.some((groupRow) => groupRow.id === row.id)
+  ) {
+    return null;
+  }
+
+  const orderedGroupRows = [...groupRows].sort(
+    (left, right) =>
+      Number(left.type === TransactionLedgerType.TRANSFER_IN) -
+      Number(right.type === TransactionLedgerType.TRANSFER_IN),
+  );
+  return (
+    createTransactionActivities(orderedGroupRows).find(
+      (activity) => activity.transferGroupId === row.transferGroupId,
+    ) ?? null
+  );
+}
+
 export type TransactionReadResult =
   | {
       status: typeof TransactionReadStatus.OK;
@@ -94,7 +201,7 @@ export type TransactionReadResult =
   | { status: typeof TransactionReadStatus.NOT_FOUND }
   | { status: typeof TransactionReadStatus.ERROR };
 
-export async function getTransactionReadResult(
+async function loadTransactionReadResult(
   transactionId: string,
 ): Promise<TransactionReadResult> {
   const gate = await assertMoneyActionAllowed();
@@ -133,6 +240,8 @@ export async function getTransactionReadResult(
   }
 }
 
+export const getTransactionReadResult = cache(loadTransactionReadResult);
+
 export async function getTransaction(
   transactionId: string,
 ): Promise<LedgerTransaction | null> {
@@ -152,77 +261,13 @@ export async function getTransactionActivity(
 
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: rawRow, error } = await supabase
-      .from("transactions")
-      .select(TX_SELECT)
-      .eq("household_id", gate.householdId)
-      .eq("id", transactionId)
-      .maybeSingle();
-
-    if (error || !rawRow) {
-      if (error) {
-        logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
-          householdId: gate.householdId,
-          transactionId,
-        });
-      }
-      return null;
-    }
-
-    const row = normalizeJoinedRow(rawRow as Record<string, unknown>);
-    if (row.loanPaymentId) {
-      const { data: rawPaymentRows, error: paymentGroupError } = await supabase
-        .from("transactions")
-        .select(TX_SELECT)
-        .eq("household_id", gate.householdId)
-        .eq("loan_payment_id", row.loanPaymentId);
-      if (paymentGroupError) {
-        logLedgerFailure(paymentGroupError, LEDGER_OPERATION.GET_TRANSACTION, {
-          householdId: gate.householdId,
-          transactionId,
-        });
-        return null;
-      }
-      return (
-        createTransactionActivities(
-          (rawPaymentRows ?? []).map((paymentRow) =>
-            normalizeJoinedRow(paymentRow as Record<string, unknown>),
-          ),
-        ).find((activity) => activity.loanPaymentId === row.loanPaymentId) ??
-        null
-      );
-    }
-    if (!row.transferGroupId || !TRANSFER_LEDGER_TYPES.has(row.type)) {
-      const activity = createTransactionActivities([row])[0];
-      return activity ? enrichProductEvent(supabase, row, activity) : null;
-    }
-
-    const { data: rawGroup, error: groupError } = await supabase
-      .from("transactions")
-      .select(TX_SELECT)
-      .eq("household_id", gate.householdId)
-      .eq("transfer_group_id", row.transferGroupId)
-      .in("type", [
-        TransactionLedgerType.TRANSFER_OUT,
-        TransactionLedgerType.TRANSFER_IN,
-      ]);
-
-    if (groupError) {
-      logLedgerFailure(groupError, LEDGER_OPERATION.GET_TRANSACTION, {
-        householdId: gate.householdId,
-        transactionId,
-        transferGroupId: row.transferGroupId,
-      });
-      return null;
-    }
-
-    return (
-      createTransactionActivities(
-        (rawGroup ?? []).map((groupRow) =>
-          normalizeJoinedRow(groupRow as Record<string, unknown>),
-        ),
-      ).find((activity) => activity.transferGroupId === row.transferGroupId) ??
-      null
+    const readResult = await getTransactionReadResult(transactionId);
+    if (readResult.status !== TransactionReadStatus.OK) return null;
+    return activityForSelectedTransaction(
+      supabase,
+      gate.householdId,
+      transactionId,
+      readResult.transaction,
     );
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_TRANSACTION, {
@@ -430,13 +475,16 @@ async function listTransactionEventRows(
 async function completeMatchedGroups(
   rows: readonly LedgerTransaction[],
 ): Promise<LedgerTransaction[] | null> {
-  const transferGroupIds = [
-    ...new Set(
-      rows
-        .map((row) => row.transferGroupId)
-        .filter((id): id is string => id !== null),
-    ),
-  ];
+  const transferGroups = new Map<string, LedgerTransaction[]>();
+  for (const row of rows) {
+    if (row.transferGroupId === null) continue;
+    const group = transferGroups.get(row.transferGroupId) ?? [];
+    group.push(row);
+    transferGroups.set(row.transferGroupId, group);
+  }
+  const transferGroupIds = [...transferGroups]
+    .filter(([, group]) => !isCompleteTransferGroup(group))
+    .map(([id]) => id);
   const loanPaymentIds = [
     ...new Set(
       rows

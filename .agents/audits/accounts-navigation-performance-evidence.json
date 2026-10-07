@@ -1,0 +1,663 @@
+{
+  "investigation": "Accounts Navigation & Rendering Performance",
+  "measurement_date_local": "2026-10-04",
+  "decision": "ACCOUNTS INVESTIGATION COMPLETE — PROCEED TO ACCOUNTS PHASE 1",
+  "environment": {
+    "repository_head": "fca2c70f",
+    "app_runtime": "Next.js 16.3.1 / React 19.2.3",
+    "mode": "Next development mode in an isolated source copy",
+    "local_app": "http://localhost:3102",
+    "supabase_region": "ap-southeast-2",
+    "browser": "Brave / Chromium",
+    "viewport_css_px": [2560, 1303],
+    "device_pixel_ratio": 1,
+    "cpu_throttling": false,
+    "network_throttling": false,
+    "household_ui_counts": {
+      "liquid_accounts": 7,
+      "credit_cards": 3
+    },
+    "production_code_changed": false,
+    "financial_mutation_performed": false,
+    "sensitive_payload_persisted": false
+  },
+  "method": {
+    "flow": [
+      "Money → Accounts List",
+      "Accounts List → Create Account",
+      "Create Account → Accounts app Back",
+      "Accounts List → Create Credit Card",
+      "Create Credit Card → Accounts app Back",
+      "Accounts List → first existing Account Detail",
+      "Account Detail → Accounts app Back",
+      "Accounts List → first existing Credit Card Detail",
+      "Credit Card Detail → Accounts app Back"
+    ],
+    "control_semantics": "First observed measurement for each edge in the same authenticated environment; route-first compilation/JWKS effects remain in some values. Not a cold login or fresh-process benchmark.",
+    "warm_repetitions": 3,
+    "click_to_useful_definition": "UI action to destination selector plus two animation frames",
+    "full_data_definition": "Destination full-data marker; equals useful marker on all measured page responses because the page waits for its awaited data.",
+    "rsc_request_count_source": "One destination RSC request per app-Link navigation, corroborated by resource entries when present and local Next route traces.",
+    "browser_resource_timing_missing_samples": 6,
+    "browser_resource_timing_missing_note": "The last six Warm 3 RSC resource entries were unavailable; click-to-useful remained captured. Missing timing is null, not zero.",
+    "prefetch": "No separate prefetch was observed in development; production prefetch behavior was not measured."
+  },
+  "milestones": {
+    "accounts_list_useful": "[data-testid=money-accounts-directory]",
+    "create_account_useful": "#account-name:not(:disabled)",
+    "create_credit_card_useful": "#account-name:not(:disabled)",
+    "account_detail_useful": "[data-testid=account-detail-hero]",
+    "account_detail_full": "section[aria-labelledby=account-recent-activity]",
+    "credit_card_detail_useful": "[data-testid=credit-card-hero]",
+    "credit_card_detail_full": "[data-testid=credit-card-actions]"
+  },
+  "samples": [
+    {
+      "edge": "money_to_accounts_list",
+      "route": "/vi/money/accounts",
+      "control": {
+        "click_to_useful_ms": 2296,
+        "click_to_full_data_ms": 2296,
+        "rsc": {
+          "click_to_request_ms": 51,
+          "ttfb_ms": 83,
+          "stream_ms": 2141,
+          "client_tail_ms": 104,
+          "transfer_bytes": 5424,
+          "encoded_bytes": 5124
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 2009,
+          "click_to_full_data_ms": 2009,
+          "rsc": {
+            "click_to_request_ms": 59,
+            "ttfb_ms": 49,
+            "stream_ms": 1842,
+            "client_tail_ms": 109,
+            "transfer_bytes": 5418,
+            "encoded_bytes": 5118
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2021,
+          "click_to_full_data_ms": 2021,
+          "rsc": {
+            "click_to_request_ms": 46,
+            "ttfb_ms": 119,
+            "stream_ms": 1868,
+            "client_tail_ms": 107,
+            "transfer_bytes": 5417,
+            "encoded_bytes": 5117
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2647,
+          "click_to_full_data_ms": 2647,
+          "rsc": {
+            "click_to_request_ms": 43,
+            "ttfb_ms": 912,
+            "stream_ms": 2511,
+            "client_tail_ms": 93,
+            "transfer_bytes": 5441,
+            "encoded_bytes": 5141
+          },
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 2021
+    },
+    {
+      "edge": "accounts_to_create_account",
+      "route": "/vi/money/accounts/new",
+      "control": {
+        "click_to_useful_ms": 5940,
+        "click_to_full_data_ms": 5940,
+        "rsc": {
+          "click_to_request_ms": 46,
+          "ttfb_ms": 2222,
+          "stream_ms": 5787,
+          "client_tail_ms": 108,
+          "transfer_bytes": 4980,
+          "encoded_bytes": 4680
+        },
+        "rsc_request_count": 1,
+        "dev_route_compilation_included": true
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 2090,
+          "click_to_full_data_ms": 2090,
+          "rsc": {
+            "click_to_request_ms": 36,
+            "ttfb_ms": 104,
+            "stream_ms": 1972,
+            "client_tail_ms": 83,
+            "transfer_bytes": 4977,
+            "encoded_bytes": 4677
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1478,
+          "click_to_full_data_ms": 1478,
+          "rsc": {
+            "click_to_request_ms": 38,
+            "ttfb_ms": 38,
+            "stream_ms": 1344,
+            "client_tail_ms": 97,
+            "transfer_bytes": 4980,
+            "encoded_bytes": 4680
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1343,
+          "click_to_full_data_ms": 1343,
+          "rsc": {
+            "click_to_request_ms": 37,
+            "ttfb_ms": 44,
+            "stream_ms": 1234,
+            "client_tail_ms": 72,
+            "transfer_bytes": 4981,
+            "encoded_bytes": 4681
+          },
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1478
+    },
+    {
+      "edge": "create_account_to_accounts_app_back",
+      "route": "/vi/money/accounts",
+      "control": {
+        "click_to_useful_ms": 3445,
+        "click_to_full_data_ms": 3445,
+        "rsc": {
+          "click_to_request_ms": 24,
+          "ttfb_ms": 1003,
+          "stream_ms": 3322,
+          "client_tail_ms": 100,
+          "transfer_bytes": 4127,
+          "encoded_bytes": 3827
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 1514,
+          "click_to_full_data_ms": 1514,
+          "rsc": {
+            "click_to_request_ms": 20,
+            "ttfb_ms": 45,
+            "stream_ms": 1386,
+            "client_tail_ms": 109,
+            "transfer_bytes": 4112,
+            "encoded_bytes": 3812
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1897,
+          "click_to_full_data_ms": 1897,
+          "rsc": {
+            "click_to_request_ms": 23,
+            "ttfb_ms": 71,
+            "stream_ms": 1776,
+            "client_tail_ms": 98,
+            "transfer_bytes": 4121,
+            "encoded_bytes": 3821
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1779,
+          "click_to_full_data_ms": 1779,
+          "rsc": {
+            "click_to_request_ms": 24,
+            "ttfb_ms": 51,
+            "stream_ms": 1647,
+            "client_tail_ms": 108,
+            "transfer_bytes": 4118,
+            "encoded_bytes": 3818
+          },
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1779
+    },
+    {
+      "edge": "accounts_to_create_credit_card",
+      "route": "/vi/money/accounts/new-credit",
+      "control": {
+        "click_to_useful_ms": 4711,
+        "click_to_full_data_ms": 4711,
+        "rsc": {
+          "click_to_request_ms": 27,
+          "ttfb_ms": 2340,
+          "stream_ms": 4512,
+          "client_tail_ms": 173,
+          "transfer_bytes": 4963,
+          "encoded_bytes": 4663
+        },
+        "rsc_request_count": 1,
+        "dev_route_compilation_included": true
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 2404,
+          "click_to_full_data_ms": 2404,
+          "rsc": {
+            "click_to_request_ms": 26,
+            "ttfb_ms": 67,
+            "stream_ms": 2208,
+            "client_tail_ms": 170,
+            "transfer_bytes": 4954,
+            "encoded_bytes": 4654
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1691,
+          "click_to_full_data_ms": 1691,
+          "rsc": {
+            "click_to_request_ms": 20,
+            "ttfb_ms": 37,
+            "stream_ms": 1506,
+            "client_tail_ms": 164,
+            "transfer_bytes": 4954,
+            "encoded_bytes": 4654
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1699,
+          "click_to_full_data_ms": 1699,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1699
+    },
+    {
+      "edge": "create_credit_card_to_accounts_app_back",
+      "route": "/vi/money/accounts",
+      "control": {
+        "click_to_useful_ms": 1460,
+        "click_to_full_data_ms": 1460,
+        "rsc": {
+          "click_to_request_ms": 31,
+          "ttfb_ms": 91,
+          "stream_ms": 1329,
+          "client_tail_ms": 100,
+          "transfer_bytes": 4111,
+          "encoded_bytes": 3811
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 1414,
+          "click_to_full_data_ms": 1414,
+          "rsc": {
+            "click_to_request_ms": 22,
+            "ttfb_ms": 46,
+            "stream_ms": 1294,
+            "client_tail_ms": 97,
+            "transfer_bytes": 4112,
+            "encoded_bytes": 3812
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1274,
+          "click_to_full_data_ms": 1274,
+          "rsc": {
+            "click_to_request_ms": 20,
+            "ttfb_ms": 42,
+            "stream_ms": 1158,
+            "client_tail_ms": 96,
+            "transfer_bytes": 4112,
+            "encoded_bytes": 3812
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1155,
+          "click_to_full_data_ms": 1155,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1274
+    },
+    {
+      "edge": "accounts_to_account_detail",
+      "route": "/vi/money/accounts/:id",
+      "control": {
+        "click_to_useful_ms": 4036,
+        "click_to_full_data_ms": 4036,
+        "rsc": {
+          "click_to_request_ms": 29,
+          "ttfb_ms": 1719,
+          "stream_ms": 3856,
+          "client_tail_ms": 152,
+          "transfer_bytes": 15351,
+          "encoded_bytes": 15051
+        },
+        "rsc_request_count": 1,
+        "dev_route_compilation_included": true
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 3041,
+          "click_to_full_data_ms": 3041,
+          "rsc": {
+            "click_to_request_ms": 22,
+            "ttfb_ms": 64,
+            "stream_ms": 2932,
+            "client_tail_ms": 88,
+            "transfer_bytes": 15358,
+            "encoded_bytes": 15058
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2441,
+          "click_to_full_data_ms": 2441,
+          "rsc": {
+            "click_to_request_ms": 24,
+            "ttfb_ms": 76,
+            "stream_ms": 2337,
+            "client_tail_ms": 80,
+            "transfer_bytes": 15358,
+            "encoded_bytes": 15058
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2304,
+          "click_to_full_data_ms": 2304,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 2441
+    },
+    {
+      "edge": "account_detail_to_accounts_app_back",
+      "route": "/vi/money/accounts",
+      "control": {
+        "click_to_useful_ms": 1309,
+        "click_to_full_data_ms": 1309,
+        "rsc": {
+          "click_to_request_ms": 21,
+          "ttfb_ms": 46,
+          "stream_ms": 1192,
+          "client_tail_ms": 96,
+          "transfer_bytes": 4112,
+          "encoded_bytes": 3812
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 1329,
+          "click_to_full_data_ms": 1329,
+          "rsc": {
+            "click_to_request_ms": 24,
+            "ttfb_ms": 43,
+            "stream_ms": 1188,
+            "client_tail_ms": 116,
+            "transfer_bytes": 4111,
+            "encoded_bytes": 3811
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1502,
+          "click_to_full_data_ms": 1502,
+          "rsc": {
+            "click_to_request_ms": 26,
+            "ttfb_ms": 46,
+            "stream_ms": 1386,
+            "client_tail_ms": 90,
+            "transfer_bytes": 4112,
+            "encoded_bytes": 3812
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1218,
+          "click_to_full_data_ms": 1218,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1329
+    },
+    {
+      "edge": "accounts_to_credit_card_detail",
+      "route": "/vi/money/accounts/:id",
+      "control": {
+        "click_to_useful_ms": 3726,
+        "click_to_full_data_ms": 3726,
+        "rsc": {
+          "click_to_request_ms": 30,
+          "ttfb_ms": 119,
+          "stream_ms": 3579,
+          "client_tail_ms": 117,
+          "transfer_bytes": 16579,
+          "encoded_bytes": 16279
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 3332,
+          "click_to_full_data_ms": 3332,
+          "rsc": {
+            "click_to_request_ms": 23,
+            "ttfb_ms": 58,
+            "stream_ms": 3191,
+            "client_tail_ms": 118,
+            "transfer_bytes": 16576,
+            "encoded_bytes": 16276
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2716,
+          "click_to_full_data_ms": 2716,
+          "rsc": {
+            "click_to_request_ms": 25,
+            "ttfb_ms": 34,
+            "stream_ms": 2587,
+            "client_tail_ms": 104,
+            "transfer_bytes": 16593,
+            "encoded_bytes": 16293
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 2787,
+          "click_to_full_data_ms": 2787,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 2787
+    },
+    {
+      "edge": "credit_card_detail_to_accounts_app_back",
+      "route": "/vi/money/accounts",
+      "control": {
+        "click_to_useful_ms": 1280,
+        "click_to_full_data_ms": 1280,
+        "rsc": {
+          "click_to_request_ms": 22,
+          "ttfb_ms": 46,
+          "stream_ms": 1153,
+          "client_tail_ms": 105,
+          "transfer_bytes": 4118,
+          "encoded_bytes": 3818
+        },
+        "rsc_request_count": 1
+      },
+      "warm": [
+        {
+          "click_to_useful_ms": 1160,
+          "click_to_full_data_ms": 1160,
+          "rsc": {
+            "click_to_request_ms": 30,
+            "ttfb_ms": 45,
+            "stream_ms": 1042,
+            "client_tail_ms": 88,
+            "transfer_bytes": 4110,
+            "encoded_bytes": 3810
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1393,
+          "click_to_full_data_ms": 1393,
+          "rsc": {
+            "click_to_request_ms": 23,
+            "ttfb_ms": 38,
+            "stream_ms": 1283,
+            "client_tail_ms": 87,
+            "transfer_bytes": 4112,
+            "encoded_bytes": 3812
+          },
+          "rsc_request_count": 1
+        },
+        {
+          "click_to_useful_ms": 1204,
+          "click_to_full_data_ms": 1204,
+          "rsc": null,
+          "rsc_request_count": 1
+        }
+      ],
+      "warm_median_click_to_useful_ms": 1204
+    }
+  ],
+  "additional_browser_history_control": {
+    "transition": "Create Account → Accounts List via browser-history Back",
+    "click_to_useful_ms": 156,
+    "history_navigation": true,
+    "rsc_request_count": 0,
+    "auth_http": 0,
+    "rest_http": 0,
+    "rpc_http": 0
+  },
+  "request_counts_per_authenticated_destination": {
+    "money_to_accounts_list": {
+      "auth_user": 1,
+      "rest": 2,
+      "rpc": 2,
+      "rsc": 1,
+      "remote_total_excluding_jwks": 5
+    },
+    "create_account": {
+      "auth_user": 1,
+      "rest": 4,
+      "rpc": 1,
+      "rsc": 1,
+      "remote_total_excluding_jwks": 6
+    },
+    "create_credit_card": {
+      "auth_user": 1,
+      "rest": 4,
+      "rpc": 1,
+      "rsc": 1,
+      "remote_total_excluding_jwks": 6
+    },
+    "account_detail": {
+      "auth_user": 1,
+      "rest": 8,
+      "rpc": 2,
+      "rsc": 1,
+      "remote_total_excluding_jwks": 11
+    },
+    "credit_card_detail_observed_related_lookup": {
+      "auth_user": 1,
+      "rest": 17,
+      "rpc": 2,
+      "rsc": 1,
+      "remote_total_excluding_jwks": 20
+    },
+    "claims_and_jwks_note": "There are logical claims checks in proxy and loader context. Cold JWKS validation added 0–2 HTTP requests in some traces; warm traces generally reused the key."
+  },
+  "representative_server_http_timings_ms": {
+    "accounts_list": {
+      "auth_get_user": 971,
+      "active_membership": 257,
+      "home_account_rpc": 275,
+      "credit_card_rpc": 730,
+      "household_currency_get": 509,
+      "load_real_position": 528,
+      "list_credit_cards": 851
+    },
+    "create_account_warm": {
+      "auth_get_user": 590,
+      "active_membership": 278,
+      "household_get": 290,
+      "accounts_get": 524,
+      "owner_membership_get": 270,
+      "batch_balance_rpc": 294,
+      "list_accounts_loader": 849
+    },
+    "account_detail": {
+      "auth_get_user": 728,
+      "active_membership": 257,
+      "get_account_loader": 879,
+      "recent_activity_loader": 904,
+      "list_accounts_loader": 1012
+    },
+    "credit_card_detail": {
+      "auth_get_user": 604,
+      "active_membership": 243,
+      "credit_card_detail_loader": 638,
+      "installments_loader": 561,
+      "eligible_purchase_loader": 1240
+    },
+    "limits": "Samples are representative individual spans, not medians. Fetch spans end at response headers; loader spans include decode/mapping. Parallel durations overlap."
+  },
+  "row_counts": {
+    "get_home_account_ledger_raw_inputs": 7,
+    "get_money_credit_card_raw_inputs": 6,
+    "displayed_credit_card_summaries": 3,
+    "balance_rpc_calls_per_route": {
+      "accounts_list": 0,
+      "create_account": 1,
+      "create_credit_card": 1,
+      "account_detail": 2,
+      "credit_card_detail": 2
+    },
+    "unrecorded": "Raw row counts for the generic accounts, owner membership, transaction, billing item, installment, and balance RPC responses were not captured. No row values were recorded."
+  },
+  "sql_evidence": {
+    "log_window_utc": ["2026-10-04T08:20:00Z", "2026-10-04T09:10:00Z"],
+    "observed_sources": {
+      "edge_logs": 384,
+      "auth_logs": 54,
+      "postgrest_logs": 30,
+      "postgres_logs": 0
+    },
+    "postgres_execution_time_available": false,
+    "explain_analyze_run": false,
+    "reason": "The log window had no postgres_logs and exposed no per-query SQL timing. HTTP spans are not SQL timers; no SQL performance conclusion is drawn."
+  },
+  "client_evidence": {
+    "available_post_response_tail_ms_range": [72, 173],
+    "script_duration_delta_ms_range": [40, 129],
+    "full_data_and_useful_markers_equal": true,
+    "provider_remounts_directly_instrumented": false,
+    "full_document_navigation_observed": false,
+    "interpretation": "No evidence that client JS/hydration dominates the measured route waits. Provider remount time was not measured directly."
+  }
+}

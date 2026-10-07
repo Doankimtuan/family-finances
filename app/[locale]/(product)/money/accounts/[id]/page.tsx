@@ -1,15 +1,16 @@
+import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
-import { setLocale } from "@/i18n/set-locale";
-import { Link, redirect } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import {
   AccountHealthSignal,
   AccountType,
+  CardBillingMonthStatus,
   accountHealthFromBalance,
   getAccount,
+  getAccountType,
   getCreditCardDetail,
   listAccounts,
+  listCreditCardBillingItems,
   listCreditCardInstallments,
   listEligibleCreditCardPurchases,
   listRecentTransactions,
@@ -20,8 +21,7 @@ import {
   moneyAccountPath,
   moneyTransactionPath,
 } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
 import { MotionReveal } from "@/shared/motion";
@@ -30,7 +30,7 @@ import { Balance } from "@/shared/patterns/balance";
 import { BalanceSize } from "@/shared/patterns/financial-display-size";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { SectionHeader } from "@/shared/patterns/section-header";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { AccountsReturnTopAppBar } from "../accounts-return-navigation";
 import {
   TransactionAmountTone,
   TransactionRow,
@@ -39,7 +39,13 @@ import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { IconContainer } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
+import {
+  SkeletonAmount,
+  SkeletonIcon,
+  SkeletonText,
+} from "@/shared/ui/skeleton";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { InlineAlert, InlineAlertVariant } from "@/shared/ui/inline-alert";
 import { FinancialOwnershipBadge } from "@/shared/patterns/financial-ownership-badge";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
 import { MoneyOfflineBanner } from "../../money-offline-banner";
@@ -54,8 +60,14 @@ import {
   ACCOUNT_ACTIVITY_LIST_CLASS,
   ACCOUNT_DETAIL_PREVIEW_CONFIG,
 } from "./detail-constants";
-import { CreditCardDetailActions } from "./credit-card-detail-actions";
+import {
+  CreditCardChargeAction,
+  CreditCardDetailActions,
+} from "./credit-card-detail-actions";
 import { CreditCardHero } from "./credit-card-hero";
+import { CreditCardActivitySection } from "./credit-card-activity-section";
+import { CreditCardDueLead } from "./credit-card-due-lead";
+import { CreditCardInstallmentsSection } from "./credit-card-installments-section";
 import { isCreditFacilityComplete } from "@/modules/ledger/ui/credit-facility-presentation";
 import { CreditCardRefundAction } from "./credit-card-refund-action";
 import { resolveAccountActivityLeading } from "./account-detail-presentations";
@@ -68,72 +80,59 @@ export default async function AccountDetailPage({
   params,
 }: AccountDetailPageProps) {
   const { locale: rawLocale, id } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
+  const { locale } = await requireProductSession({ localeParam: rawLocale });
 
-  const user = await getSessionUser();
-  if (!user) {
-    return redirect({ href: APP_PATH.LOGIN, locale });
-  }
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) {
-    return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
-
-  const [t, tCatalog, result, recent, liquidListed] = await Promise.all([
+  const resultPromise = getAccount(id);
+  const accountTypePromise = getAccountType(id);
+  const cardDetailPromise = accountTypePromise.then((accountType) =>
+    accountType === AccountType.CREDIT_CARD
+      ? getCreditCardDetail(id, resultPromise)
+      : null,
+  );
+  const recentPromise = accountTypePromise.then((accountType) =>
+    !accountType || accountType === AccountType.CREDIT_CARD
+      ? null
+      : listRecentTransactions(
+          ACCOUNT_DETAIL_PREVIEW_CONFIG.RECENT_ACTIVITY_LIMIT,
+          id,
+        ),
+  );
+  const [t, tCatalog, accountType] = await Promise.all([
     getTranslations("money"),
     getTranslations("catalog"),
-    getAccount(id),
-    listRecentTransactions(
-      ACCOUNT_DETAIL_PREVIEW_CONFIG.RECENT_ACTIVITY_LIMIT,
-      id,
-    ),
-    listAccounts(),
+    accountTypePromise,
   ]);
 
+  const unavailableAccount = () => (
+    <div
+      className="flex min-h-full flex-col"
+      data-testid="money-account-detail"
+    >
+      <AccountsReturnTopAppBar
+        variant="detail"
+        backLabel={t("accountsPage.title")}
+        title={t("accountDetail.unavailableTitle")}
+      />
+      <AccountDetailUnavailable
+        title={t("accountDetail.unavailableTitle")}
+        description={t("accountDetail.unavailableBody")}
+        actionHref={APP_PATH.MONEY_ACCOUNTS}
+        actionLabel={t("accountsPage.title")}
+      />
+    </div>
+  );
+
+  if (!accountType) {
+    return unavailableAccount();
+  }
+
+  const result = await resultPromise;
   if (!result) {
-    return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-account-detail"
-      >
-        <TopAppBar
-          variant="detail"
-          backHref={APP_PATH.MONEY_ACCOUNTS}
-          backLabel={t("accountsPage.title")}
-          title={t("accountDetail.unavailableTitle")}
-        />
-        <AccountDetailUnavailable
-          title={t("accountDetail.unavailableTitle")}
-          description={t("accountDetail.unavailableBody")}
-          actionHref={APP_PATH.MONEY_ACCOUNTS}
-          actionLabel={t("accountsPage.title")}
-        />
-      </div>
-    );
+    return unavailableAccount();
   }
 
   const { account, currency } = result;
   const isCreditCard = account.type === AccountType.CREDIT_CARD;
-  const [cardDetail, installments, eligiblePurchases] = isCreditCard
-    ? await Promise.all([
-        getCreditCardDetail(id),
-        listCreditCardInstallments(id),
-        listEligibleCreditCardPurchases(id),
-      ])
-    : [null, [], []];
-  const activityLoadFailed = recent == null;
-  const activity = [...(recent ?? [])].sort((left, right) =>
-    right.transactionDate.localeCompare(left.transactionDate),
-  );
-  const liquidAccounts = (liquidListed?.accounts ?? []).map(
-    (liquidAccount) => ({
-      id: liquidAccount.id,
-      name: localizeCatalogName(tCatalog, "accounts", liquidAccount.name),
-    }),
-  );
   const accountName = localizeCatalogName(tCatalog, "accounts", account.name);
   const accountTypeLabel = t(`types.${account.type}`);
   const accountManagement = (
@@ -151,35 +150,64 @@ export default async function AccountDetailPage({
     </AccountDetailManagement>
   );
 
-  if (isCreditCard && !cardDetail) {
-    return (
-      <div
-        className="flex min-h-full flex-col"
-        data-testid="money-account-detail"
-        data-account-kind="credit-card"
-      >
-        <TopAppBar
-          variant="detail"
-          backHref={APP_PATH.MONEY_ACCOUNTS}
-          backLabel={t("accountsPage.title")}
-          title={t("creditCard.detailTitle")}
-          trailing={account.canMutate ? accountManagement : undefined}
-        />
-        <AccountDetailUnavailable
-          title={t("accountDetail.unavailableTitle")}
-          description={t("accountDetail.unavailableBody")}
-          actionHref={moneyAccountPath(account.id)}
-          actionLabel={t("hub.retry")}
-          icon={
-            <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
-          }
-        />
-      </div>
+  if (isCreditCard) {
+    const billingItemsPromise = listCreditCardBillingItems(account.id);
+    const installmentsPromise = listCreditCardInstallments(account.id);
+    const eligiblePurchasesPromise = listEligibleCreditCardPurchases(
+      account.id,
     );
-  }
+    const liquidAccountsPromise = listAccounts().then((liquidListed) =>
+      liquidListed
+        ? liquidListed.accounts.map((liquidAccount) => ({
+            id: liquidAccount.id,
+            name: localizeCatalogName(tCatalog, "accounts", liquidAccount.name),
+          }))
+        : null,
+    );
+    const cardDetail = await cardDetailPromise;
 
-  if (isCreditCard && cardDetail) {
+    if (!cardDetail) {
+      return (
+        <div
+          className="flex min-h-full flex-col"
+          data-testid="money-account-detail"
+          data-account-kind="credit-card"
+        >
+          <AccountsReturnTopAppBar
+            variant="detail"
+            backLabel={t("accountsPage.title")}
+            title={t("creditCard.detailTitle")}
+            trailing={account.canMutate ? accountManagement : undefined}
+          />
+          <AccountDetailUnavailable
+            title={t("accountDetail.unavailableTitle")}
+            description={t("accountDetail.unavailableBody")}
+            actionHref={moneyAccountPath(account.id)}
+            actionLabel={t("hub.retry")}
+            icon={
+              <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+            }
+          />
+        </div>
+      );
+    }
+
     const { card } = cardDetail;
+    const linkedPaymentAccountLabelPromise = liquidAccountsPromise.then(
+      (liquidAccounts) =>
+        liquidAccounts === null
+          ? t("creditCard.paymentAccountsLoadError")
+          : (liquidAccounts.find(
+              (liquidAccount) => liquidAccount.id === card.linkedBankAccountId,
+            )?.name ?? t("creditCard.unlinkedPaymentAccount")),
+    );
+    const openMonths = [...card.months]
+      .filter((month) => month.status !== CardBillingMonthStatus.SETTLED)
+      .sort((left, right) =>
+        left.billingMonth.localeCompare(right.billingMonth),
+      );
+    const leadMonth = openMonths[0] ?? null;
+    const remainingDue = leadMonth?.remaining ?? card.outstanding;
     const outstandingLabel = formatCurrency(
       card.outstanding,
       currency,
@@ -207,9 +235,8 @@ export default async function AccountDetailPage({
         data-testid="money-account-detail"
         data-account-kind="credit-card"
       >
-        <TopAppBar
+        <AccountsReturnTopAppBar
           variant="detail"
-          backHref={APP_PATH.MONEY_ACCOUNTS}
           backLabel={t("accountsPage.title")}
           title={t("creditCard.detailTitle")}
           trailing={account.canMutate ? accountManagement : undefined}
@@ -249,13 +276,116 @@ export default async function AccountDetailPage({
               />
             }
           />
-          <CreditCardDetailActions
-            card={card}
-            liquidAccounts={liquidAccounts}
-            currency={currency}
-            installments={installments ?? []}
-            eligiblePurchases={eligiblePurchases ?? []}
-            canMutate={account.canMutate}
+          {leadMonth ? (
+            <CreditCardDueLead
+              leadMonth={leadMonth}
+              remainingDueLabel={formatCurrency(
+                remainingDue,
+                currency,
+                locale,
+                { maximumFractionDigits: 0 },
+              )}
+              statementLabel={formatCurrency(
+                leadMonth.statementAmount,
+                currency,
+                locale,
+                { maximumFractionDigits: 0 },
+              )}
+              paidLabel={formatCurrency(
+                leadMonth.paidAmount,
+                currency,
+                locale,
+                {
+                  maximumFractionDigits: 0,
+                },
+              )}
+              linkedPaymentAccount={
+                <Suspense
+                  fallback={
+                    <SkeletonText
+                      width="60%"
+                      className="min-h-3.5"
+                      role="status"
+                      aria-label={t("creditCard.loadingPaymentActions")}
+                    />
+                  }
+                >
+                  <CreditCardLinkedPaymentAccountName
+                    labelPromise={linkedPaymentAccountLabelPromise}
+                  />
+                </Suspense>
+              }
+            />
+          ) : (
+            <EmptyState
+              title={t("creditCard.noCurrentStatement")}
+              icon={
+                <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.DISPLAY} />
+              }
+              className="flex-none py-(--space-4)"
+            />
+          )}
+          <div
+            className="grid grid-cols-3 gap-(--space-2)"
+            role="group"
+            aria-label={t("creditCard.quickActions")}
+            data-testid="credit-card-quick-actions"
+          >
+            <Suspense
+              fallback={
+                <CreditCardQuickActionFallback
+                  label={t("creditCard.loadingPaymentActions")}
+                  testId="card-payment-actions-fallback"
+                />
+              }
+            >
+              <CreditCardDetailActions
+                card={card}
+                liquidAccountsPromise={liquidAccountsPromise}
+                currency={currency}
+                remainingDue={remainingDue}
+                canMutate={account.canMutate}
+              />
+            </Suspense>
+            <CreditCardChargeAction
+              cardAccountId={account.id}
+              canMutate={account.canMutate}
+            />
+            <Suspense
+              fallback={
+                <CreditCardQuickActionFallback
+                  label={t("creditCard.loadingInstallmentActions")}
+                  testId="card-installment-actions-fallback"
+                />
+              }
+            >
+              <CreditCardInstallmentsSection
+                cardAccountId={account.id}
+                installmentsPromise={installmentsPromise}
+                eligiblePurchasesPromise={eligiblePurchasesPromise}
+                currency={currency}
+                canMutate={account.canMutate}
+                presentation="quick-action"
+              />
+            </Suspense>
+          </div>
+          <Suspense
+            fallback={
+              <CreditCardActivityFallback
+                title={t("creditCard.activityTitle")}
+                label={t("creditCard.loadingActivity")}
+              />
+            }
+          >
+            <CreditCardBillingActivityStream
+              accountId={account.id}
+              currency={currency}
+              itemsPromise={billingItemsPromise}
+            />
+          </Suspense>
+          <InlineAlert
+            variant={InlineAlertVariant.INFO}
+            description={t("creditCard.ledgerReminder")}
           />
           <AccountDetailManagement
             accountId={account.id}
@@ -286,21 +416,13 @@ export default async function AccountDetailPage({
   const balanceLabel = formatCurrency(account.balance, currency, locale, {
     maximumFractionDigits: 0,
   });
-  const activityPeriod = activity[0]?.transactionDate
-    ? formatDate(new Date(`${activity[0].transactionDate}T00:00:00Z`), locale, {
-        month: "short",
-        year: "numeric",
-      })
-    : undefined;
-
   return (
     <div
       className="flex min-h-full flex-col"
       data-testid="money-account-detail"
     >
-      <TopAppBar
+      <AccountsReturnTopAppBar
         variant="detail"
-        backHref={APP_PATH.MONEY_ACCOUNTS}
         backLabel={t("accountsPage.title")}
         title={t("accountDetail.title")}
         trailing={account.canMutate ? accountManagement : undefined}
@@ -370,108 +492,19 @@ export default async function AccountDetailPage({
         {account.canMutate ? (
           <AccountDetailQuickActions accountId={account.id} />
         ) : null}
-        <section
-          className="flex flex-col gap-(--space-2)"
-          aria-labelledby="account-recent-activity"
+        <Suspense
+          fallback={
+            <AccountRecentActivityFallback
+              title={t("accountDetail.recentTitle")}
+            />
+          }
         >
-          <SectionHeader
-            title={
-              <AccountSectionTitle id="account-recent-activity">
-                {t("accountDetail.recentTitle")}
-              </AccountSectionTitle>
-            }
-            action={
-              activityPeriod ? (
-                <Text size="xs" tone="secondary">
-                  {activityPeriod}
-                </Text>
-              ) : undefined
-            }
+          <AccountRecentActivitySection
+            recentPromise={recentPromise}
+            accountId={account.id}
+            locale={locale}
           />
-          {activityLoadFailed ? (
-            <div className="flex flex-col gap-(--space-2)">
-              <StatusAlert
-                variant="danger"
-                title={t("accountDetail.recentLoadErrorTitle")}
-                description={t("accountDetail.recentLoadErrorBody")}
-              />
-              <Link
-                href={moneyAccountPath(account.id)}
-                className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-              >
-                {t("hub.retry")}
-              </Link>
-            </div>
-          ) : activity.length === 0 ? (
-            <EmptyState
-              title={t("accountDetail.recentEmpty")}
-              description={t("accountDetail.recentEmptyDescription")}
-              icon={
-                <AppIcon
-                  icon={FINANCE_ICONS.account}
-                  size={AppIconSize.DISPLAY}
-                />
-              }
-              className="flex-none py-(--space-4)"
-            />
-          ) : (
-            <Card tone="elevated" className="gap-0 overflow-hidden p-0">
-              <ul className={ACCOUNT_ACTIVITY_LIST_CLASS}>
-                {activity.map((transaction) => {
-                  const leading = resolveAccountActivityLeading(transaction);
-                  const transactionTone = leading.isCredit
-                    ? TransactionAmountTone.CREDIT
-                    : TransactionAmountTone.DEBIT;
-
-                  return (
-                    <li key={transaction.id}>
-                      <Link
-                        href={moneyTransactionPath(transaction.id)}
-                        className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
-                      >
-                        <TransactionRow
-                          leading={
-                            <IconContainer tone={leading.iconTone} size="sm">
-                              <AppIcon
-                                icon={leading.icon}
-                                size={AppIconSize.SM}
-                              />
-                            </IconContainer>
-                          }
-                          title={
-                            transaction.note ||
-                            localizeCatalogName(
-                              tCatalog,
-                              "tags",
-                              transaction.categoryName,
-                            ) ||
-                            t(`direction.${transaction.type}`)
-                          }
-                          subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
-                          amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
-                            transaction.amount,
-                            transaction.currency,
-                            locale,
-                            { maximumFractionDigits: 0 },
-                          )}`}
-                          currency=""
-                          tone={transactionTone}
-                          showChevron
-                        />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Card>
-          )}
-          {!activityLoadFailed && activity.length > 0 ? (
-            <AccountViewActivityAction
-              accountId={account.id}
-              testId="account-quick-activity"
-            />
-          ) : null}
-        </section>
+        </Suspense>
         <AccountDetailManagement
           accountId={account.id}
           initialName={account.name}
@@ -485,5 +518,264 @@ export default async function AccountDetailPage({
         />
       </div>
     </div>
+  );
+}
+
+async function CreditCardLinkedPaymentAccountName({
+  labelPromise,
+}: {
+  labelPromise: Promise<string>;
+}) {
+  const label = await labelPromise;
+  return (
+    <>
+      <span hidden data-testid="card-payment-accounts-ready" />
+      {label}
+    </>
+  );
+}
+
+async function CreditCardBillingActivityStream({
+  accountId,
+  currency,
+  itemsPromise,
+}: {
+  accountId: string;
+  currency: string;
+  itemsPromise: ReturnType<typeof listCreditCardBillingItems>;
+}) {
+  return (
+    <CreditCardActivitySection
+      accountId={accountId}
+      currency={currency}
+      items={await itemsPromise}
+    />
+  );
+}
+
+function CreditCardQuickActionFallback({
+  label,
+  testId,
+}: {
+  label: string;
+  testId: string;
+}) {
+  return (
+    <div
+      className="flex min-h-12 flex-col items-center justify-center gap-(--space-1) rounded-(--radius-control) border border-border-subtle px-(--space-2) py-(--space-1)"
+      role="status"
+      aria-busy="true"
+      aria-label={label}
+      data-testid={testId}
+    >
+      <SkeletonIcon size="sm" />
+      <SkeletonText width="60%" />
+    </div>
+  );
+}
+
+function CreditCardActivityFallback({
+  title,
+  label,
+}: {
+  title: string;
+  label: string;
+}) {
+  return (
+    <section
+      className="flex flex-col gap-(--space-3)"
+      aria-busy="true"
+      aria-label={label}
+      data-testid="card-activity-fallback"
+    >
+      <SectionHeader
+        title={<AccountSectionTitle>{title}</AccountSectionTitle>}
+      />
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+        <ul className={ACCOUNT_ACTIVITY_LIST_CLASS}>
+          {Array.from(
+            { length: ACCOUNT_DETAIL_PREVIEW_CONFIG.CARD_ACTIVITY_LIMIT },
+            (_, index) => (
+              <li
+                key={index}
+                className="flex min-h-14 items-center gap-(--space-3) border-b border-border-subtle py-(--space-2)"
+              >
+                <SkeletonIcon size="sm" />
+                <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+                  <SkeletonText width="80%" />
+                  <SkeletonText width="60%" />
+                </div>
+                <SkeletonAmount />
+              </li>
+            ),
+          )}
+        </ul>
+      </Card>
+    </section>
+  );
+}
+
+async function AccountRecentActivitySection({
+  recentPromise,
+  accountId,
+  locale,
+}: {
+  recentPromise: ReturnType<typeof listRecentTransactions>;
+  accountId: string;
+  locale: string;
+}) {
+  const [recent, t, tCatalog] = await Promise.all([
+    recentPromise,
+    getTranslations("money"),
+    getTranslations("catalog"),
+  ]);
+  const activityLoadFailed = recent == null;
+  const activity = [...(recent ?? [])].sort((left, right) =>
+    right.transactionDate.localeCompare(left.transactionDate),
+  );
+  const activityPeriod = activity[0]?.transactionDate
+    ? formatDate(new Date(`${activity[0].transactionDate}T00:00:00Z`), locale, {
+        month: "short",
+        year: "numeric",
+      })
+    : undefined;
+
+  return (
+    <section
+      className="flex flex-col gap-(--space-2)"
+      aria-labelledby="account-recent-activity"
+      data-testid="account-recent-activity-ready"
+    >
+      <SectionHeader
+        title={
+          <AccountSectionTitle id="account-recent-activity">
+            {t("accountDetail.recentTitle")}
+          </AccountSectionTitle>
+        }
+        action={
+          activityPeriod ? (
+            <Text size="xs" tone="secondary">
+              {activityPeriod}
+            </Text>
+          ) : undefined
+        }
+      />
+      {activityLoadFailed ? (
+        <div className="flex flex-col gap-(--space-2)">
+          <StatusAlert
+            variant="danger"
+            title={t("accountDetail.recentLoadErrorTitle")}
+            description={t("accountDetail.recentLoadErrorBody")}
+          />
+          <Link
+            href={moneyAccountPath(accountId)}
+            className="inline-flex min-h-11 w-fit items-center rounded-[var(--radius-control)] px-(--space-2) text-sm font-medium text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+          >
+            {t("hub.retry")}
+          </Link>
+        </div>
+      ) : activity.length === 0 ? (
+        <EmptyState
+          title={t("accountDetail.recentEmpty")}
+          description={t("accountDetail.recentEmptyDescription")}
+          icon={
+            <AppIcon icon={FINANCE_ICONS.account} size={AppIconSize.DISPLAY} />
+          }
+          className="flex-none py-(--space-4)"
+        />
+      ) : (
+        <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+          <ul className={ACCOUNT_ACTIVITY_LIST_CLASS}>
+            {activity.map((transaction) => {
+              const leading = resolveAccountActivityLeading(transaction);
+              const transactionTone = leading.isCredit
+                ? TransactionAmountTone.CREDIT
+                : TransactionAmountTone.DEBIT;
+
+              return (
+                <li key={transaction.id}>
+                  <Link
+                    href={moneyTransactionPath(transaction.id)}
+                    className="block rounded-[var(--radius-control)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+                  >
+                    <TransactionRow
+                      leading={
+                        <IconContainer tone={leading.iconTone} size="sm">
+                          <AppIcon icon={leading.icon} size={AppIconSize.SM} />
+                        </IconContainer>
+                      }
+                      title={
+                        transaction.note ||
+                        localizeCatalogName(
+                          tCatalog,
+                          "tags",
+                          transaction.categoryName,
+                        ) ||
+                        t(`direction.${transaction.type}`)
+                      }
+                      subtitle={`${t(`direction.${transaction.type}`)} · ${transaction.transactionDate}`}
+                      amountLabel={`${TRANSACTION_LEDGER_AMOUNT_PREFIX[transaction.type]}${formatCurrency(
+                        transaction.amount,
+                        transaction.currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}`}
+                      currency=""
+                      tone={transactionTone}
+                      showChevron
+                    />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+      {!activityLoadFailed && activity.length > 0 ? (
+        <AccountViewActivityAction
+          accountId={accountId}
+          testId="account-quick-activity"
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function AccountRecentActivityFallback({ title }: { title: string }) {
+  return (
+    <section
+      className="flex flex-col gap-(--space-2)"
+      aria-labelledby="account-recent-activity"
+      aria-busy="true"
+      data-testid="account-recent-activity-fallback"
+    >
+      <SectionHeader
+        title={
+          <AccountSectionTitle id="account-recent-activity">
+            {title}
+          </AccountSectionTitle>
+        }
+      />
+      <Card tone="elevated" className="gap-0 overflow-hidden p-0">
+        <ul className={ACCOUNT_ACTIVITY_LIST_CLASS}>
+          {Array.from(
+            { length: ACCOUNT_DETAIL_PREVIEW_CONFIG.RECENT_ACTIVITY_LIMIT },
+            (_, index) => (
+              <li
+                key={index}
+                className="flex min-h-14 items-center gap-(--space-3) border-b border-border-subtle py-(--space-2)"
+              >
+                <SkeletonIcon size="sm" />
+                <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+                  <SkeletonText width="80%" />
+                  <SkeletonText width="60%" />
+                </div>
+                <SkeletonAmount />
+              </li>
+            ),
+          )}
+        </ul>
+      </Card>
+    </section>
   );
 }

@@ -55,11 +55,14 @@ export {
 export {
   listAccounts,
   listAccountsForCapture,
+  listCaptureAccountReferences,
   getAccount,
+  getAccountType,
 } from "./queries/list-accounts";
 export {
   listCreditCards,
   getCreditCardDetail,
+  listCreditCardBillingItems,
 } from "./queries/list-credit-cards";
 export {
   listCreditCardInstallments,

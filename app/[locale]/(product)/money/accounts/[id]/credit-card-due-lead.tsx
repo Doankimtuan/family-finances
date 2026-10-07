@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { CardBillingMonth } from "@/modules/ledger/application/client";
 import { Card } from "@/shared/patterns/card";
@@ -18,7 +19,7 @@ type CreditCardDueLeadProps = {
   remainingDueLabel: string;
   statementLabel: string;
   paidLabel: string;
-  linkedPaymentAccount?: string;
+  linkedPaymentAccount?: ReactNode;
 };
 
 /**

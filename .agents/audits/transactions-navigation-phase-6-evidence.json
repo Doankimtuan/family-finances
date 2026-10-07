@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-06",
+  "scope": "Money to Transactions List session-gate comparison",
+  "sanitized": true,
+  "method": {
+    "control": "Frozen Phase 5 source with measurement-only spans",
+    "candidate": "Transactions Phase 6 source",
+    "environment": "Isolated local development servers, same authenticated browser session and backend",
+    "locale": "vi",
+    "viewport": "440x900",
+    "warmSamplesPerArm": 10,
+    "navigation": "Full Money-page load followed by client-side click to Transactions List for each sample",
+    "candidatePostRestartSampleMs": {
+      "clickToFirstRows": 842,
+      "pairedColdControl": false,
+      "includedInWarmStatistics": false
+    }
+  },
+  "serverTimingMs": {
+    "control": {
+      "getUser": [276, 270, 269, 276, 265, 264, 269, 269, 294, 276],
+      "membership": [284, 272, 270, 368, 276, 282, 270, 281, 272, 312],
+      "sessionGate": [584, 558, 557, 662, 559, 576, 558, 576, 586, 610],
+      "eventLoader": [340, 350, 316, 306, 313, 308, 323, 298, 392, 322],
+      "route": [977, 941, 921, 1009, 913, 918, 918, 905, 1018, 965],
+      "membershipStartsAfterUserEnds": true
+    },
+    "phase6": {
+      "getUser": [290, 291, 371, 322, 363, 353, 279, 277, 277, 278],
+      "membership": [286, 296, 306, 314, 371, 346, 304, 280, 300, 284],
+      "sessionGate": [330, 323, 389, 339, 420, 373, 330, 307, 340, 318],
+      "eventLoader": [387, 320, 461, 319, 321, 308, 311, 317, 392, 308],
+      "route": [760, 679, 1175, 697, 780, 718, 683, 664, 795, 683],
+      "membershipOverlapBeforeUserEnd": [
+        278, 283, 363, 314, 355, 346, 271, 269, 263, 266
+      ]
+    }
+  },
+  "warmStatisticsMs": {
+    "control": {
+      "getUser": { "p50": 269.5, "p75": 276 },
+      "membership": { "p50": 278.5, "p75": 284 },
+      "sessionGate": { "p50": 576, "p75": 586 },
+      "eventLoader": { "p50": 319, "p75": 340 },
+      "route": { "p50": 931, "p75": 977 },
+      "membershipStartAfterUserEndApproxMs": { "p50": 0, "p75": 1 }
+    },
+    "phase6": {
+      "getUser": { "p50": 290.5, "p75": 353 },
+      "membership": { "p50": 302, "p75": 314 },
+      "sessionGate": { "p50": 334.5, "p75": 373 },
+      "eventLoader": { "p50": 319.5, "p75": 387 },
+      "route": { "p50": 707.5, "p75": 780 },
+      "membershipOverlapBeforeUserEnd": { "p50": 280.5, "p75": 346 }
+    }
+  },
+  "browserWarmStatisticsMs": {
+    "control": {
+      "clickToFirstRows": { "sampleCount": 10, "p50": 1087.5, "p75": 1135 },
+      "rscDuration": { "sampleCount": 10, "p50": 933.5, "p75": 979 },
+      "responseEndToFirstRows": { "sampleCount": 10, "p50": 131, "p75": 137 }
+    },
+    "phase6": {
+      "clickToFirstRows": { "sampleCount": 10, "p50": 864, "p75": 925 },
+      "rscDuration": { "sampleCount": 10, "p50": 709.5, "p75": 785 },
+      "responseEndToFirstRows": { "sampleCount": 10, "p50": 141, "p75": 156 }
+    }
+  },
+  "warmRequestsPerListRsc": {
+    "control": {
+      "proxyGetClaimsInvocations": 1,
+      "routeVerifiedSubjectGetClaimsInvocations": 1,
+      "getUserRequests": 1,
+      "activeMembershipRequests": 1,
+      "extraMembershipRequestsFromLayoutPageOrLoader": 0,
+      "transactionEventScanRequests": 1,
+      "transferCompletionRequestsForCompleteFirstPage": 0
+    },
+    "phase6": {
+      "proxyGetClaimsInvocations": 1,
+      "routeVerifiedSubjectGetClaimsInvocations": 1,
+      "getUserRequests": 1,
+      "activeMembershipRequests": 1,
+      "extraMembershipRequestsFromLayoutPageOrLoader": 0,
+      "transactionEventScanRequests": 1,
+      "transferCompletionRequestsForCompleteFirstPage": 0
+    },
+    "notes": [
+      "getClaims invocation count is not equivalent to an HTTP request; no warm JWKS fetch was observed.",
+      "The route verified-subject getClaims span occurs in the loader in control and in the page session gate in Phase 6; request-scoped session reuse prevents a second loader membership request."
+    ]
+  },
+  "regressions": {
+    "listDetailAppBack": {
+      "restoredRows": 25,
+      "listRequestsBeforeBack": 14,
+      "listRequestsAfterBack": 14,
+      "newListRscOnBack": 0
+    },
+    "addInitialFields": {
+      "sampleCount": 1,
+      "clickToUsableMs": 1402,
+      "amountVisible": true,
+      "accountVisible": true,
+      "dateVisible": true
+    },
+    "ordinaryDetail": {
+      "sampleCount": 1,
+      "clickToHeroMs": 4608,
+      "heroVisible": true,
+      "transferRoute": false
+    }
+  },
+  "validation": {
+    "focusedFiles": 8,
+    "focusedTestsPassed": 69,
+    "lint": "passed",
+    "typecheck": "failed in untouched home-streaming-sections.tsx at lines 99 and 340",
+    "fullTestSuite": {
+      "filesPassed": 256,
+      "filesFailed": 3,
+      "testsPassed": 1764,
+      "testsFailed": 5
+    },
+    "build": "not run because baseline typecheck fails and the main dev server owns the shared root .next output"
+  }
+}

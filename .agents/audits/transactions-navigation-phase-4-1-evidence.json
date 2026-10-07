@@ -1,0 +1,742 @@
+{
+  "scope": "Transactions List initial useful rows only; temporary profiling instrumentation in a disposable source copy.",
+  "environment": {
+    "mode": "Next.js development server, dedicated loopback port 3101",
+    "locale": "vi",
+    "viewport_px": {
+      "width": 440,
+      "height": 900
+    },
+    "session": "same authenticated browser session and household across samples",
+    "backend": "same Supabase backend as the main development server",
+    "coldish_definition": "first list request after isolated server restart; includes dev startup/cache effects, not a production cold-start claim",
+    "warm_definition": "10 subsequent Money-to-List clicks after route/backend settled",
+    "profile_request_start_is_click_event": true
+  },
+  "coldish_unfiltered": {
+    "rows_returned": 25,
+    "click_to_rows_ms": 3189,
+    "rsc_start_after_click_ms": 11,
+    "rsc_ttfb_ms": 1181,
+    "rsc_ms": 3059,
+    "rsc_transferred_bytes": 14295,
+    "route_ms": 1803,
+    "get_user_ms": 439,
+    "active_membership_ms": 515,
+    "event_total_ms": 835,
+    "scan_pages": [
+      {
+        "page": 1,
+        "raw_rows": 52,
+        "candidate_activities": 49,
+        "activities_added_before_page_slice": 49,
+        "scan_page_ms": 834,
+        "continue_reason": "lookahead_reached",
+        "transfer_group_ids": 3,
+        "loan_payment_ids": 0,
+        "transfer_batch_ms": 270,
+        "transfer_rows_returned": 6,
+        "loan_batch_ms": null,
+        "group_merge_ms": 0
+      }
+    ],
+    "main_query_sdk_await_ms": 550,
+    "postgrest_headers_ms": 537,
+    "postgrest_body_tail_ms": 6,
+    "postgrest_payload_bytes": 36766,
+    "mapping_ms": 1,
+    "projection_and_dedupe_ms": 9,
+    "cursor_encode_ms": 0,
+    "has_more": true,
+    "next_cursor_present": true,
+    "cold_proxy_claims_included_jwks_refresh_ms": 590
+  },
+  "warm_unfiltered": [
+    {
+      "sample": 1,
+      "rows_returned": 25,
+      "route_ms": 1171,
+      "get_user_ms": 267,
+      "active_membership_ms": 266,
+      "session_ms": 533,
+      "event_total_ms": 632,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 632,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 256,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 372,
+      "postgrest_headers_ms": 354,
+      "postgrest_body_tail_ms": 12,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 373,
+      "filter_tags_ms": 373,
+      "rsc_start_after_click_ms": 5,
+      "rsc_ttfb_ms": 44,
+      "rsc_ms": 1211,
+      "rsc_transferred_bytes": 14296,
+      "rows_ready_ms": 1291,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 2,
+      "rows_returned": 25,
+      "route_ms": 1181,
+      "get_user_ms": 315,
+      "active_membership_ms": 316,
+      "session_ms": 631,
+      "event_total_ms": 545,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 545,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 252,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 288,
+      "postgrest_headers_ms": 279,
+      "postgrest_body_tail_ms": 5,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 269,
+      "filter_tags_ms": 268,
+      "rsc_start_after_click_ms": 4,
+      "rsc_ttfb_ms": 38,
+      "rsc_ms": 1219,
+      "rsc_transferred_bytes": 14295,
+      "rows_ready_ms": 1298,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 3,
+      "rows_returned": 25,
+      "route_ms": 1023,
+      "get_user_ms": 248,
+      "active_membership_ms": 218,
+      "session_ms": 466,
+      "event_total_ms": 551,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 551,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 253,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 295,
+      "postgrest_headers_ms": 282,
+      "postgrest_body_tail_ms": 9,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 1,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 294,
+      "filter_tags_ms": 294,
+      "rsc_start_after_click_ms": 5,
+      "rsc_ttfb_ms": 39,
+      "rsc_ms": 1060,
+      "rsc_transferred_bytes": 14294,
+      "rows_ready_ms": 1137,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 4,
+      "rows_returned": 25,
+      "route_ms": 1179,
+      "get_user_ms": 329,
+      "active_membership_ms": 316,
+      "session_ms": 645,
+      "event_total_ms": 529,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 529,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 252,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 274,
+      "postgrest_headers_ms": 264,
+      "postgrest_body_tail_ms": 5,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 259,
+      "filter_tags_ms": 260,
+      "rsc_start_after_click_ms": 6,
+      "rsc_ttfb_ms": 53,
+      "rsc_ms": 1230,
+      "rsc_transferred_bytes": 14295,
+      "rows_ready_ms": 1308,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 5,
+      "rows_returned": 25,
+      "route_ms": 1069,
+      "get_user_ms": 263,
+      "active_membership_ms": 241,
+      "session_ms": 504,
+      "event_total_ms": 559,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 559,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 258,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 298,
+      "postgrest_headers_ms": 287,
+      "postgrest_body_tail_ms": 7,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 284,
+      "filter_tags_ms": 285,
+      "rsc_start_after_click_ms": 5,
+      "rsc_ttfb_ms": 44,
+      "rsc_ms": 1113,
+      "rsc_transferred_bytes": 14295,
+      "rows_ready_ms": 1205,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 6,
+      "rows_returned": 25,
+      "route_ms": 1041,
+      "get_user_ms": 236,
+      "active_membership_ms": 266,
+      "session_ms": 502,
+      "event_total_ms": 534,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 534,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 253,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 278,
+      "postgrest_headers_ms": 268,
+      "postgrest_body_tail_ms": 6,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 259,
+      "filter_tags_ms": 264,
+      "rsc_start_after_click_ms": 5,
+      "rsc_ttfb_ms": 42,
+      "rsc_ms": 1080,
+      "rsc_transferred_bytes": 14296,
+      "rows_ready_ms": 1157,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 7,
+      "rows_returned": 25,
+      "route_ms": 1077,
+      "get_user_ms": 266,
+      "active_membership_ms": 250,
+      "session_ms": 516,
+      "event_total_ms": 556,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 556,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 265,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 288,
+      "postgrest_headers_ms": 276,
+      "postgrest_body_tail_ms": 8,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 1,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 286,
+      "filter_tags_ms": 259,
+      "rsc_start_after_click_ms": 4,
+      "rsc_ttfb_ms": 36,
+      "rsc_ms": 1111,
+      "rsc_transferred_bytes": 14295,
+      "rows_ready_ms": 1184,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 8,
+      "rows_returned": 25,
+      "route_ms": 1021,
+      "get_user_ms": 243,
+      "active_membership_ms": 243,
+      "session_ms": 486,
+      "event_total_ms": 530,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 530,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 260,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 268,
+      "postgrest_headers_ms": 258,
+      "postgrest_body_tail_ms": 6,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 252,
+      "filter_tags_ms": 259,
+      "rsc_start_after_click_ms": 3,
+      "rsc_ttfb_ms": 31,
+      "rsc_ms": 1052,
+      "rsc_transferred_bytes": 14296,
+      "rows_ready_ms": 1126,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 9,
+      "rows_returned": 25,
+      "route_ms": 1026,
+      "get_user_ms": 250,
+      "active_membership_ms": 237,
+      "session_ms": 487,
+      "event_total_ms": 533,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 533,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 260,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 269,
+      "postgrest_headers_ms": 261,
+      "postgrest_body_tail_ms": 5,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 263,
+      "filter_tags_ms": 265,
+      "rsc_start_after_click_ms": 6,
+      "rsc_ttfb_ms": 40,
+      "rsc_ms": 1073,
+      "rsc_transferred_bytes": 14294,
+      "rows_ready_ms": 1162,
+      "has_more": true,
+      "next_cursor_present": true
+    },
+    {
+      "sample": 10,
+      "rows_returned": 25,
+      "route_ms": 1125,
+      "get_user_ms": 314,
+      "active_membership_ms": 250,
+      "session_ms": 564,
+      "event_total_ms": 556,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 49,
+          "activities_added_before_page_slice": 49,
+          "scan_page_ms": 556,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 3,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 266,
+          "transfer_rows_returned": 6,
+          "loan_batch_ms": null,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 287,
+      "postgrest_headers_ms": 266,
+      "postgrest_body_tail_ms": 18,
+      "postgrest_payload_bytes": 36766,
+      "mapping_ms": 0,
+      "projection_and_dedupe_ms": 0,
+      "cursor_encode_ms": 0,
+      "filter_options_ms": 286,
+      "filter_tags_ms": 287,
+      "rsc_start_after_click_ms": 4,
+      "rsc_ttfb_ms": 36,
+      "rsc_ms": 1164,
+      "rsc_transferred_bytes": 14294,
+      "rows_ready_ms": 1250,
+      "has_more": true,
+      "next_cursor_present": true
+    }
+  ],
+  "warm_unfiltered_summary": {
+    "percentile_method": "p50 median; p75 nearest-rank",
+    "route_ms": {
+      "p50": 1073,
+      "p75": 1171
+    },
+    "get_user_ms": {
+      "p50": 264.5,
+      "p75": 314
+    },
+    "active_membership_ms": {
+      "p50": 250,
+      "p75": 266
+    },
+    "session_ms": {
+      "p50": 510,
+      "p75": 564
+    },
+    "event_total_ms": {
+      "p50": 548,
+      "p75": 556
+    },
+    "postgrest_headers_ms": {
+      "p50": 272,
+      "p75": 282
+    },
+    "postgrest_body_tail_ms": {
+      "p50": 6.5,
+      "p75": 9
+    },
+    "sdk_query_await_ms": {
+      "p50": 287.5,
+      "p75": 295
+    },
+    "transfer_batch_ms": {
+      "p50": 257,
+      "p75": 260
+    },
+    "row_mapping_ms": {
+      "p50": 0,
+      "p75": 0
+    },
+    "projection_and_dedupe_ms": {
+      "p50": 0,
+      "p75": 0
+    },
+    "cursor_encode_ms": {
+      "p50": 0,
+      "p75": 0
+    },
+    "filter_options_ms": {
+      "p50": 276.5,
+      "p75": 286
+    },
+    "filter_tags_ms": {
+      "p50": 266.5,
+      "p75": 287
+    },
+    "browser_click_to_rows_ms": {
+      "p50": 1194.5,
+      "p75": 1291
+    },
+    "browser_rsc_ms": {
+      "p50": 1112,
+      "p75": 1211
+    },
+    "browser_rsc_ttfb_ms": {
+      "p50": 39.5,
+      "p75": 44
+    },
+    "browser_rows_after_rsc_ms": {
+      "p50": 78.5,
+      "p75": 86
+    },
+    "browser_rsc_transferred_bytes": {
+      "range": [14293, 14296]
+    },
+    "scanned_pages": {
+      "p50": 1,
+      "p75": 1
+    },
+    "raw_rows_per_page": {
+      "p50": 52,
+      "p75": 52
+    },
+    "transfer_group_ids_per_page": 3,
+    "loan_payment_ids_per_page": 0,
+    "transfer_completion_rows_per_page": 6,
+    "merged_rows_after_completion": 52,
+    "returned_activities": 25
+  },
+  "filtered_single_samples": {
+    "type_transfer": {
+      "rows_returned": 2,
+      "click_to_rows_ms": 2384,
+      "rsc_ttfb_ms": 78,
+      "rsc_ms": 2345,
+      "rsc_transferred_bytes": 10572,
+      "route_ms": 2265,
+      "get_user_ms": 968,
+      "active_membership_ms": 510,
+      "event_total_ms": 778,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 12,
+          "candidate_activities": 6,
+          "activities_added": 2,
+          "scan_page_ms": 778,
+          "continue_reason": "raw_page_exhausted",
+          "transfer_group_ids": 6,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": 374,
+          "transfer_rows_returned": 12,
+          "group_merge_ms": 0
+        }
+      ],
+      "main_query_sdk_await_ms": 390,
+      "postgrest_headers_ms": 378,
+      "postgrest_body_tail_ms": 6,
+      "postgrest_payload_bytes": 8343,
+      "has_more": false,
+      "next_cursor_present": true
+    },
+    "type_expense": {
+      "rows_returned": 25,
+      "click_to_rows_ms": 2122,
+      "rsc_ttfb_ms": 97,
+      "rsc_ms": 2053,
+      "rsc_transferred_bytes": 12404,
+      "route_ms": 1963,
+      "get_user_ms": 399,
+      "active_membership_ms": 308,
+      "event_total_ms": 1248,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 52,
+          "candidate_activities": 52,
+          "activities_added": 52,
+          "scan_page_ms": 1248,
+          "continue_reason": "lookahead_reached",
+          "transfer_group_ids": 0,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": null,
+          "loan_batch_ms": null,
+          "group_short_circuited": true
+        }
+      ],
+      "main_query_sdk_await_ms": 1232,
+      "postgrest_headers_ms": 1212,
+      "postgrest_body_tail_ms": 15,
+      "postgrest_payload_bytes": 39393,
+      "has_more": true,
+      "next_cursor_present": true,
+      "interpretation": "single sample; one event query/service-latency outlier, not enough to infer a persistent query floor"
+    },
+    "account_statement": {
+      "rows_returned": 5,
+      "document_response_ms": 764,
+      "document_ttfb_ms": 431,
+      "rows_ready_ms": 342,
+      "route_ms": 678,
+      "get_user_ms": 359,
+      "active_membership_ms": 6,
+      "event_total_ms": 306,
+      "scan_pages": [
+        {
+          "page": 1,
+          "raw_rows": 5,
+          "candidate_activities": 5,
+          "activities_added": 5,
+          "scan_page_ms": 306,
+          "continue_reason": "raw_page_exhausted",
+          "transfer_group_ids": 0,
+          "loan_payment_ids": 0,
+          "transfer_batch_ms": null,
+          "loan_batch_ms": null,
+          "group_short_circuited": true
+        }
+      ],
+      "main_query_sdk_await_ms": 305,
+      "postgrest_headers_ms": 290,
+      "postgrest_body_tail_ms": 11,
+      "postgrest_payload_bytes": 3713,
+      "has_more": false,
+      "next_cursor_present": true
+    }
+  },
+  "request_topology": {
+    "unfiltered_first_page": [
+      "route getUser",
+      "active membership",
+      "event scan page 1",
+      "transfer completion batch",
+      "activity projection/dedupe/sort/cursor",
+      "route return"
+    ],
+    "filter_options": "category/jar and transaction-tag reads started alongside event loading; not awaited by the row route return",
+    "group_batch_parallelism": "source starts transfer and loan batches together with Promise.all; runtime samples had transfer IDs only or zero IDs, so no simultaneous transfer+loan request was observed",
+    "zero_id_short_circuit": "Expense and account samples had 0 transfer IDs and 0 loan-payment IDs; traces show no completion batch request",
+    "embedded_relationships": [
+      "account name/type/scope",
+      "category name/icon",
+      "jar name",
+      "transaction tag assignment and tag display fields"
+    ],
+    "row_level_n_plus_one": "not observed; embedded fields arrive with the scan query, and groups use one batch per non-empty group type"
+  },
+  "session_and_proxy": {
+    "require_product_session": {
+      "context": "measured on full Money hub loads before the user click; the product layout is retained on the in-app Money-to-List transition",
+      "warm_pre_click_ms": {
+        "p50": 298.5,
+        "p75": 321
+      },
+      "first_coldish_ms": 1930
+    },
+    "list_route_get_user_ms": {
+      "p50": 264.5,
+      "p75": 314
+    },
+    "list_route_active_membership_ms": {
+      "p50": 250,
+      "p75": 266
+    },
+    "proxy_get_claims_ms": {
+      "warm_p50": 2,
+      "warm_p75": 3,
+      "coldish_ms": 590
+    },
+    "coldish_claims_fetch": "one JWKS request; no JWKS fetch in the 10 warm unfiltered samples",
+    "note": "The list page's getUser and active-membership checks are sequential and remain on the click response path. The product gate is a prior Money-page stage for this client navigation."
+  },
+  "correctness_comparison": {
+    "instrumented_copy_vs_main_checkout": {
+      "routes": [
+        "unfiltered",
+        "type=transfer",
+        "type=expense",
+        "account-filtered"
+      ],
+      "row_counts": {
+        "unfiltered": 25,
+        "type=transfer": 2,
+        "type=expense": 25,
+        "account-filtered": 5
+      },
+      "ordered_activity_keys_match": true,
+      "visible_row_types_and_content_match": true,
+      "date_grouping_and_summary_match": true,
+      "has_more_and_all_loaded_markers_match": true
+    },
+    "detail_back": {
+      "returned_to_list": true,
+      "rows": 25,
+      "list_rsc_requests_on_return": 0
+    },
+    "add_route": {
+      "capture_entry_ready": true,
+      "initial_fields_ready": true,
+      "submit_attempted": false
+    },
+    "phase_4_reference_split": "runtime filter-option fetches overlapped the event loader and finished before the list response; route source keeps them outside the row await"
+  },
+  "validation": {
+    "focused_tests": {
+      "files": 6,
+      "passed": 33
+    },
+    "lint": "passed",
+    "typecheck": "blocked by the same existing HomeTranslator errors at home-streaming-sections.tsx:99 and :340 documented in Phase 4; no errors in instrumented transaction files",
+    "build": "Next compilation passed; build stopped at the same existing HomeTranslator type errors"
+  },
+  "sql_attribution": "unavailable; no authenticated application-role SQL session suitable for EXPLAIN (ANALYZE, BUFFERS) was established; no service-role or superuser query was used",
+  "privacy": "No transaction/account/group/household/user IDs, amounts, notes, cookies, request IDs, or response bodies are present. Payload byte counts and row/group counts only."
+}

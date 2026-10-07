@@ -134,8 +134,8 @@
     "uncategorized": "Uncategorized",
     "other": "Other categories",
     "insight": {
-      "higher": "Spending is {amount} higher than the prior period.",
-      "lower": "Spending is {amount} lower than the prior period."
+      "higher": "Spending is <amount></amount> higher than the prior period.",
+      "lower": "Spending is <amount></amount> lower than the prior period."
     },
     "share": "{category}: {percentage} of spending"
   },

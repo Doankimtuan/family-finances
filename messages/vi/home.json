@@ -134,8 +134,8 @@
     "uncategorized": "Chưa phân loại",
     "other": "Nhóm khác",
     "insight": {
-      "higher": "Chi tiêu cao hơn kỳ trước {amount}.",
-      "lower": "Chi tiêu thấp hơn kỳ trước {amount}."
+      "higher": "Chi tiêu cao hơn kỳ trước <amount></amount>.",
+      "lower": "Chi tiêu thấp hơn kỳ trước <amount></amount>."
     },
     "share": "{category}: {percentage} của tổng chi tiêu"
   },

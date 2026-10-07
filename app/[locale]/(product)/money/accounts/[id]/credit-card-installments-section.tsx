@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { use, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -62,8 +62,8 @@ type EligiblePurchase = {
 
 type Props = {
   cardAccountId: string;
-  installments: CreditCardInstallment[];
-  eligiblePurchases: EligiblePurchase[];
+  installmentsPromise: Promise<CreditCardInstallment[] | null>;
+  eligiblePurchasesPromise: Promise<EligiblePurchase[] | null>;
   currency: string;
   canMutate?: boolean;
   presentation?: "section" | "quick-action";
@@ -71,12 +71,14 @@ type Props = {
 
 export function CreditCardInstallmentsSection({
   cardAccountId,
-  installments,
-  eligiblePurchases,
+  installmentsPromise,
+  eligiblePurchasesPromise,
   currency,
   canMutate = true,
   presentation = "section",
 }: Props) {
+  const installments = use(installmentsPromise);
+  const eligiblePurchases = use(eligiblePurchasesPromise);
   const t = useTranslations("money.creditCard");
   const locale = useLocale();
   const router = useRouter();
@@ -234,6 +236,22 @@ export function CreditCardInstallmentsSection({
     });
   };
 
+  if (installments === null || eligiblePurchases === null) {
+    return (
+      <>
+        <span hidden data-testid="card-installment-action-ready" />
+        <StatusAlert
+          variant="danger"
+          title={t("actionErrorTitle")}
+          description={t("installmentError")}
+          className={
+            presentation === "quick-action" ? "col-span-full" : undefined
+          }
+        />
+      </>
+    );
+  }
+
   const viewModels = installments
     .filter(
       (installment) =>
@@ -259,6 +277,7 @@ export function CreditCardInstallmentsSection({
 
   return (
     <>
+      <span hidden data-testid="card-installment-action-ready" />
       {presentation === "quick-action" ? (
         <Button
           variant="secondary"

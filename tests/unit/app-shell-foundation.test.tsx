@@ -122,6 +122,19 @@ describe("Phase 2 app-shell foundation", () => {
     expect(navigationState.push).toHaveBeenCalledWith(APP_PATH.MONEY_ADD);
   });
 
+  it("does not mark Money current on the transaction capture route", () => {
+    navigationState.pathname = APP_PATH.MONEY_ADD;
+
+    render(<BottomNavigation />);
+
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    expect(moneyTab).not.toHaveAttribute("aria-current");
+    expect(moneyTab).toHaveAttribute("data-active", "false");
+    expect(
+      screen.getByRole("button", { name: "navigation.addTransaction" }),
+    ).toBeInTheDocument();
+  });
+
   it("caps the visual Inbox badge and announces the full count", () => {
     const count = INBOX_BADGE_MAX_DISPLAY_COUNT + 1;
     render(<BottomNavigation inboxCount={count} />);

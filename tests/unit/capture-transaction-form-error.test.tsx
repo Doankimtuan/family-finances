@@ -34,12 +34,14 @@ vi.mock("@/app/[locale]/(product)/money/transactions/tag-actions", () => ({
 }));
 
 import { CaptureTransactionForm } from "@/app/[locale]/(product)/money/transactions/capture-transaction-form";
+import { MoneyCaptureEntry } from "@/app/[locale]/(product)/money/transactions/money-capture-entry";
 import {
   StatusAlertHost,
   StatusAlertProvider,
 } from "@/providers/status-alert-provider";
 import {
   AccountType,
+  MoneyCaptureMode,
   TransactionDirection,
   TransactionTagColorKey,
   TransactionTagIconKey,
@@ -91,6 +93,13 @@ const expenseCategory: CategoryTag = {
   jarId: "00000000-0000-4000-8000-000000000020",
 };
 
+const incomeCategory: CategoryTag = {
+  id: "00000000-0000-4000-8000-000000000011",
+  kind: TransactionDirection.INCOME,
+  name: "Salary",
+  jarId: null,
+};
+
 const captureJar: CaptureJarOption = {
   id: "00000000-0000-4000-8000-000000000020",
   name: "Essentials",
@@ -138,6 +147,14 @@ function renderCaptureForm(
   );
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}
+
 describe("CaptureTransactionForm save-failure presentation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -165,6 +182,87 @@ describe("CaptureTransactionForm save-failure presentation", () => {
     });
 
     expect(screen.getByTestId("capture-preview")).toBeInTheDocument();
+  });
+
+  it("preserves an active draft while server references resolve progressively", async () => {
+    const accounts = deferred<LedgerAccount[]>();
+    const expenseTags = deferred<CategoryTag[] | null>();
+    const incomeTags = deferred<CategoryTag[] | null>();
+    const jars = deferred<CaptureJarOption[] | null>();
+    const transactionTags = deferred<TransactionTag[] | null>();
+
+    await act(async () => {
+      render(
+        <StatusAlertProvider>
+          <MoneyCaptureEntry
+            accountsPromise={accounts.promise}
+            expenseTagsPromise={expenseTags.promise}
+            incomeTagsPromise={incomeTags.promise}
+            jarsPromise={jars.promise}
+            transactionTagsPromise={transactionTags.promise}
+            currency="VND"
+            initialMode={MoneyCaptureMode.INCOME}
+          />
+          <StatusAlertHost />
+        </StatusAlertProvider>,
+      );
+      await Promise.resolve();
+    });
+
+    fireEvent.click(screen.getByTestId("capture-mode-income"));
+    fireEvent.change(screen.getByLabelText(/^amountLabel/), {
+      target: { value: "50000" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "yesterday" }));
+    fireEvent.change(screen.getByLabelText("noteLabel"), {
+      target: { value: "typed before references" },
+    });
+    const form = screen.getByTestId("money-capture-form");
+
+    await act(async () => {
+      accounts.resolve([account]);
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(screen.getByLabelText(/^incomeAccountLabel/)).toBeEnabled(),
+    );
+
+    expect(screen.getByTestId("money-capture-form")).toBe(form);
+    expect(screen.getByTestId("capture-mode-income")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByLabelText(/^amountLabel/)).not.toHaveValue("");
+    expect(screen.getByLabelText("noteLabel")).toHaveValue(
+      "typed before references",
+    );
+    expect(screen.getByRole("button", { name: "yesterday" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByTestId("capture-save")).toBeDisabled();
+
+    fireEvent.submit(form);
+    expect(screen.queryByTestId("capture-confirm-summary")).toBeNull();
+    expect(recordTransactionMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      incomeTags.resolve([incomeCategory]);
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("money-capture-form")).toBe(form);
+    await waitFor(() =>
+      expect(screen.getByTestId("capture-save")).toBeEnabled(),
+    );
+    expect(screen.getByLabelText(/^amountLabel/)).not.toHaveValue("");
+    expect(screen.getByLabelText("noteLabel")).toHaveValue(
+      "typed before references",
+    );
+    expect(screen.getByRole("button", { name: "yesterday" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("keeps credit-card account identity explicit in the dropdown", () => {

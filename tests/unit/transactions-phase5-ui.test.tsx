@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
@@ -9,6 +9,7 @@ import {
   TRANSACTION_CATEGORY_QUERY_PARAM,
   TRANSACTION_JAR_QUERY_PARAM,
   TRANSACTION_TYPE_QUERY_PARAM,
+  TransactionDirection,
   TransactionFilterType,
 } from "@/modules/ledger/application/client";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
@@ -75,19 +76,23 @@ describe("Transactions scan-first presentation", () => {
     expect(document.body).not.toHaveTextContent("Expense ₫85,000");
   });
 
-  it("exposes selected filter chips and can clear through the list route", () => {
-    render(
-      <TransactionsFilterBar
-        type={TransactionFilterType.EXPENSE}
-        query=""
-        categoryIds={[]}
-        jarIds={[]}
-        availableCategories={[]}
-        availableJars={[]}
-        availableTags={[]}
-        selectedTagIds={[]}
-      />,
-    );
+  it("exposes selected filter chips and can clear through the list route", async () => {
+    const filterOptionsPromise = Promise.resolve({ categories: [], jars: [] });
+    const transactionTagsPromise = Promise.resolve([]);
+    await act(async () => {
+      render(
+        <TransactionsFilterBar
+          type={TransactionFilterType.EXPENSE}
+          query=""
+          categoryIds={[]}
+          jarIds={[]}
+          selectedTagIds={[]}
+          filterOptionsPromise={filterOptionsPromise}
+          transactionTagsPromise={transactionTagsPromise}
+        />,
+      );
+      await Promise.all([filterOptionsPromise, transactionTagsPromise]);
+    });
 
     expect(screen.getByTestId("transactions-filter-expense")).toHaveAttribute(
       "aria-pressed",
@@ -105,49 +110,56 @@ describe("Transactions scan-first presentation", () => {
     );
   });
 
-  it("applies multiple category and jar selections together", () => {
-    render(
-      <TransactionsFilterBar
-        type={TransactionFilterType.ALL}
-        query=""
-        categoryIds={[]}
-        jarIds={[]}
-        selectedTagIds={[]}
-        availableCategories={[
-          {
-            id: "category-one",
-            kind: "expense",
-            name: "Groceries",
-            jarId: null,
-            isActive: true,
-          },
-          {
-            id: "category-two",
-            kind: "expense",
-            name: "Transport",
-            jarId: null,
-            isActive: false,
-          },
-        ]}
-        availableJars={[
-          {
-            id: "jar-one",
-            kind: "expense",
-            name: "Essentials",
-            isArchived: false,
-            isPaused: false,
-          },
-          {
-            id: "jar-two",
-            kind: "expense",
-            name: "Travel",
-            isArchived: true,
-            isPaused: false,
-          },
-        ]}
-        availableTags={[]}
-      />,
-    );
+  it("applies multiple category and jar selections together", async () => {
+    const filterOptionsPromise = Promise.resolve({
+      categories: [
+        {
+          id: "category-one",
+          kind: TransactionDirection.EXPENSE,
+          name: "Groceries",
+          jarId: null,
+          isActive: true,
+        },
+        {
+          id: "category-two",
+          kind: TransactionDirection.EXPENSE,
+          name: "Transport",
+          jarId: null,
+          isActive: false,
+        },
+      ],
+      jars: [
+        {
+          id: "jar-one",
+          kind: TransactionDirection.EXPENSE,
+          name: "Essentials",
+          isArchived: false,
+          isPaused: false,
+        },
+        {
+          id: "jar-two",
+          kind: TransactionDirection.EXPENSE,
+          name: "Travel",
+          isArchived: true,
+          isPaused: false,
+        },
+      ],
+    });
+    const transactionTagsPromise = Promise.resolve([]);
+    await act(async () => {
+      render(
+        <TransactionsFilterBar
+          type={TransactionFilterType.ALL}
+          query=""
+          categoryIds={[]}
+          jarIds={[]}
+          selectedTagIds={[]}
+          filterOptionsPromise={filterOptionsPromise}
+          transactionTagsPromise={transactionTagsPromise}
+        />,
+      );
+      await Promise.all([filterOptionsPromise, transactionTagsPromise]);
+    });
 
     fireEvent.click(screen.getByTestId("transactions-open-filters"));
     fireEvent.click(
@@ -170,6 +182,35 @@ describe("Transactions scan-first presentation", () => {
     expect(push).toHaveBeenCalledWith(
       `${APP_PATH.MONEY_TRANSACTIONS}?${TRANSACTION_CATEGORY_QUERY_PARAM}=category-one%2Ccategory-two&${TRANSACTION_JAR_QUERY_PARAM}=jar-one%2Cjar-two`,
     );
+  });
+
+  it("keeps active dynamic filters visible while reference options load", async () => {
+    const pending = new Promise<null>(() => {});
+
+    await act(async () => {
+      render(
+        <TransactionsFilterBar
+          type={TransactionFilterType.ALL}
+          query=""
+          categoryIds={["selected-category"]}
+          jarIds={[]}
+          selectedTagIds={[]}
+          filterOptionsPromise={pending}
+          transactionTagsPromise={pending}
+        />,
+      );
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("transactions-filter-all")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByTestId("transactions-open-filters")).toBeDisabled();
+    expect(screen.getByTestId("transactions-open-filters")).toHaveTextContent(
+      "1",
+    );
+    expect(screen.queryByText("noCategoriesMatch")).not.toBeInTheDocument();
   });
 
   it("offers a retry after a failed page request", async () => {

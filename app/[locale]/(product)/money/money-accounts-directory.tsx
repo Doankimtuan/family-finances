@@ -1,8 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
+import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
+import {
+  getAccountsScrollPosition,
+  rememberAccountsScrollPosition,
+  type WindowWithAccountsNavigation,
+} from "./accounts/accounts-navigation-scroll";
 import { Page } from "@/shared/patterns/page";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Button } from "@/shared/ui/button";
@@ -50,6 +57,42 @@ export function MoneyAccountsDirectory({
 }: Props) {
   const router = useRouter();
   const { online } = useOnlineStatusClient();
+
+  useEffect(() => {
+    const navigation = (window as WindowWithAccountsNavigation).navigation;
+    const entryKey = navigation?.currentEntry?.key;
+    const scrollRegion = document.querySelector<HTMLElement>(
+      `[data-slot="${SHELL_SCROLL_REGION_SLOT}"]`,
+    );
+    if (!entryKey || !scrollRegion) return;
+
+    const savedPosition = getAccountsScrollPosition(entryKey);
+    const rememberPosition = () => {
+      if (navigation?.currentEntry?.key !== entryKey) return;
+      rememberAccountsScrollPosition(entryKey, {
+        left: scrollRegion.scrollLeft,
+        top: scrollRegion.scrollTop,
+      });
+    };
+
+    rememberPosition();
+    scrollRegion.addEventListener("scroll", rememberPosition, {
+      passive: true,
+    });
+
+    if (savedPosition) {
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          scrollRegion.scrollTo(savedPosition.left, savedPosition.top);
+        }),
+      );
+    }
+
+    return () => {
+      rememberPosition();
+      scrollRegion.removeEventListener("scroll", rememberPosition);
+    };
+  }, []);
 
   return (
     <Page

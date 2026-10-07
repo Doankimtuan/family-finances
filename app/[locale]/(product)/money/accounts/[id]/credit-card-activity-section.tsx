@@ -1,9 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
+import { CardBillingItemType } from "@/modules/ledger/application/client";
 import type { CardBillingItem } from "@/modules/ledger/application/client";
+import { formatCurrency } from "@/shared/i18n/formatters";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { Card } from "@/shared/patterns/card";
 import { SectionHeader } from "@/shared/patterns/section-header";
@@ -16,6 +18,7 @@ import { IconContainer, IconContainerTone } from "@/shared/ui/icon-container";
 import { FINANCE_ICONS } from "@/shared/ui/icon-registry";
 import { Text } from "@/shared/ui/text";
 import { StatusBadge, StatusBadgeTone } from "@/shared/ui/status-badge";
+import { StatusAlert } from "@/shared/ui/status-alert";
 import {
   ACCOUNT_ACTIVITY_LIST_CLASS,
   ACCOUNT_DETAIL_PREVIEW_CONFIG,
@@ -25,18 +28,22 @@ import { AccountViewActivityAction } from "./account-view-activity-action";
 
 type CreditCardActivitySectionProps = {
   accountId: string;
-  items: CardBillingItem[];
-  formatMoney: (amount: number) => string;
+  items: CardBillingItem[] | null;
+  currency: string;
 };
 
 /** A bounded card-purchase preview; the transactions domain remains authoritative. */
 export function CreditCardActivitySection({
   accountId,
   items,
-  formatMoney,
+  currency,
 }: CreditCardActivitySectionProps) {
+  const locale = useLocale();
   const t = useTranslations("money.creditCard");
-  const previewItems = items.slice(
+  const activityItems = items?.filter(
+    (item) => item.itemType === CardBillingItemType.STANDARD,
+  );
+  const previewItems = (activityItems ?? []).slice(
     0,
     ACCOUNT_DETAIL_PREVIEW_CONFIG.CARD_ACTIVITY_LIMIT,
   );
@@ -49,12 +56,20 @@ export function CreditCardActivitySection({
       <SectionHeader
         title={<AccountSectionTitle>{t("activityTitle")}</AccountSectionTitle>}
         action={
-          <Text size="xs" tone="secondary">
-            {t("activityCount", { count: items.length })}
-          </Text>
+          activityItems ? (
+            <Text size="xs" tone="secondary">
+              {t("activityCount", { count: activityItems.length })}
+            </Text>
+          ) : undefined
         }
       />
-      {previewItems.length === 0 ? (
+      {activityItems === undefined ? (
+        <StatusAlert
+          variant="danger"
+          title={t("activityLoadErrorTitle")}
+          description={t("activityLoadErrorDescription")}
+        />
+      ) : previewItems.length === 0 ? (
         <EmptyState
           title={t("activityEmpty")}
           description={t("activityEmptyDescription")}
@@ -90,7 +105,12 @@ export function CreditCardActivitySection({
                       {item.isPaid ? t("activityPaid") : t("activityUnpaid")}
                     </StatusBadge>
                   }
-                  amountLabel={formatMoney(Math.abs(item.amount))}
+                  amountLabel={formatCurrency(
+                    Math.abs(item.amount),
+                    currency,
+                    locale,
+                    { maximumFractionDigits: 0 },
+                  )}
                   currency=""
                   tone={TransactionAmountTone.DEBIT}
                   showChevron={isLinked}

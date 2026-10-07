@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, use, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -37,25 +37,25 @@ type Props = {
   categoryIds: string[];
   jarIds: string[];
   selectedTagIds: string[];
-  availableCategories: TransactionCategoryFilterOption[];
-  availableJars: TransactionJarFilterOption[];
-  availableTags: TransactionTag[];
+  filterOptionsPromise: Promise<{
+    categories: TransactionCategoryFilterOption[];
+    jars: TransactionJarFilterOption[];
+  } | null>;
+  transactionTagsPromise: Promise<TransactionTag[] | null>;
 };
 
-export function TransactionsFilterBar({
-  accountId,
-  type,
-  query,
-  categoryIds,
-  jarIds,
-  selectedTagIds,
-  availableCategories,
-  availableJars,
-  availableTags,
-}: Props) {
+export function TransactionsFilterBar(props: Props) {
+  const {
+    accountId,
+    type,
+    query,
+    categoryIds,
+    jarIds,
+    selectedTagIds,
+    filterOptionsPromise,
+    transactionTagsPromise,
+  } = props;
   const t = useTranslations("money.transactionsPage");
-  const tCatalog = useTranslations("catalog");
-  const locale = useLocale();
   const router = useRouter();
   const [searchDraftState, setSearchDraftState] = useState(() => ({
     value: query,
@@ -63,14 +63,6 @@ export function TransactionsFilterBar({
   }));
   const searchDraft =
     searchDraftState.query === query ? searchDraftState.value : query;
-  const [isOpen, setIsOpen] = useState(false);
-  const [draftCategoryIds, setDraftCategoryIds] = useState(categoryIds);
-  const [draftJarIds, setDraftJarIds] = useState(jarIds);
-  const [draftTagIds, setDraftTagIds] = useState(selectedTagIds);
-  const [categorySearch, setCategorySearch] = useState("");
-  const [jarSearch, setJarSearch] = useState("");
-  const [tagSearch, setTagSearch] = useState("");
-
   const apply = (
     nextType: TransactionFilterType,
     nextQuery: string,
@@ -78,7 +70,6 @@ export function TransactionsFilterBar({
     nextJarIds: string[],
     nextTagIds: string[],
   ) => {
-    setIsOpen(false);
     router.push(
       transactionsListHref(nextType, nextTagIds, {
         q: nextQuery || undefined,
@@ -89,47 +80,15 @@ export function TransactionsFilterBar({
     );
   };
 
-  const openFilters = () => {
-    setDraftCategoryIds(categoryIds);
-    setDraftJarIds(jarIds);
-    setCategorySearch("");
-    setJarSearch("");
-    setDraftTagIds(selectedTagIds);
-    setTagSearch("");
-    setIsOpen(true);
-  };
-
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     apply(type, searchDraft.trim(), categoryIds, jarIds, selectedTagIds);
   };
 
-  const hasActiveFilter =
-    Boolean(accountId) ||
-    type !== TransactionFilterType.ALL ||
-    Boolean(
-      query || categoryIds.length || jarIds.length || selectedTagIds.length,
-    );
   const advancedFilterCount =
     Number(categoryIds.length > 0) +
     Number(jarIds.length > 0) +
     Number(selectedTagIds.length > 0);
-  const visibleCategories = availableCategories.filter((category) =>
-    localizeCatalogName(tCatalog, CatalogGroup.TAGS, category.name)
-      .toLocaleLowerCase(locale)
-      .includes(categorySearch.trim().toLocaleLowerCase(locale)),
-  );
-  const visibleJars = availableJars.filter((jar) =>
-    localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name)
-      .toLocaleLowerCase(locale)
-      .includes(jarSearch.trim().toLocaleLowerCase(locale)),
-  );
-  const visibleTags = availableTags.filter((tag) =>
-    tag.name
-      .toLocaleLowerCase(locale)
-      .includes(tagSearch.trim().toLocaleLowerCase(locale)),
-  );
-
   return (
     <div
       className="flex flex-col gap-(--space-3)"
@@ -172,9 +131,9 @@ export function TransactionsFilterBar({
         </button>
       </form>
 
-      <div className="flex items-center gap-(--space-2)">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-(--space-2) gap-y-(--space-2)">
         <div
-          className="flex min-w-0 flex-1 items-center gap-(--space-2) overflow-x-auto"
+          className="col-start-1 row-start-1 flex min-w-0 items-center gap-(--space-2) overflow-x-auto"
           role="group"
           aria-label={t("filterLabel")}
         >
@@ -192,26 +151,165 @@ export function TransactionsFilterBar({
             </FilterChip>
           ))}
         </div>
-        <Button
-          type="button"
-          variant={ButtonVariant.OUTLINED}
-          className="min-h-11 shrink-0 rounded-full gap-(--space-2) px-(--space-3) text-xs"
-          onPress={openFilters}
-          aria-label={t("openFilters", { count: advancedFilterCount })}
-          data-testid="transactions-open-filters"
+        <Suspense
+          fallback={
+            <TransactionAdvancedFilterLoading
+              advancedFilterCount={advancedFilterCount}
+            />
+          }
         >
-          <AppIcon icon={ACTION_ICONS.filter} size="sm" />
-          {t("openFiltersLabel")}
-          {advancedFilterCount > 0 ? (
-            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary-soft px-1.5 text-xs text-primary">
-              {advancedFilterCount}
-            </span>
-          ) : null}
-        </Button>
+          <TransactionAdvancedFilterControls
+            {...{
+              type,
+              query,
+              categoryIds,
+              jarIds,
+              selectedTagIds,
+              filterOptionsPromise,
+              transactionTagsPromise,
+            }}
+            advancedFilterCount={advancedFilterCount}
+            hasActiveFilter={
+              Boolean(accountId) ||
+              type !== TransactionFilterType.ALL ||
+              Boolean(
+                query ||
+                categoryIds.length ||
+                jarIds.length ||
+                selectedTagIds.length,
+              )
+            }
+            onApply={apply}
+          />
+        </Suspense>
       </div>
+    </div>
+  );
+}
 
+function TransactionAdvancedFilterLoading({
+  advancedFilterCount,
+}: {
+  advancedFilterCount: number;
+}) {
+  const t = useTranslations("money.transactionsPage");
+
+  return (
+    <Button
+      type="button"
+      variant={ButtonVariant.OUTLINED}
+      className="col-start-2 row-start-1 min-h-11 shrink-0 rounded-full gap-(--space-2) px-(--space-3) text-xs"
+      disabled
+      aria-busy="true"
+      aria-label={t("openFilters", { count: advancedFilterCount })}
+      data-testid="transactions-open-filters"
+    >
+      <AppIcon icon={ACTION_ICONS.filter} size="sm" />
+      {t("openFiltersLabel")}
+      {advancedFilterCount > 0 ? (
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary-soft px-1.5 text-xs text-primary">
+          {advancedFilterCount}
+        </span>
+      ) : null}
+    </Button>
+  );
+}
+
+type AdvancedFilterProps = Omit<Props, "accountId"> & {
+  advancedFilterCount: number;
+  hasActiveFilter: boolean;
+  onApply: (
+    type: TransactionFilterType,
+    query: string,
+    categoryIds: string[],
+    jarIds: string[],
+    selectedTagIds: string[],
+  ) => void;
+};
+
+function TransactionAdvancedFilterControls({
+  type,
+  query,
+  categoryIds,
+  jarIds,
+  selectedTagIds,
+  filterOptionsPromise,
+  transactionTagsPromise,
+  advancedFilterCount,
+  hasActiveFilter,
+  onApply,
+}: AdvancedFilterProps) {
+  const filterOptions = use(filterOptionsPromise);
+  const availableTags = use(transactionTagsPromise) ?? [];
+  const availableCategories = filterOptions?.categories ?? [];
+  const availableJars = filterOptions?.jars ?? [];
+  const t = useTranslations("money.transactionsPage");
+  const tCatalog = useTranslations("catalog");
+  const locale = useLocale();
+  const [isOpen, setIsOpen] = useState(false);
+  const [draftCategoryIds, setDraftCategoryIds] = useState(categoryIds);
+  const [draftJarIds, setDraftJarIds] = useState(jarIds);
+  const [draftTagIds, setDraftTagIds] = useState(selectedTagIds);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [jarSearch, setJarSearch] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
+  const apply = (
+    nextType: TransactionFilterType,
+    nextQuery: string,
+    nextCategoryIds: string[],
+    nextJarIds: string[],
+    nextTagIds: string[],
+  ) => {
+    setIsOpen(false);
+    onApply(nextType, nextQuery, nextCategoryIds, nextJarIds, nextTagIds);
+  };
+
+  const openFilters = () => {
+    setDraftCategoryIds(categoryIds);
+    setDraftJarIds(jarIds);
+    setCategorySearch("");
+    setJarSearch("");
+    setDraftTagIds(selectedTagIds);
+    setTagSearch("");
+    setIsOpen(true);
+  };
+
+  const visibleCategories = availableCategories.filter((category) =>
+    localizeCatalogName(tCatalog, CatalogGroup.TAGS, category.name)
+      .toLocaleLowerCase(locale)
+      .includes(categorySearch.trim().toLocaleLowerCase(locale)),
+  );
+  const visibleJars = availableJars.filter((jar) =>
+    localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name)
+      .toLocaleLowerCase(locale)
+      .includes(jarSearch.trim().toLocaleLowerCase(locale)),
+  );
+  const visibleTags = availableTags.filter((tag) =>
+    tag.name
+      .toLocaleLowerCase(locale)
+      .includes(tagSearch.trim().toLocaleLowerCase(locale)),
+  );
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant={ButtonVariant.OUTLINED}
+        className="col-start-2 row-start-1 min-h-11 shrink-0 rounded-full gap-(--space-2) px-(--space-3) text-xs"
+        onPress={openFilters}
+        aria-label={t("openFilters", { count: advancedFilterCount })}
+        data-testid="transactions-open-filters"
+      >
+        <AppIcon icon={ACTION_ICONS.filter} size="sm" />
+        {t("openFiltersLabel")}
+        {advancedFilterCount > 0 ? (
+          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary-soft px-1.5 text-xs text-primary">
+            {advancedFilterCount}
+          </span>
+        ) : null}
+      </Button>
       {hasActiveFilter ? (
-        <div className="flex flex-wrap items-center gap-(--space-2) text-xs text-text-secondary">
+        <div className="col-span-2 row-start-2 flex flex-wrap items-center gap-(--space-2) text-xs text-text-secondary">
           <span>{t("activeFilters")}</span>
           {categoryIds.map((id) => {
             const category = availableCategories.find((item) => item.id === id);
@@ -306,7 +404,6 @@ export function TransactionsFilterBar({
           </Button>
         </div>
       ) : null}
-
       <Sheet isOpen={isOpen} onOpenChange={setIsOpen}>
         <ActionSheetLayout className="px-0 pb-0 pt-(--space-4)">
           <ActionSheetLayout.Header>
@@ -493,6 +590,6 @@ export function TransactionsFilterBar({
           />
         </ActionSheetLayout>
       </Sheet>
-    </div>
+    </>
   );
 }

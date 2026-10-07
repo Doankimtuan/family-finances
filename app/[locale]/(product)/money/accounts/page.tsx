@@ -1,11 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { hasLocale } from "next-intl";
-import { setLocale } from "@/i18n/set-locale";
-import { redirect } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
-import { APP_PATH } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import {
   createMoneyHubCreditCards,
   createMoneyHubViewModel,
@@ -34,19 +28,7 @@ function asUtcDate(dateOnly: string) {
 
 export default async function AccountsPage({ params }: Props) {
   const { locale: rawLocale } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
-
-  const user = await getSessionUser();
-  if (!user) {
-    return redirect({ href: APP_PATH.LOGIN, locale });
-  }
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) {
-    return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
+  const { locale } = await requireProductSession({ localeParam: rawLocale });
 
   const [t, tCatalog, position, cardsListed] = await Promise.all([
     getTranslations("money"),

@@ -1,0 +1,121 @@
+{
+  "phase": "Accounts Phase 5",
+  "collectedOn": "2026-10-05",
+  "measurement": {
+    "control": "Frozen Phase 4 source",
+    "candidate": "Phase 5 source",
+    "warmSamplesPerArm": 10,
+    "firstColdishSampleCollected": false,
+    "firstSampleNote": "The app process and browser were already warm before the paired measurement series; no cold-ish latency is claimed.",
+    "sameAuthenticatedSessionAndAccount": true,
+    "sameLocalEnvironment": true,
+    "networkOrCpuThrottling": false,
+    "units": "milliseconds",
+    "percentile": "nearest rank (ceil(0.75 * n))"
+  },
+  "spansMs": {
+    "sessionGate": {
+      "control": [1426, 817, 698, 304, 338, 306, 322, 374, 364, 336],
+      "phase5": [880, 664, 376, 293, 294, 296, 315, 665, 298, 301]
+    },
+    "accountHouseholdContext": {
+      "control": [696, 636, 294, 370, 649, 358, 403, 277, 355, 303],
+      "phase5": [852, 288, 285, 289, 776, 372, 322, 725, 279, 284]
+    },
+    "selectedBalanceRpc": {
+      "control": [348, 360, 270, 294, 321, 278, 349, 273, 276, 280],
+      "phase5": [302, 396, 288, 287, 819, 370, 288, 285, 274, 351]
+    },
+    "contextBalanceOverlap": {
+      "control": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "phase5": [302, 288, 285, 286, 776, 370, 288, 283, 274, 284]
+    },
+    "getAccount": {
+      "control": [1050, 1004, 572, 669, 975, 639, 772, 562, 637, 588],
+      "phase5": [866, 406, 303, 295, 823, 380, 328, 824, 287, 356]
+    },
+    "clickToReadableHero": {
+      "control": [2762, 1978, 1652, 1127, 1463, 1123, 1318, 1237, 1140, 1159],
+      "phase5": [2055, 1170, 766, 693, 1286, 798, 777, 1612, 692, 754]
+    },
+    "clickToActivityReady": {
+      "control": [2970, 2186, 1854, 1329, 1672, 1349, 1504, 1434, 1332, 1349],
+      "phase5": [2943, 1466, 1061, 989, 1580, 1156, 1072, 1908, 983, 1050]
+    }
+  },
+  "requestCountsPerSampledHouseholdLiquidDetail": {
+    "control": {
+      "getUser": 1,
+      "activeMembershipRead": 1,
+      "selectedAccountRead": 1,
+      "selectedHouseholdRead": 1,
+      "selectedBalanceRpc": 1,
+      "selectedOwnerMembershipRead": 0,
+      "recentActivityRead": 1
+    },
+    "phase5": {
+      "getUser": 1,
+      "activeMembershipRead": 1,
+      "selectedAccountRead": 1,
+      "selectedHouseholdRead": 1,
+      "selectedBalanceRpc": 1,
+      "selectedOwnerMembershipRead": 0,
+      "recentActivityRead": 1
+    },
+    "countsUnchanged": true
+  },
+  "securityProof": {
+    "source": "Read-only inspection of the linked deployed Supabase schema",
+    "rpc": "public.get_account_ledger_balances(uuid[])",
+    "securityInvoker": true,
+    "authenticatedCanExecute": true,
+    "anonCanExecute": false,
+    "activeHouseholdIsolation": true,
+    "selectedAccountIdFilter": true,
+    "activeMembershipRequired": true,
+    "rlsEnabledForAccountsTransactionsAndHouseholdMembers": true,
+    "serverQueryUsesServiceRole": false,
+    "rpcOrPolicyChanged": false
+  },
+  "browserVerification": {
+    "detailLoadedFromAccounts": true,
+    "detailBalanceMatchedAccountsRow": true,
+    "currencyVisible": true,
+    "householdOwnershipVisible": true,
+    "quickActionsVisible": true,
+    "managementSettingsVisible": true,
+    "activityReady": true,
+    "backReturnedToAccounts": true,
+    "backRequests": {
+      "rsc": 0,
+      "getUser": 0,
+      "membership": 0,
+      "accounts": 0
+    },
+    "mutationsSubmitted": false,
+    "browserConsoleErrors": 0
+  },
+  "regressions": {
+    "personalOwnerCapabilitiesCovered": true,
+    "malformedIdRejectedBeforeRpc": true,
+    "deniedSessionStartsNoRpc": true,
+    "missingOrOutOfContextAccountDoesNotReturnBalance": true,
+    "archivedAccountDoesNotReturnBalance": true,
+    "archivedWellFormedIdMayStartScopedRpcBeforeContextRejectsIt": true,
+    "balanceFailureDoesNotFabricateZero": true,
+    "cardControlAndCandidateRequestCountsMatch": true,
+    "cardSelectedAndListBalanceRpcsPerDetail": 2,
+    "activityRemainsDeferred": true,
+    "liquidDetailCallsListAccounts": false
+  },
+  "validation": {
+    "focusedTestsPassed": 49,
+    "focusedTestFilesPassed": 5,
+    "fullLintPassed": true,
+    "gitDiffCheckPassed": true,
+    "typecheckPassed": false,
+    "typecheckBlocker": "Two existing HomeTranslator/Translator errors in app/[locale]/(product)/home/home-streaming-sections.tsx at lines 99 and 340.",
+    "productionCompilationPassed": true,
+    "productionBuildTypecheckPassed": false
+  }
+}

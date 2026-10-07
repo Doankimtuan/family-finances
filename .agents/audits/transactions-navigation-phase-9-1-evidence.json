@@ -1,0 +1,411 @@
+{
+  "date": "2026-10-07",
+  "scope": "transactions_phase_9_1_runtime_verification",
+  "preflight_checkpoint": {
+    "date": "2026-10-07",
+    "scope": "safe_supabase_mcp_preflight",
+    "project": {
+      "name": "family-finances-2",
+      "ref": "bbzff…jvgn",
+      "region": "ap-southeast-2",
+      "status": "ACTIVE_HEALTHY",
+      "application_configuration_matches": true,
+      "organization_plan": "free"
+    },
+    "migration_history": {
+      "expected_repository_latest": {
+        "version": "20261007033708",
+        "name": "transaction_detail_rows"
+      },
+      "remote_latest": {
+        "version": "20261002160816",
+        "name": "allow_crypto_fx_currency_codes"
+      },
+      "phase_9_migration_applied": false,
+      "unexplained_divergences": [
+        {
+          "repository": "20260911055502_money_credit_card_raw_inputs",
+          "remote": "20260911055706_money_credit_card_raw_inputs"
+        },
+        {
+          "repository": "20260925145853_plan_personal_jar_expenses",
+          "remote": "20260925155410_plan_personal_jar_expenses"
+        }
+      ],
+      "repair_attempted": false
+    },
+    "schema": {
+      "phase_9_function_exists": false,
+      "transactions_rls_enabled": true,
+      "accounts_rls_enabled": true,
+      "transfer_group_index_present": true,
+      "policies_changed": false
+    },
+    "recovery": {
+      "daily_backups_available": false,
+      "pitr_available": false,
+      "confirmed_offsite_dump_or_recovery_artifact": false,
+      "latest_known_recoverable_backup": "none_confirmed"
+    },
+    "actions": {
+      "migration_applied": false,
+      "row_counts_collected": false,
+      "advisors_run": false,
+      "runtime_rpc_calls": false,
+      "browser_benchmark": false,
+      "financial_data_modified": false
+    },
+    "prior_application_checks": {
+      "focused_test_files_passed": 9,
+      "focused_tests_passed": 81,
+      "lint": "passed",
+      "full_tests_passed": 1794,
+      "full_tests_failed": 5,
+      "typecheck": "blocked_by_2_preexisting_home_errors"
+    },
+    "decision": "TRANSACTIONS PHASE 9.1 BLOCKED — SAFE MIGRATION PRECONDITION FAILED"
+  },
+  "project": {
+    "name": "family-finances-2",
+    "ref": "bbzff…jvgn",
+    "region": "ap-southeast-2",
+    "status": "ACTIVE_HEALTHY"
+  },
+  "migration": {
+    "repository_file": "20261007033708_transaction_detail_rows.sql",
+    "remote_version": "20261007061514_transaction_detail_rows",
+    "mapping_is_same_migration": true,
+    "no_additional_migration": true,
+    "function_exists": true,
+    "volatility": "STABLE",
+    "security_definer": false,
+    "search_path": "empty",
+    "execute": {
+      "authenticated": true,
+      "anon": false,
+      "public": false
+    },
+    "rls": {
+      "transactions": true,
+      "accounts": true
+    },
+    "counts_after_runtime": {
+      "transactions": 161,
+      "accounts": 12,
+      "households": 3,
+      "household_members": 5
+    },
+    "public_policy_digest": "4e6a010528c96598e46464bce702923a",
+    "backup_exception_scope": "exact additive function migration only",
+    "schema_changed_during_runtime_verification": false
+  },
+  "runtime": {
+    "browser": "Brave",
+    "locale": "vi",
+    "viewport": {
+      "width": 440,
+      "height": 900
+    },
+    "app_mode": "isolated local Next.js development copies using the same live Supabase project and authenticated session",
+    "existing_transfer_only": true,
+    "existing_ordinary_expense_only": true,
+    "financial_writes": false,
+    "normal_authenticated_server_client": true,
+    "positive_transfer": {
+      "rpc_succeeded": true,
+      "rows": 2,
+      "selected_row_included": true,
+      "complete_pair_validation": true,
+      "both_selected_orientations_rendered_equal_grouped_meaning": true,
+      "currency_date_status_note_action_and_audit_presentation_matched": true,
+      "source_note_wins_from_both_orientations": true,
+      "destination_note_fallback": "verified in-memory through the production activity projection for both selected orientations; no DB write",
+      "audit_and_tag_inventory_reads_on_transfer": 0
+    },
+    "wrong_household": {
+      "same_authenticated_session": true,
+      "probe": "random nonexistent household UUID; UUID not persisted",
+      "rows": 0,
+      "payload_leak": false
+    },
+    "anonymous_execution": {
+      "result": "denied",
+      "sqlstate": "42501",
+      "evidence": "prior migration checkpoint"
+    },
+    "inactive_membership_runtime": "not available; membership was not changed",
+    "rpc_failure_injection": "not performed against live function; safe error/no-fallback contract remains covered by application checks",
+    "ordinary_correctness": {
+      "selected_rpc_row_count": 1,
+      "sanitized_control_candidate_rendering_equal": true,
+      "fields": [
+        "ordinary activity",
+        "hero",
+        "currency/date",
+        "account/category/jar",
+        "note/status",
+        "assigned tags",
+        "correction/refund action presentation"
+      ],
+      "raw_financial_values_persisted": false
+    },
+    "ordinary_duplicate_base_read": {
+      "observed": true,
+      "detail_base": "one-row RPC",
+      "deferred_audit_root": "separate one-row transactions GET",
+      "cause": "getTransactionDetailReadResult and getTransactionReadResult use separate cached loaders",
+      "phase_7_shared_base_requirement": "failed"
+    },
+    "progressive_rendering": {
+      "candidate_hero_before_tags": 4,
+      "candidate_tags_tied_with_hero": 1,
+      "control_hero_before_tags": 5,
+      "audit_completion_dom_timing": "not independently measured"
+    },
+    "navigation": {
+      "transfer_back_filter_restored": true,
+      "transfer_back_new_list_rsc": 0,
+      "ordinary_back_filter_restored": true,
+      "ordinary_back_new_list_rsc": 0,
+      "scroll_restoration": "not applicable; no scrollable page or nested region at 440x900",
+      "phase_5_transfer_list_grouping_smoke": true,
+      "phase_6_canonical_money_session_gate_before_database_read": true
+    },
+    "auth_token_refreshes_observed": 1,
+    "auth_token_refresh_is_financial_write": false
+  },
+  "request_topology": {
+    "transfer_control": {
+      "requests": [
+        {
+          "method": "GET",
+          "rows": 1,
+          "decoded_bytes": 666
+        },
+        {
+          "method": "GET",
+          "rows": 2,
+          "decoded_bytes": 1317
+        }
+      ],
+      "request_count": 2,
+      "row_appearances": 3,
+      "total_decoded_bytes": 1983
+    },
+    "transfer_candidate": {
+      "requests": [
+        {
+          "method": "POST",
+          "endpoint": "/rpc/get_transaction_detail_rows",
+          "rows": 2,
+          "decoded_bytes": 1317
+        }
+      ],
+      "request_count": 1,
+      "row_appearances": 2,
+      "total_decoded_bytes": 1317,
+      "successful_path_selected_or_pair_get_fallback": 0
+    }
+  },
+  "benchmark": {
+    "warm_transfer_samples_per_arm": 10,
+    "warm_ordinary_samples_per_arm": 5,
+    "p50": "median; average of middle two when n is even",
+    "p75": "nearest-rank ceil(0.75*n)",
+    "transfer": {
+      "control": {
+        "hero_ms": {
+          "p50": 928,
+          "p75": 1006
+        },
+        "rsc_complete_ms": {
+          "p50": 878.5,
+          "p75": 924
+        },
+        "click_to_rsc_ms": {
+          "p50": 883.5,
+          "p75": 929
+        },
+        "rsc_decoded_bytes": {
+          "p50": 13341,
+          "p75": 13341
+        },
+        "hero_samples": [1006, 1065, 908, 982, 909, 1314, 931, 915, 895, 925]
+      },
+      "candidate": {
+        "hero_ms": {
+          "p50": 709.5,
+          "p75": 795
+        },
+        "rsc_complete_ms": {
+          "p50": 615,
+          "p75": 705
+        },
+        "click_to_rsc_ms": {
+          "p50": 626,
+          "p75": 710
+        },
+        "rsc_decoded_bytes": {
+          "p50": 13231,
+          "p75": 13231
+        },
+        "hero_samples": [725, 799, 648, 632, 646, 795, 906, 741, 694, 665]
+      },
+      "candidate_minus_control_ms": {
+        "hero": {
+          "p50": -218.5,
+          "p75": -211
+        },
+        "rsc_complete": {
+          "p50": -263.5,
+          "p75": -219
+        },
+        "click_to_rsc": {
+          "p50": -257.5,
+          "p75": -219
+        }
+      },
+      "server_spans_ms": {
+        "control": {
+          "session_gate": {
+            "p50": 273,
+            "p75": 319
+          },
+          "selected_row_read": {
+            "p50": 268.5,
+            "p75": 282
+          },
+          "pair_read": {
+            "p50": 270.5,
+            "p75": 274
+          },
+          "activity": {
+            "p50": 270.5,
+            "p75": 274
+          },
+          "hero_ready": {
+            "p50": 544.5,
+            "p75": 561
+          },
+          "route_return": {
+            "p50": 847,
+            "p75": 938
+          }
+        },
+        "candidate": {
+          "session_gate": {
+            "p50": 269.5,
+            "p75": 279
+          },
+          "rpc_base_read": {
+            "p50": 264,
+            "p75": 356
+          },
+          "activity_projection": {
+            "p50": 0,
+            "p75": 0
+          },
+          "hero_ready": {
+            "p50": 268,
+            "p75": 359
+          },
+          "route_return": {
+            "p50": 554.5,
+            "p75": 653
+          }
+        }
+      },
+      "coldish": {
+        "control_hero_ms": 1089,
+        "candidate_hero_ms": 4628,
+        "candidate_rsc_ms": 4366,
+        "candidate_dev_compile_outlier": true,
+        "excluded_from_warm_summary": true
+      }
+    },
+    "ordinary": {
+      "control": {
+        "hero_ms": {
+          "p50": 700,
+          "p75": 759
+        },
+        "tags_ready_ms": {
+          "p50": 1058,
+          "p75": 1341
+        },
+        "rsc_complete_ms": {
+          "p50": 994,
+          "p75": 1315
+        },
+        "click_to_rsc_ms": {
+          "p50": 1006,
+          "p75": 1325
+        },
+        "rsc_decoded_bytes": {
+          "p50": 15535,
+          "p75": 15535
+        },
+        "hero_samples": [688, 700, 1167, 759, 688]
+      },
+      "candidate": {
+        "hero_ms": {
+          "p50": 827,
+          "p75": 914
+        },
+        "tags_ready_ms": {
+          "p50": 1181,
+          "p75": 1213
+        },
+        "rsc_complete_ms": {
+          "p50": 1342,
+          "p75": 1508
+        },
+        "click_to_rsc_ms": {
+          "p50": 1347,
+          "p75": 1525
+        },
+        "rsc_decoded_bytes": {
+          "p50": 15642,
+          "p75": 15642
+        },
+        "hero_samples": [739, 671, 1181, 827, 914]
+      },
+      "candidate_minus_control_ms": {
+        "hero": {
+          "p50": 127,
+          "p75": 155
+        },
+        "rsc_complete": {
+          "p50": 348,
+          "p75": 193
+        },
+        "click_to_rsc": {
+          "p50": 341,
+          "p75": 200
+        }
+      },
+      "control_sample_selection": "first five valid observations chronologically; one failed marker capture replaced; one later surplus valid observation excluded",
+      "candidate_sample_selection": "five valid warm observations"
+    },
+    "instrumentation_limitations": [
+      "local Next development mode includes compilation and hydration variability; warm samples are primary",
+      "two pre-fix instrumentation calibration captures and one missing-marker capture were excluded",
+      "no raw transaction payloads, UUIDs, account names, notes, or amounts were stored"
+    ]
+  },
+  "validation": {
+    "focused_vitest": {
+      "passed": 85,
+      "files": 10
+    },
+    "lint": "passed",
+    "full_suite": {
+      "passed": 1794,
+      "baseline_failures": 5
+    },
+    "typecheck": "2 pre-existing translator typing errors in untouched Home module",
+    "runtime_turn_source_edits": 0,
+    "disposable_harness_removed": true
+  },
+  "decision": "TRANSACTIONS PHASE 9.1 COMPLETE — REVERT PHASE 9 FOR PERFORMANCE"
+}

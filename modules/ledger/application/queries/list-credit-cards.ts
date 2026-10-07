@@ -2,6 +2,7 @@ import { cache } from "react";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import { assertMoneyActionAllowed } from "@/modules/tenancy/application/assert-money-action-allowed";
 import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
+import type { LedgerAccount } from "../account-types";
 import { AccountType, DEFAULT_CURRENCY } from "../ledger-constants";
 import { LedgerRpcName } from "../ledger-shared-constants";
 import {
@@ -9,6 +10,7 @@ import {
   mapBillingItemRow,
   mapBillingMonthRow,
   mapCreditCardSettingsRow,
+  type CardBillingItem,
   type CreditCardDetail,
   type CreditCardSummary,
 } from "../credit-card-types";
@@ -154,7 +156,8 @@ export const listCreditCards = cache(loadCreditCards);
 
 export async function getCreditCardDetail(
   accountId: string,
-): Promise<{ currency: string; card: CreditCardDetail } | null> {
+  accountPromise: Promise<{ currency: string; account: LedgerAccount } | null>,
+): Promise<{ card: CreditCardDetail } | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok || !accountId) {
     return null;
@@ -163,24 +166,10 @@ export async function getCreditCardDetail(
   try {
     const supabase = await createSupabaseServerClient();
     const [
-      { data: household },
-      { data: account, error: accountError },
       { data: settingsRow, error: settingsError },
       { data: monthRows, error: monthsError },
-      { data: itemRows, error: itemsError },
+      accountResult,
     ] = await Promise.all([
-      supabase
-        .from("households")
-        .select("base_currency")
-        .eq("id", gate.householdId)
-        .maybeSingle(),
-      supabase
-        .from("accounts")
-        .select("id, name, type, is_archived")
-        .eq("household_id", gate.householdId)
-        .eq("id", accountId)
-        .eq("type", AccountType.CREDIT_CARD)
-        .maybeSingle(),
       supabase
         .from("credit_card_settings")
         .select(
@@ -198,49 +187,85 @@ export async function getCreditCardDetail(
         .eq("card_account_id", accountId)
         .order("billing_month", { ascending: false })
         .limit(12),
-      supabase
-        .from("card_billing_items")
-        .select(
-          "id, billing_month_id, card_account_id, transaction_id, installment_plan_id, description, amount, fee_amount, item_type, is_paid, is_converted_to_installment",
-        )
-        .eq("household_id", gate.householdId)
-        .eq("card_account_id", accountId)
-        .order("created_at", { ascending: false })
-        .limit(40),
+      accountPromise,
     ]);
 
-    const detailError =
-      accountError ?? settingsError ?? monthsError ?? itemsError;
+    const detailError = settingsError ?? monthsError;
     if (detailError) {
       logLedgerFailure(detailError, LEDGER_OPERATION.GET_CREDIT_CARD, {
         householdId: gate.householdId,
         cardAccountId: accountId,
       });
+      return null;
     }
 
-    if (!account || account.is_archived || !settingsRow) {
+    const account = accountResult?.account;
+    if (
+      !account ||
+      account.id !== accountId ||
+      account.type !== AccountType.CREDIT_CARD ||
+      account.isArchived
+    ) {
+      return null;
+    }
+
+    if (!settingsRow) {
       return null;
     }
 
     const settings = mapCreditCardSettingsRow(settingsRow);
     const months = (monthRows ?? []).map(mapBillingMonthRow);
     const summary = buildCreditCardSummary({
-      accountId: account.id,
+      accountId,
       name: account.name,
       settings,
       months,
     });
 
     return {
-      currency: (household?.base_currency ?? DEFAULT_CURRENCY).toUpperCase(),
       card: {
         ...summary,
         months,
-        items: (itemRows ?? []).map(mapBillingItemRow),
       },
     };
   } catch (error) {
     logLedgerFailure(error, LEDGER_OPERATION.GET_CREDIT_CARD, {
+      householdId: gate.householdId,
+      cardAccountId: accountId,
+    });
+    return null;
+  }
+}
+
+export async function listCreditCardBillingItems(
+  accountId: string,
+): Promise<CardBillingItem[] | null> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok || !accountId) return null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("card_billing_items")
+      .select(
+        "id, billing_month_id, card_account_id, transaction_id, installment_plan_id, description, amount, fee_amount, item_type, is_paid, is_converted_to_installment",
+      )
+      .eq("household_id", gate.householdId)
+      .eq("card_account_id", accountId)
+      .order("created_at", { ascending: false })
+      .limit(40);
+
+    if (error) {
+      logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARD_BILLING_ITEMS, {
+        householdId: gate.householdId,
+        cardAccountId: accountId,
+      });
+      return null;
+    }
+
+    return (data ?? []).map(mapBillingItemRow);
+  } catch (error) {
+    logLedgerFailure(error, LEDGER_OPERATION.LIST_CREDIT_CARD_BILLING_ITEMS, {
       householdId: gate.householdId,
       cardAccountId: accountId,
     });

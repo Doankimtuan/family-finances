@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { Suspense, use, useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 import { z } from "zod";
 import { IconPickerField, SelectField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/button";
@@ -46,10 +45,7 @@ import {
   createAccountInputSchema,
   type CreateAccountInput,
 } from "@/modules/ledger/application/commands/create-account.schema";
-import {
-  APP_PATH,
-  moneyAccountPath,
-} from "@/modules/tenancy/application/app-path";
+import { moneyAccountPath } from "@/modules/tenancy/application/app-path";
 import { TransactionReceipt } from "../transactions/transaction-receipt";
 import { formatCurrency } from "@/shared/i18n/formatters";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
@@ -58,6 +54,7 @@ import {
   DEFAULT_ACCOUNT_ICON_KEY_BY_TYPE,
 } from "@/modules/ledger/application/icon-constants";
 import { ACCOUNT_ICON_BY_KEY } from "@/shared/ui/stitch-icon-choices";
+import { useAccountsReturn } from "./accounts-return-navigation";
 
 type ErrorCode =
   ProductActionErrorCode | typeof CLIENT_ACTION_ERROR_CODE.OFFLINE;
@@ -69,10 +66,28 @@ const CARD_DAY_OPTIONS = CALENDAR_DAY_VALUES.map((day) => ({
 
 type LiquidOption = { id: string; name: string };
 type CreateAccountFormInput = z.input<typeof createAccountInputSchema>;
+type CreateAccountDeferredData = {
+  currency: string;
+  liquidAccounts: LiquidOption[];
+};
+type AccountFormControl = Control<
+  CreateAccountFormInput,
+  unknown,
+  CreateAccountInput
+>;
+type AccountReceiptData = {
+  accountId: string;
+  accountName: string;
+  accountType: AccountTypeValue;
+  openingBalance: number;
+  creditLimit: number | null;
+};
 
 type Props = {
   liquidAccounts: LiquidOption[];
   currency: string;
+  currencyPromise?: Promise<string>;
+  accountDataPromise?: Promise<CreateAccountDeferredData>;
   /** When set with onOpenChange, form open state is controlled by the parent. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -89,6 +104,174 @@ type Props = {
   hideCreditCardType?: boolean;
 };
 
+function LinkedBankField({
+  control,
+  liquidAccounts,
+}: {
+  control: AccountFormControl;
+  liquidAccounts: LiquidOption[];
+}) {
+  const t = useTranslations("money.accountsPage");
+
+  return (
+    <Controller
+      control={control}
+      name="creditCard.linkedBankAccountId"
+      render={({ field, fieldState }) => (
+        <SelectField
+          id="account-linked-bank"
+          label={t("linkedBankLabel")}
+          description={t("linkedBankDescription")}
+          placeholder={t("linkedBankNone")}
+          value={field.value ?? ""}
+          onChange={(next) => field.onChange(next || null)}
+          onBlur={field.onBlur}
+          options={[
+            { id: "", label: t("linkedBankNone") },
+            ...liquidAccounts.map((account) => ({
+              id: account.id,
+              label: account.name,
+            })),
+          ]}
+          error={fieldState.error ? t("errors.invalid") : undefined}
+          data-testid="account-linked-bank"
+        />
+      )}
+    />
+  );
+}
+
+function DeferredLinkedBankField({
+  control,
+  accountDataPromise,
+}: {
+  control: AccountFormControl;
+  accountDataPromise: Promise<CreateAccountDeferredData>;
+}) {
+  const { liquidAccounts } = use(accountDataPromise);
+  return <LinkedBankField control={control} liquidAccounts={liquidAccounts} />;
+}
+
+function LoadingLinkedBankField() {
+  const t = useTranslations("money.accountsPage");
+  const tCommon = useTranslations("common");
+
+  return (
+    <div className="flex flex-col gap-(--space-1)">
+      <SelectField
+        id="account-linked-bank"
+        label={t("linkedBankLabel")}
+        description={t("linkedBankDescription")}
+        placeholder={t("linkedBankNone")}
+        value=""
+        onChange={() => {}}
+        options={[]}
+        isDisabled
+        data-testid="account-linked-bank"
+      />
+      <Text size="xs" tone="secondary" role="status">
+        {tCommon("loading")}
+      </Text>
+    </div>
+  );
+}
+
+function AccountCreatedReceipt({
+  receipt,
+  currency,
+  onAddAnother,
+}: {
+  receipt: AccountReceiptData;
+  currency: string;
+  onAddAnother: () => void;
+}) {
+  const t = useTranslations("money.accountsPage");
+  const tTypes = useTranslations("money.types");
+  const locale = useLocale();
+
+  return (
+    <TransactionReceipt
+      title={t("receipt.title")}
+      rows={[
+        { id: "name", label: t("receipt.name"), value: receipt.accountName },
+        {
+          id: "type",
+          label: t("receipt.type"),
+          value: tTypes(receipt.accountType),
+        },
+        ...(receipt.accountType === AccountType.CREDIT_CARD
+          ? [
+              {
+                id: "creditLimit",
+                label: t("receipt.creditLimit"),
+                kind: "financial" as const,
+                value: formatCurrency(
+                  receipt.creditLimit ?? 0,
+                  currency,
+                  locale,
+                  { maximumFractionDigits: 0 },
+                ),
+              },
+            ]
+          : [
+              {
+                id: "openingBalance",
+                label: t("receipt.openingBalance"),
+                kind: "financial" as const,
+                value: formatCurrency(
+                  receipt.openingBalance,
+                  currency,
+                  locale,
+                  { maximumFractionDigits: 0 },
+                ),
+              },
+            ]),
+      ]}
+      nextActions={[
+        {
+          id: "view-account",
+          label: t("receipt.viewAccount"),
+          href: moneyAccountPath(receipt.accountId),
+          variant: "primary",
+        },
+        {
+          id: "add-another",
+          label: t("receipt.addAnother"),
+          onPress: onAddAnother,
+          variant: "secondary",
+        },
+      ]}
+    >
+      <div className="rounded-(--radius-control) border border-success/25 bg-success/10 p-(--space-3)">
+        <Text size="sm" tone="secondary">
+          {receipt.accountType === AccountType.CREDIT_CARD
+            ? t("creditCardHint")
+            : t("openingBalanceHint")}
+        </Text>
+      </div>
+    </TransactionReceipt>
+  );
+}
+
+function DeferredAccountCreatedReceipt({
+  receipt,
+  currencyPromise,
+  onAddAnother,
+}: {
+  receipt: AccountReceiptData;
+  currencyPromise: Promise<string>;
+  onAddAnother: () => void;
+}) {
+  const currency = use(currencyPromise);
+  return (
+    <AccountCreatedReceipt
+      receipt={receipt}
+      currency={currency}
+      onAddAnother={onAddAnother}
+    />
+  );
+}
+
 /**
  * Progressive add-account form: name → type → opening balance or CC settings.
  * Savings is not a create option here (term savings is a separate Money section).
@@ -96,6 +279,8 @@ type Props = {
 export function AddAccountForm({
   liquidAccounts,
   currency,
+  currencyPromise,
+  accountDataPromise,
   open: openProp,
   onOpenChange,
   hideDefaultTrigger = false,
@@ -107,9 +292,9 @@ export function AddAccountForm({
   const tTypes = useTranslations("money.types");
   const tForms = useTranslations("forms");
   const tIcons = useTranslations("common.iconPicker");
-  const locale = useLocale();
+  const tCommon = useTranslations("common");
   const { online } = useOnlineStatusClient();
-  const router = useRouter();
+  const returnToAccounts = useAccountsReturn();
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const isControlled = openProp !== undefined;
   const open = isControlled ? openProp : uncontrolledOpen;
@@ -119,13 +304,7 @@ export function AddAccountForm({
   };
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [receipt, setReceipt] = useState<{
-    accountId: string;
-    accountName: string;
-    accountType: AccountTypeValue;
-    openingBalance: number;
-    creditLimit: number | null;
-  } | null>(null);
+  const [receipt, setReceipt] = useState<AccountReceiptData | null>(null);
 
   const {
     control,
@@ -186,7 +365,7 @@ export function AddAccountForm({
   const close = () => {
     if (presentation === "page") {
       reset();
-      router.push(APP_PATH.MONEY_ACCOUNTS);
+      returnToAccounts();
       return;
     }
     setOpen(false);
@@ -252,67 +431,26 @@ export function AddAccountForm({
   });
 
   if (receipt) {
-    const receiptContent = (
-      <TransactionReceipt
-        title={t("receipt.title")}
-        rows={[
-          { id: "name", label: t("receipt.name"), value: receipt.accountName },
-          {
-            id: "type",
-            label: t("receipt.type"),
-            value: tTypes(receipt.accountType),
-          },
-          ...(receipt.accountType === AccountType.CREDIT_CARD
-            ? [
-                {
-                  id: "creditLimit",
-                  label: t("receipt.creditLimit"),
-                  kind: "financial" as const,
-                  value: formatCurrency(
-                    receipt.creditLimit ?? 0,
-                    currency,
-                    locale,
-                    { maximumFractionDigits: 0 },
-                  ),
-                },
-              ]
-            : [
-                {
-                  id: "openingBalance",
-                  label: t("receipt.openingBalance"),
-                  kind: "financial" as const,
-                  value: formatCurrency(
-                    receipt.openingBalance,
-                    currency,
-                    locale,
-                    { maximumFractionDigits: 0 },
-                  ),
-                },
-              ]),
-        ]}
-        nextActions={[
-          {
-            id: "view-account",
-            label: t("receipt.viewAccount"),
-            href: moneyAccountPath(receipt.accountId),
-            variant: "primary",
-          },
-          {
-            id: "add-another",
-            label: t("receipt.addAnother"),
-            onPress: reset,
-            variant: "secondary",
-          },
-        ]}
-      >
-        <div className="rounded-(--radius-control) border border-success/25 bg-success/10 p-(--space-3)">
-          <Text size="sm" tone="secondary">
-            {receipt.accountType === AccountType.CREDIT_CARD
-              ? t("creditCardHint")
-              : t("openingBalanceHint")}
+    const receiptContent = currencyPromise ? (
+      <Suspense
+        fallback={
+          <Text size="sm" tone="secondary" role="status">
+            {tCommon("loading")}
           </Text>
-        </div>
-      </TransactionReceipt>
+        }
+      >
+        <DeferredAccountCreatedReceipt
+          receipt={receipt}
+          currencyPromise={currencyPromise}
+          onAddAnother={reset}
+        />
+      </Suspense>
+    ) : (
+      <AccountCreatedReceipt
+        receipt={receipt}
+        currency={currency}
+        onAddAnother={reset}
+      />
     );
 
     if (presentation === "dialog") {
@@ -500,31 +638,15 @@ export function AddAccountForm({
     </FieldGroup>
   );
 
-  const linkedBankField = (
-    <Controller
-      control={control}
-      name="creditCard.linkedBankAccountId"
-      render={({ field, fieldState }) => (
-        <SelectField
-          id="account-linked-bank"
-          label={t("linkedBankLabel")}
-          description={t("linkedBankDescription")}
-          placeholder={t("linkedBankNone")}
-          value={field.value ?? ""}
-          onChange={(next) => field.onChange(next || null)}
-          onBlur={field.onBlur}
-          options={[
-            { id: "", label: t("linkedBankNone") },
-            ...liquidAccounts.map((account) => ({
-              id: account.id,
-              label: account.name,
-            })),
-          ]}
-          error={fieldState.error ? t("errors.invalid") : undefined}
-          data-testid="account-linked-bank"
-        />
-      )}
-    />
+  const linkedBankField = accountDataPromise ? (
+    <Suspense fallback={<LoadingLinkedBankField />}>
+      <DeferredLinkedBankField
+        control={control}
+        accountDataPromise={accountDataPromise}
+      />
+    </Suspense>
+  ) : (
+    <LinkedBankField control={control} liquidAccounts={liquidAccounts} />
   );
 
   const creditCardHint =

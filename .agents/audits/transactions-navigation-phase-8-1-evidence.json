@@ -1,0 +1,266 @@
+{
+  "phase": "Transactions Phase 8.1",
+  "outcome": "TRANSACTIONS PHASE 8.1 COMPLETE — ONE-WAVE TRANSFER DETAIL VERIFIED BENEFICIAL",
+  "sanitized": true,
+  "harness": {
+    "controlPort": 3002,
+    "candidatePort": 3003,
+    "sameBrowserTab": true,
+    "authenticatedSession": true,
+    "locale": "vi",
+    "sameTransferAcrossArms": true,
+    "environmentFilesByteIdentical": true,
+    "nextVersion": "16.3.1",
+    "mainSourceChangedByThisTask": false,
+    "identicalTemporaryFreshBuildShim": true
+  },
+  "candidate": {
+    "function": "public.transaction_detail_transfer_pair_phase8_1",
+    "arguments": ["p_transaction_id uuid", "p_household_id uuid"],
+    "returnType": "SETOF public.transactions",
+    "stable": true,
+    "securityDefiner": false,
+    "securityMode": "SECURITY INVOKER",
+    "searchPath": "",
+    "executePrivileges": {
+      "authenticated": true,
+      "anon": false,
+      "public": false
+    },
+    "transactionsRlsEnabled": true,
+    "selectedIdAnchored": true,
+    "householdPassedFromServerGate": true,
+    "transferGroupDerivedInsideFunction": true,
+    "arbitraryTransferGroupAccepted": false,
+    "nonTransferBehavior": "selected row only",
+    "usesNormalAuthenticatedServerClient": true,
+    "reusesExistingMappingAndValidator": true
+  },
+  "rls": {
+    "authenticatedPositive": {
+      "success": true,
+      "rows": 2,
+      "selectedRowIncluded": true,
+      "sameHousehold": true,
+      "validatorAccepted": true,
+      "completeHeroRendered": true
+    },
+    "authenticatedWrongHousehold": {
+      "authenticated": true,
+      "rows": 0,
+      "rpcError": false
+    },
+    "anonymous": {
+      "denied": true,
+      "httpStatus": 401,
+      "sqlState": "42501"
+    },
+    "inactiveMembership": "not tested; no second membership context was available and none was changed"
+  },
+  "correctness": {
+    "sameTransferIdSetAcrossArms": true,
+    "fullRenderedTransferDetailMatchBothOrientations": true,
+    "candidateOrientationsIdentical": true,
+    "sourceAndDestinationSidesMatch": true,
+    "visibleDataAndNotePresenceMatch": true,
+    "sourceNotePreferenceAndDestinationFallbackTestedBothOrientations": true,
+    "malformedCasesRejected": [
+      "missing leg",
+      "three rows",
+      "duplicate type",
+      "amount mismatch",
+      "currency mismatch",
+      "date mismatch",
+      "savings-kind mismatch",
+      "non-posted leg",
+      "same account",
+      "same transaction row",
+      "selected row absent"
+    ],
+    "phase1AppBack": {
+      "transferFilterRestored": true,
+      "newListRscRequests": 0
+    },
+    "phase6GateAndMembershipRegressionsPassed": true,
+    "ordinaryDetailRemainsOnStandardStrategy": true
+  },
+  "benchmark": {
+    "coldishMs": {
+      "control": 1359,
+      "candidate": 1035,
+      "definition": "first detail click after temporary dev-server restart"
+    },
+    "warmSamplesMs": {
+      "control": [888, 959, 1248, 1466, 845, 884, 926, 903, 833, 889],
+      "candidate": [632, 600, 1217, 908, 695, 649, 699, 622, 679, 580]
+    },
+    "warmOrder": "alternating C,N,N,C",
+    "sampleCountPerArm": 10,
+    "percentileMethod": {
+      "p50": "median",
+      "p75": "nearest rank"
+    },
+    "browserClickToHeroMs": {
+      "control": {
+        "p50": 896,
+        "p75": 959
+      },
+      "candidate": {
+        "p50": 664,
+        "p75": 699
+      },
+      "deltaCandidateMinusControl": {
+        "p50": -232,
+        "p75": -260
+      },
+      "improvementPercent": {
+        "p50": 25.9,
+        "p75": 27.1
+      }
+    },
+    "sessionGateInvocationMs": {
+      "control": {
+        "p50": 300,
+        "p75": 447,
+        "n": 19
+      },
+      "candidate": {
+        "p50": 338,
+        "p75": 543,
+        "n": 18
+      },
+      "sampleScope": "all invocations across 11 detail opens, including cold-ish"
+    },
+    "serverActivityHeroReadyMs": {
+      "control": {
+        "p50": 524.5,
+        "p75": 604,
+        "n": 10
+      },
+      "candidate": {
+        "p50": 271,
+        "p75": 290,
+        "n": 10
+      }
+    },
+    "serverRouteReturnMs": {
+      "control": {
+        "p50": 803.5,
+        "p75": 883,
+        "n": 10
+      },
+      "candidate": {
+        "p50": 580.5,
+        "p75": 628,
+        "n": 10
+      }
+    },
+    "responseHeadersMs": {
+      "controlSelectedRead": {
+        "p50": 251.5,
+        "p75": 254
+      },
+      "controlPairRead": {
+        "p50": 253.5,
+        "p75": 271
+      },
+      "candidateOneWaveRead": {
+        "p50": 258.5,
+        "p75": 279
+      }
+    },
+    "bodyAfterHeadersMs": {
+      "controlSelectedRead": {
+        "p50": 3,
+        "p75": 3
+      },
+      "controlPairRead": {
+        "p50": 3.5,
+        "p75": 4
+      },
+      "candidateOneWaveRead": {
+        "p50": 4,
+        "p75": 4
+      }
+    },
+    "fullReadMs": {
+      "controlSelectedRead": {
+        "p50": 254.5,
+        "p75": 296
+      },
+      "controlPairRead": {
+        "p50": 259,
+        "p75": 274
+      },
+      "candidateOneWaveRead": {
+        "p50": 262.5,
+        "p75": 283
+      }
+    },
+    "readSpanMs": {
+      "controlSelectedRead": {
+        "p50": 263,
+        "p75": 308
+      },
+      "controlPairRead": {
+        "p50": 262.5,
+        "p75": 278
+      },
+      "candidateOneWaveRead": {
+        "p50": 265.5,
+        "p75": 285
+      }
+    },
+    "transactionRequestTopology": {
+      "control": {
+        "requestsPerWarmRoute": 2,
+        "methods": ["GET", "GET"],
+        "rowAppearances": [1, 2],
+        "decodedBytes": [651, 1317],
+        "totalBytes": 1968
+      },
+      "candidate": {
+        "requestsPerWarmRoute": 1,
+        "methods": ["POST"],
+        "rowAppearances": [2],
+        "decodedBytes": [1317],
+        "totalBytes": 1317
+      }
+    },
+    "mappingAndValidationMsRounded": 0,
+    "sdkJsonDecodeInstrumentedSeparately": false
+  },
+  "sql": {
+    "explainAnalyzeBuffers": "not run; available admin SQL context was not representative of authenticated RLS execution",
+    "existingIndexesCover": [
+      "transaction id",
+      "household and transaction date",
+      "household and created time",
+      "household and transfer group"
+    ],
+    "newIndexAdded": false
+  },
+  "validation": {
+    "focusedTests": {
+      "passed": 72,
+      "total": 72,
+      "files": 8
+    },
+    "lintPassed": true,
+    "typecheckPassed": false,
+    "typecheckBlockers": [
+      "two unrelated translator type errors in untouched app/[locale]/(product)/home/home-streaming-sections.tsx at lines 99 and 340"
+    ],
+    "build": "not run because typecheck has the pre-existing blockers"
+  },
+  "cleanup": {
+    "temporaryFunctionDroppedAndAbsenceVerified": true,
+    "temporaryServersStopped": true,
+    "benchmarkTabClosed": true,
+    "temporarySourceCopiesRemoved": true,
+    "temporaryLogsRemoved": true,
+    "port3000StillRunning": true,
+    "ports3002And3003Stopped": true,
+    "financialWrites": 0
+  }
+}

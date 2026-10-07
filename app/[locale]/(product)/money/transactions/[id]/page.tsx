@@ -1,16 +1,16 @@
+import { Suspense, type ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
-import { setLocale } from "@/i18n/set-locale";
-import { redirect, Link } from "@/i18n/navigation";
-import { hasLocale } from "next-intl";
-import { routing } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
 import {
-  APP_PATH,
+  withPerfSpan,
+  PERF_TRACE_OP,
+} from "@/modules/platform/application/perf-trace";
+import {
   moneyTransactionPath,
   moneyTransactionCorrectPath,
   moneyTransactionRefundPath,
 } from "@/modules/tenancy/application/app-path";
-import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
-import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
+import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import {
   getTransaction,
   getTransactionReadResult,
@@ -48,7 +48,6 @@ import {
   TRANSACTION_ACCENT_LINK_CLASS,
   TRANSACTION_SURFACE_LINK_CLASS,
 } from "../transaction-chrome";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Amount, AmountTone } from "@/shared/patterns/amount";
 import { Card } from "@/shared/patterns/card";
 import { FinancialNumberKind } from "@/shared/patterns/financial-number-kind";
@@ -68,10 +67,16 @@ import {
   TransactionFactRow,
   TransactionFactsCard,
 } from "../transaction-facts-card";
+import {
+  TransactionsReturnLink,
+  TransactionsReturnTopAppBar,
+} from "./transactions-return-navigation";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
+type MoneyTranslator = Awaited<ReturnType<typeof getTranslations<"money">>>;
+type CatalogTranslator = Awaited<ReturnType<typeof getTranslations<"catalog">>>;
 
 const ACTIVITY_TONE_TO_AMOUNT_TONE: Record<
   TransactionActivityTone,
@@ -94,7 +99,7 @@ function formatEffectiveDate(date: string, locale: string) {
 function eventLabel(
   tx: NonNullable<Awaited<ReturnType<typeof getTransaction>>>,
   activity: NonNullable<Awaited<ReturnType<typeof getTransactionActivity>>>,
-  t: Awaited<ReturnType<typeof getTranslations>>,
+  t: MoneyTranslator,
 ) {
   if (activity.kind === TransactionActivityKind.REFUND) {
     return t("detailPage.refund");
@@ -152,7 +157,7 @@ function eventLabel(
 
 function productContextLabel(
   activity: NonNullable<Awaited<ReturnType<typeof getTransactionActivity>>>,
-  t: Awaited<ReturnType<typeof getTranslations>>,
+  t: MoneyTranslator,
 ) {
   if (activity.productEvent === TransactionProductEvent.CARD_PAYMENT) {
     return t("detailPage.productContext.cardPayment");
@@ -174,8 +179,8 @@ function productContextLabel(
 
 function transactionContextTitle(
   tx: NonNullable<Awaited<ReturnType<typeof getTransaction>>>,
-  tCatalog: Awaited<ReturnType<typeof getTranslations>>,
-  t: Awaited<ReturnType<typeof getTranslations>>,
+  tCatalog: CatalogTranslator,
+  t: MoneyTranslator,
 ) {
   return (
     tx.note ||
@@ -194,8 +199,8 @@ function TransferDetail({
 }: {
   activity: NonNullable<Awaited<ReturnType<typeof getTransactionActivity>>>;
   locale: string;
-  t: Awaited<ReturnType<typeof getTranslations>>;
-  tCatalog: Awaited<ReturnType<typeof getTranslations>>;
+  t: MoneyTranslator;
+  tCatalog: CatalogTranslator;
 }) {
   const sourceName = activity.sourceAccount?.name
     ? localizeCatalogName(
@@ -217,11 +222,10 @@ function TransferDetail({
       testId="money-transfer-detail"
       contentClassName="gap-(--space-5)"
       topBar={
-        <TopAppBar
+        <TransactionsReturnTopAppBar
           variant="detail"
           title={t("transferDetail.title")}
           subtitle={t("transferDetail.subtitle")}
-          backHref={APP_PATH.MONEY_TRANSACTIONS}
         />
       }
     >
@@ -318,41 +322,273 @@ function TransferDetail({
   );
 }
 
-export default async function TransactionDetailPage({ params }: Props) {
+function DetailSectionFallback({ children }: { children: ReactNode }) {
+  return (
+    <div role="status">
+      <Card tone="soft" className="p-(--space-4)">
+        <Text size="sm" tone="secondary">
+          {children}
+        </Text>
+      </Card>
+    </div>
+  );
+}
+
+async function TransactionTagsSection({
+  tx,
+  tagOptionsPromise,
+  t,
+}: {
+  tx: NonNullable<Awaited<ReturnType<typeof getTransaction>>>;
+  tagOptionsPromise: ReturnType<typeof listTransactionTags>;
+  t: MoneyTranslator;
+}) {
+  const availableTags = await tagOptionsPromise;
+
+  return (
+    <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
+      {availableTags === null ? (
+        <StatusAlert
+          variant="danger"
+          title={t("detailPage.tagOptionsUnavailableTitle")}
+          description={t("detailPage.tagOptionsUnavailableBody")}
+        />
+      ) : null}
+      <TransactionTagEditor
+        transactionId={tx.id}
+        initialTags={tx.tags}
+        availableTags={availableTags ?? tx.tags}
+        disabled={availableTags === null}
+      />
+    </Card>
+  );
+}
+
+async function TransactionAuditHistory({
+  tx,
+  auditChainPromise,
+  locale,
+  t,
+  tCatalog,
+}: {
+  tx: NonNullable<Awaited<ReturnType<typeof getTransaction>>>;
+  auditChainPromise: ReturnType<typeof getTransactionAuditChain>;
+  locale: string;
+  t: MoneyTranslator;
+  tCatalog: CatalogTranslator;
+}) {
+  const chain = await auditChainPromise;
+  if (chain === null) {
+    return (
+      <StatusAlert
+        variant="danger"
+        title={t("detailPage.historyUnavailableTitle")}
+        description={t("detailPage.historyUnavailableBody")}
+      />
+    );
+  }
+
+  const hasRefundHistory =
+    tx.isReversal ||
+    chain.reversals.length > 0 ||
+    tx.status === TransactionStatus.PARTIALLY_REFUNDED ||
+    tx.status === TransactionStatus.FULLY_REFUNDED;
+  const hasCorrectionHistory =
+    Boolean(tx.correctsTransactionId) || chain.corrections.length > 0;
+  if (!hasRefundHistory && !hasCorrectionHistory) return null;
+
+  return (
+    <section
+      className="flex flex-col gap-(--space-3)"
+      data-testid="transaction-relationships"
+    >
+      <SectionHeader
+        title={
+          hasRefundHistory
+            ? t("detailPage.refundRelationship")
+            : t("detailPage.changeHistory")
+        }
+      />
+      <Card tone="elevated" className="gap-0 p-0">
+        <ul className="divide-y divide-border-subtle/65">
+          {tx.status === TransactionStatus.PARTIALLY_REFUNDED ? (
+            <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
+              {t("detailPage.refundPartial")}
+            </li>
+          ) : null}
+          {tx.status === TransactionStatus.FULLY_REFUNDED ? (
+            <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
+              {t("detailPage.refundFull")}
+            </li>
+          ) : null}
+          {tx.isReversal ? (
+            <li className="px-(--space-4) py-(--space-3) text-sm text-text-primary">
+              <Link
+                href={moneyTransactionPath(chain.original.id)}
+                className="font-medium text-accent underline-offset-2 hover:underline"
+              >
+                {t.rich("detailPage.refundOriginal", {
+                  title: transactionContextTitle(chain.original, tCatalog, t),
+                  amount: () => (
+                    <FinancialValue>
+                      {formatCurrency(
+                        chain.original.amount,
+                        chain.original.currency,
+                        locale,
+                        { maximumFractionDigits: 0 },
+                      )}
+                    </FinancialValue>
+                  ),
+                  date: formatEffectiveDate(
+                    chain.original.transactionDate,
+                    locale,
+                  ),
+                })}
+              </Link>
+            </li>
+          ) : null}
+          {chain.reversals.map((leg) => (
+            <li
+              key={leg.id}
+              className="px-(--space-4) py-(--space-3) text-sm text-text-secondary"
+            >
+              <Link
+                href={moneyTransactionPath(leg.id)}
+                className="text-accent underline-offset-2 hover:underline"
+              >
+                {t.rich("detailPage.refundEntry", {
+                  amount: () => (
+                    <FinancialValue>
+                      {formatCurrency(leg.amount, leg.currency, locale, {
+                        maximumFractionDigits: 0,
+                      })}
+                    </FinancialValue>
+                  ),
+                  date: formatEffectiveDate(leg.transactionDate, locale),
+                })}
+              </Link>
+            </li>
+          ))}
+          {hasCorrectionHistory ? (
+            <>
+              <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
+                {t("detailPage.correctionStory")}
+              </li>
+              <li className="px-(--space-4) py-(--space-3) text-sm text-text-secondary">
+                <Link
+                  href={moneyTransactionPath(chain.original.id)}
+                  className="text-accent underline-offset-2 hover:underline"
+                >
+                  {t.rich("detailPage.correctionOriginal", {
+                    title: transactionContextTitle(chain.original, tCatalog, t),
+                    amount: () => (
+                      <FinancialValue>
+                        {formatCurrency(
+                          chain.original.amount,
+                          chain.original.currency,
+                          locale,
+                          { maximumFractionDigits: 0 },
+                        )}
+                      </FinancialValue>
+                    ),
+                    date: formatEffectiveDate(
+                      chain.original.transactionDate,
+                      locale,
+                    ),
+                  })}
+                </Link>
+              </li>
+              {chain.corrections.map((leg) => (
+                <li
+                  key={leg.id}
+                  className="px-(--space-4) py-(--space-3) text-sm text-text-primary"
+                >
+                  <Link
+                    href={moneyTransactionPath(leg.id)}
+                    className="text-accent underline-offset-2 hover:underline"
+                  >
+                    {t.rich("detailPage.correctionCorrected", {
+                      amount: () => (
+                        <FinancialValue>
+                          {formatCurrency(leg.amount, leg.currency, locale, {
+                            maximumFractionDigits: 0,
+                          })}
+                        </FinancialValue>
+                      ),
+                      date: formatEffectiveDate(leg.transactionDate, locale),
+                    })}
+                  </Link>
+                </li>
+              ))}
+            </>
+          ) : null}
+        </ul>
+      </Card>
+    </section>
+  );
+}
+
+export default function TransactionDetailPage(props: Props) {
+  return withPerfSpan(PERF_TRACE_OP.TRANSACTION_DETAIL_ROUTE_RETURN, () =>
+    renderTransactionDetailPage(props),
+  );
+}
+
+async function renderTransactionDetailPage({ params }: Props) {
   const { locale: rawLocale, id } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
+  const { locale } = await withPerfSpan(
+    PERF_TRACE_OP.TRANSACTION_SESSION_GATE,
+    () => requireProductSession({ localeParam: rawLocale }),
+  );
 
-  const user = await getSessionUser();
-  if (!user) {
-    return redirect({ href: APP_PATH.LOGIN, locale });
-  }
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) {
-    return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
-
-  const [t, tCatalog, transactionResult, activity, chain, availableTags] =
-    await Promise.all([
-      getTranslations("money"),
-      getTranslations("catalog"),
-      getTransactionReadResult(id),
-      getTransactionActivity(id),
+  const detailResultPromise = getTransactionReadResult(id);
+  const activityPromise = getTransactionActivity(id);
+  const secondaryTransactionPromise = detailResultPromise.then((result) => {
+    if (result.status !== TransactionReadStatus.OK) return null;
+    if (
+      result.transaction.type === TransactionLedgerType.TRANSFER_IN ||
+      result.transaction.type === TransactionLedgerType.TRANSFER_OUT
+    ) {
+      return null;
+    }
+    return result.transaction;
+  });
+  const auditChainPromise = secondaryTransactionPromise.then((transaction) => {
+    if (!transaction) return null;
+    return withPerfSpan(PERF_TRACE_OP.TRANSACTION_DETAIL_AUDIT_CHAIN, () =>
       getTransactionAuditChain(id),
+    );
+  });
+  const tagOptionsPromise = secondaryTransactionPromise.then((transaction) => {
+    if (!transaction) return null;
+    return withPerfSpan(PERF_TRACE_OP.TRANSACTION_DETAIL_TAG_OPTIONS, () =>
       listTransactionTags({ includeArchived: true }),
-    ]);
+    );
+  });
+  const heroDataPromise = withPerfSpan(
+    PERF_TRACE_OP.TRANSACTION_DETAIL_HERO_READY,
+    async () => {
+      const [detailResult, activity] = await Promise.all([
+        detailResultPromise,
+        activityPromise,
+      ]);
+      return { detailResult, activity };
+    },
+  );
+  const [t, tCatalog, { detailResult, activity }] = await Promise.all([
+    getTranslations("money"),
+    getTranslations("catalog"),
+    heroDataPromise,
+  ]);
 
-  if (transactionResult.status === TransactionReadStatus.ERROR) {
+  if (detailResult.status === TransactionReadStatus.ERROR) {
     return (
       <Page
         testId="money-transaction-detail"
         topBar={
-          <TopAppBar
+          <TransactionsReturnTopAppBar
             variant="detail"
             title={t("detailPage.readErrorTitle")}
-            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
         }
       >
@@ -361,39 +597,32 @@ export default async function TransactionDetailPage({ params }: Props) {
           title={t("detailPage.readErrorTitle")}
           description={t("detailPage.readErrorBody")}
         />
-        <Link
-          href={APP_PATH.MONEY_TRANSACTIONS}
-          className={TRANSACTION_SURFACE_LINK_CLASS}
-        >
+        <TransactionsReturnLink className={TRANSACTION_SURFACE_LINK_CLASS}>
           {t("detailPage.back")}
-        </Link>
+        </TransactionsReturnLink>
       </Page>
     );
   }
 
-  if (transactionResult.status === TransactionReadStatus.NOT_FOUND) {
+  if (detailResult.status === TransactionReadStatus.NOT_FOUND) {
     return (
       <Page
         testId="money-transaction-detail"
         topBar={
-          <TopAppBar
+          <TransactionsReturnTopAppBar
             variant="detail"
             title={t("detailPage.notFound")}
-            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
         }
       >
-        <Link
-          href={APP_PATH.MONEY_TRANSACTIONS}
-          className={TRANSACTION_SURFACE_LINK_CLASS}
-        >
+        <TransactionsReturnLink className={TRANSACTION_SURFACE_LINK_CLASS}>
           {t("detailPage.back")}
-        </Link>
+        </TransactionsReturnLink>
       </Page>
     );
   }
 
-  const tx = transactionResult.transaction;
+  const tx = detailResult.transaction;
   const isPersonalExpense =
     tx.type === TransactionLedgerType.EXPENSE &&
     tx.accountFinancialScope === FINANCIAL_SCOPE.PERSONAL;
@@ -422,10 +651,9 @@ export default async function TransactionDetailPage({ params }: Props) {
       <Page
         testId="money-transaction-detail"
         topBar={
-          <TopAppBar
+          <TransactionsReturnTopAppBar
             variant="detail"
             title={t("detailPage.readErrorTitle")}
-            backHref={APP_PATH.MONEY_TRANSACTIONS}
           />
         }
       >
@@ -434,12 +662,9 @@ export default async function TransactionDetailPage({ params }: Props) {
           title={t("detailPage.readErrorTitle")}
           description={t("detailPage.readErrorBody")}
         />
-        <Link
-          href={APP_PATH.MONEY_TRANSACTIONS}
-          className={TRANSACTION_SURFACE_LINK_CLASS}
-        >
+        <TransactionsReturnLink className={TRANSACTION_SURFACE_LINK_CLASS}>
           {t("detailPage.back")}
-        </Link>
+        </TransactionsReturnLink>
       </Page>
     );
   }
@@ -457,14 +682,6 @@ export default async function TransactionDetailPage({ params }: Props) {
     (TRANSACTION_CORRECTABLE_STATUS_VALUES as readonly string[]).includes(
       tx.status,
     );
-  const hasRefundHistory =
-    tx.isReversal ||
-    (chain?.reversals.length ?? 0) > 0 ||
-    tx.status === TransactionStatus.PARTIALLY_REFUNDED ||
-    tx.status === TransactionStatus.FULLY_REFUNDED;
-  const hasCorrectionHistory =
-    Boolean(tx.correctsTransactionId) || (chain?.corrections.length ?? 0) > 0;
-  const hasHistory = hasRefundHistory || hasCorrectionHistory;
   const productContext = productContextLabel(activity, t);
 
   return (
@@ -472,11 +689,10 @@ export default async function TransactionDetailPage({ params }: Props) {
       testId="money-transaction-detail"
       contentClassName="gap-(--space-5)"
       topBar={
-        <TopAppBar
+        <TransactionsReturnTopAppBar
           variant="detail"
           title={detailLabel}
           subtitle={transactionContextTitle(tx, tCatalog, t)}
-          backHref={APP_PATH.MONEY_TRANSACTIONS}
           trailing={
             <FinancialPrivacyToggle
               hideLabel={t("financialPrivacy.hide")}
@@ -605,13 +821,19 @@ export default async function TransactionDetailPage({ params }: Props) {
         ) : null}
       </TransactionFactsCard>
 
-      <Card tone="elevated" className="gap-(--space-3) p-(--space-4)">
-        <TransactionTagEditor
-          transactionId={tx.id}
-          initialTags={tx.tags}
-          availableTags={availableTags ?? []}
+      <Suspense
+        fallback={
+          <DetailSectionFallback>
+            {t("detailPage.loadingTags")}
+          </DetailSectionFallback>
+        }
+      >
+        <TransactionTagsSection
+          tx={tx}
+          tagOptionsPromise={tagOptionsPromise}
+          t={t}
         />
-      </Card>
+      </Suspense>
 
       {productContext ? (
         <Card tone="soft" className="gap-0 p-(--space-4)">
@@ -621,149 +843,21 @@ export default async function TransactionDetailPage({ params }: Props) {
         </Card>
       ) : null}
 
-      {hasHistory && chain ? (
-        <section
-          className="flex flex-col gap-(--space-3)"
-          data-testid="transaction-relationships"
-        >
-          <SectionHeader
-            title={
-              hasRefundHistory
-                ? t("detailPage.refundRelationship")
-                : t("detailPage.changeHistory")
-            }
-          />
-          <Card tone="elevated" className="gap-0 p-0">
-            <ul className="divide-y divide-border-subtle/65">
-              {tx.status === TransactionStatus.PARTIALLY_REFUNDED ? (
-                <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
-                  {t("detailPage.refundPartial")}
-                </li>
-              ) : null}
-              {tx.status === TransactionStatus.FULLY_REFUNDED ? (
-                <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
-                  {t("detailPage.refundFull")}
-                </li>
-              ) : null}
-              {tx.isReversal ? (
-                <li className="px-(--space-4) py-(--space-3) text-sm text-text-primary">
-                  <Link
-                    href={moneyTransactionPath(chain.original.id)}
-                    className="font-medium text-accent underline-offset-2 hover:underline"
-                  >
-                    {t.rich("detailPage.refundOriginal", {
-                      title: transactionContextTitle(
-                        chain.original,
-                        tCatalog,
-                        t,
-                      ),
-                      amount: () => (
-                        <FinancialValue>
-                          {formatCurrency(
-                            chain.original.amount,
-                            chain.original.currency,
-                            locale,
-                            { maximumFractionDigits: 0 },
-                          )}
-                        </FinancialValue>
-                      ),
-                      date: formatEffectiveDate(
-                        chain.original.transactionDate,
-                        locale,
-                      ),
-                    })}
-                  </Link>
-                </li>
-              ) : null}
-              {chain.reversals.map((leg) => (
-                <li
-                  key={leg.id}
-                  className="px-(--space-4) py-(--space-3) text-sm text-text-secondary"
-                >
-                  <Link
-                    href={moneyTransactionPath(leg.id)}
-                    className="text-accent underline-offset-2 hover:underline"
-                  >
-                    {t.rich("detailPage.refundEntry", {
-                      amount: () => (
-                        <FinancialValue>
-                          {formatCurrency(leg.amount, leg.currency, locale, {
-                            maximumFractionDigits: 0,
-                          })}
-                        </FinancialValue>
-                      ),
-                      date: formatEffectiveDate(leg.transactionDate, locale),
-                    })}
-                  </Link>
-                </li>
-              ))}
-              {hasCorrectionHistory ? (
-                <>
-                  <li className="px-(--space-4) py-(--space-3) text-sm font-medium text-text-primary">
-                    {t("detailPage.correctionStory")}
-                  </li>
-                  <li className="px-(--space-4) py-(--space-3) text-sm text-text-secondary">
-                    <Link
-                      href={moneyTransactionPath(chain.original.id)}
-                      className="text-accent underline-offset-2 hover:underline"
-                    >
-                      {t.rich("detailPage.correctionOriginal", {
-                        title: transactionContextTitle(
-                          chain.original,
-                          tCatalog,
-                          t,
-                        ),
-                        amount: () => (
-                          <FinancialValue>
-                            {formatCurrency(
-                              chain.original.amount,
-                              chain.original.currency,
-                              locale,
-                              { maximumFractionDigits: 0 },
-                            )}
-                          </FinancialValue>
-                        ),
-                        date: formatEffectiveDate(
-                          chain.original.transactionDate,
-                          locale,
-                        ),
-                      })}
-                    </Link>
-                  </li>
-                  {chain.corrections.map((leg) => (
-                    <li
-                      key={leg.id}
-                      className="px-(--space-4) py-(--space-3) text-sm text-text-primary"
-                    >
-                      <Link
-                        href={moneyTransactionPath(leg.id)}
-                        className="text-accent underline-offset-2 hover:underline"
-                      >
-                        {t.rich("detailPage.correctionCorrected", {
-                          amount: () => (
-                            <FinancialValue>
-                              {formatCurrency(
-                                leg.amount,
-                                leg.currency,
-                                locale,
-                                { maximumFractionDigits: 0 },
-                              )}
-                            </FinancialValue>
-                          ),
-                          date: formatEffectiveDate(
-                            leg.transactionDate,
-                            locale,
-                          ),
-                        })}
-                      </Link>
-                    </li>
-                  ))}
-                </>
-              ) : null}
-            </ul>
-          </Card>
-        </section>
-      ) : null}
+      <Suspense
+        fallback={
+          <DetailSectionFallback>
+            {t("detailPage.loadingHistory")}
+          </DetailSectionFallback>
+        }
+      >
+        <TransactionAuditHistory
+          tx={tx}
+          auditChainPromise={auditChainPromise}
+          locale={locale}
+          t={t}
+          tCatalog={tCatalog}
+        />
+      </Suspense>
 
       {canCorrect || canRefund ? (
         <Text size="sm" tone="secondary">

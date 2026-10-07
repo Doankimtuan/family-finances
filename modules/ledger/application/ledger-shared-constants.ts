@@ -57,6 +57,9 @@ export const LedgerRelation = {
 export type LedgerRelation =
   (typeof LedgerRelation)[keyof typeof LedgerRelation];
 
+/** Deployed composite FK used to embed an account's owner membership. */
+export const ACCOUNT_OWNER_MEMBERSHIP_FK = "accounts_owner_membership_fk";
+
 /** Ledger-only mutation errors (not shared across plan/inbox forms). */
 export const LEDGER_ACTION_ERROR_CODE = {
   CREDIT_LIMIT_EXCEEDED: "credit_limit_exceeded",
@@ -99,6 +102,7 @@ export const LEDGER_OPERATION = {
   LIST_CAPTURE_JARS: "listCaptureJars",
   LIST_CATEGORY_TAGS: "listCategoryTags",
   LIST_CREDIT_CARD_INSTALLMENTS: "listCreditCardInstallments",
+  LIST_CREDIT_CARD_BILLING_ITEMS: "listCreditCardBillingItems",
   LIST_CREDIT_CARDS: "listCreditCards",
   LIST_DEBTS: "listDebts",
   LIST_DEBT_PAYMENTS: "listDebtPayments",

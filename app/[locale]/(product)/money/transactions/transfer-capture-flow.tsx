@@ -1,6 +1,12 @@
 "use client";
 
-import { useId, useState, useTransition, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
@@ -55,6 +61,7 @@ import { todayIsoDate } from "@/shared/utils/iso-date";
 
 type Props = {
   accounts: LedgerAccount[];
+  accountsReady?: boolean;
   currency: string;
   initialSourceAccountId?: string;
   onBackToCapture?: () => void;
@@ -125,11 +132,13 @@ function createDefaultValues(
  */
 export function TransferCaptureFlow({
   accounts,
+  accountsReady = true,
   currency,
   initialSourceAccountId,
   onBackToCapture,
 }: Props) {
   const t = useTranslations("money.transferForm");
+  const tCapture = useTranslations("money.captureForm");
   const tCatalog = useTranslations("catalog");
   const locale = useLocale();
   const { online } = useOnlineStatusClient();
@@ -154,6 +163,7 @@ export function TransferCaptureFlow({
     control,
     register,
     handleSubmit,
+    getValues,
     reset,
     setValue,
     formState: { errors },
@@ -187,6 +197,37 @@ export function TransferCaptureFlow({
   const destinationOptions = eligible.filter(
     (account) => account.id !== sourceAccountId,
   );
+
+  useEffect(() => {
+    if (!accountsReady) return;
+    const availableAccounts = accounts.filter(isTransferEligible);
+    if (availableAccounts.length === 0) return;
+
+    const currentSourceId = getValues("sourceAccountId");
+    const source =
+      availableAccounts.find((account) => account.id === currentSourceId) ??
+      availableAccounts.find(
+        (account) => account.id === initialSourceAccountId,
+      ) ??
+      availableAccounts[0];
+    if (!source) return;
+
+    const currentDestinationId = getValues("destinationAccountId");
+    const destination =
+      availableAccounts.find(
+        (account) =>
+          account.id === currentDestinationId && account.id !== source.id,
+      ) ?? availableAccounts.find((account) => account.id !== source.id);
+
+    if (currentSourceId !== source.id) {
+      setValue("sourceAccountId", source.id, { shouldValidate: false });
+    }
+    if (destination && currentDestinationId !== destination.id) {
+      setValue("destinationAccountId", destination.id, {
+        shouldValidate: false,
+      });
+    }
+  }, [accounts, accountsReady, getValues, initialSourceAccountId, setValue]);
   const amountLabel =
     amount != null && amount > 0
       ? formatCurrency(amount, currency, locale, { maximumFractionDigits: 0 })
@@ -219,6 +260,7 @@ export function TransferCaptureFlow({
   };
 
   const goConfirm = () => {
+    if (!accountsReady || eligible.length < 2) return;
     setErrorCode(null);
     if (!online) {
       setErrorCode(CLIENT_ACTION_ERROR_CODE.OFFLINE);
@@ -468,7 +510,7 @@ export function TransferCaptureFlow({
           )}
         />
 
-        {eligible.length < 2 ? (
+        {accountsReady && eligible.length < 2 ? (
           <StatusAlert
             variant="warning"
             title={t("errors.need_two_accounts")}
@@ -499,7 +541,10 @@ export function TransferCaptureFlow({
                 }}
                 onBlur={field.onBlur}
                 required
-                isDisabled={eligible.length < 2}
+                isDisabled={!accountsReady || eligible.length < 2}
+                placeholder={
+                  accountsReady ? undefined : tCapture("referencesLoading")
+                }
                 error={errors.sourceAccountId ? t("errors.invalid") : undefined}
                 accounts={eligible}
                 currency={currency}
@@ -530,7 +575,10 @@ export function TransferCaptureFlow({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 required
-                isDisabled={eligible.length < 2}
+                isDisabled={!accountsReady || eligible.length < 2}
+                placeholder={
+                  accountsReady ? undefined : tCapture("referencesLoading")
+                }
                 error={
                   errors.destinationAccountId ? t("errors.invalid") : undefined
                 }
@@ -592,6 +640,7 @@ export function TransferCaptureFlow({
           isDisabled={
             isPending ||
             !online ||
+            !accountsReady ||
             eligible.length < 2 ||
             !amountLabel ||
             !sourceAccount ||

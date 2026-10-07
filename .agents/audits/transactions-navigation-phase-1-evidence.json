@@ -1,0 +1,155 @@
+{
+  "method": {
+    "browser": "Authenticated Brave session against the running local app",
+    "comparison": "Frozen pre-change Link behavior and final Phase 1 behavior, same browser and environment",
+    "samplesPerScenario": "1 cold-ish and 5 warm; warm p50 reported",
+    "returnTiming": "App Back activation to restored visible list",
+    "sensitiveValuesStored": false,
+    "rowSetComparison": "Compared in-browser; identifiers and row contents omitted"
+  },
+  "benchmarks": {
+    "expenseDetailToList": {
+      "control": {
+        "coldishMs": 1293,
+        "warmMs": [1257, 2090, 1173, 1334, 1285],
+        "warmP50Ms": 1285,
+        "listRscPerReturn": 1
+      },
+      "phase1": {
+        "coldishMs": 118,
+        "warmMs": [104, 107, 117, 105, 115],
+        "warmP50Ms": 107,
+        "listRscPerReturn": 0
+      },
+      "savedMs": 1178,
+      "improvementPercent": 91.7,
+      "history": {
+        "sourceIndex": 0,
+        "detailIndex": 1,
+        "restoredIndex": 0,
+        "sameEntryKey": true,
+        "sameUrl": true,
+        "sameRowSet": true,
+        "rows": 25
+      }
+    },
+    "transferDetailToList": {
+      "control": {
+        "coldishMs": 1759,
+        "warmMs": [1283, 1209, 1289, 1370, 1306],
+        "warmP50Ms": 1289,
+        "listRscPerReturn": 1
+      },
+      "phase1": {
+        "coldishMs": 75,
+        "warmMs": [70, 71, 71, 74, 73],
+        "warmP50Ms": 71,
+        "listRscPerReturn": 0
+      },
+      "savedMs": 1218,
+      "improvementPercent": 94.5,
+      "history": {
+        "sourceIndex": 0,
+        "detailIndex": 1,
+        "restoredIndex": 0,
+        "sameEntryKey": true,
+        "sameUrl": true,
+        "sameRowSet": true,
+        "rows": 2,
+        "queryKeys": ["type"],
+        "queryValue": "transfer"
+      }
+    }
+  },
+  "additionalHistoryChecks": {
+    "expenseFilter": {
+      "queryKeys": ["type"],
+      "queryValue": "expense",
+      "sameEntryKey": true,
+      "sameUrl": true,
+      "sameSelectedFilter": true,
+      "sameRowCount": true,
+      "listRsc": 0
+    },
+    "combinedFilterQueryUnitCoverage": [
+      "account",
+      "q",
+      "type",
+      "category",
+      "jar",
+      "tags",
+      "cursor"
+    ],
+    "accountStatement": {
+      "path": "/vi/money/transactions?account=[redacted]",
+      "sourceIndex": 2,
+      "sameEntryKey": true,
+      "sameUrl": true,
+      "sameRowSet": true,
+      "rows": 25,
+      "listRsc": 0
+    },
+    "scroll": {
+      "sourceScrollTopPx": 795,
+      "returnedVisibleAnchorTopPx": 782,
+      "differencePx": 13,
+      "sameEntryKey": true,
+      "sameUrl": true,
+      "listRsc": 0
+    },
+    "forwardAndRepeatedBack": {
+      "backRestoresSourceEntry": true,
+      "forwardRestoresDetailEntry": true,
+      "entryCountBefore": 2,
+      "entryCountAfterRepeatedCycles": 2,
+      "listRscOnAppBack": 0
+    }
+  },
+  "fallbackChecks": {
+    "directVietnamese": {
+      "resultPath": "/vi/money/transactions",
+      "stayedInProduct": true
+    },
+    "directEnglish": {
+      "resultPath": "/en/money/transactions",
+      "stayedInProduct": true
+    },
+    "refresh": {
+      "resultPath": "/vi/money/transactions",
+      "stayedInProduct": true
+    },
+    "externalPredecessor": {
+      "resultPath": "/vi/money/transactions",
+      "returnedToExternalOrigin": false
+    }
+  },
+  "network": {
+    "listRscControlPerAppBack": 1,
+    "listRscPhase1PerAppBack": 0,
+    "otherObservedRequests": ["/manifest.webmanifest", "/icon-192.png"],
+    "otherRequestsWereRouteOrDataReads": false,
+    "serverSideLoaderCounters": "Not exposed by the browser trace; no destination List RSC/route request occurred in Phase 1"
+  },
+  "accessibility": {
+    "backControlRole": "button",
+    "localizedNamesVerified": ["Back", "Quay lại"],
+    "keyboardActivationVerified": true,
+    "focusVisibleStylePresent": true,
+    "visibleControlPx": "36x36 with shared expanded touch target"
+  },
+  "regressionSmoke": {
+    "flow": [
+      "Money to Transactions List",
+      "Add Transaction",
+      "browser Back to List",
+      "Expense Detail",
+      "app Back to List",
+      "Transfer Detail",
+      "app Back to List"
+    ],
+    "financialMutationsSubmitted": false,
+    "expenseDetailRendered": true,
+    "transferDetailRendered": true,
+    "addBrowserBackReturnedToList": true
+  }
+}

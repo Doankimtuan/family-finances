@@ -1,0 +1,199 @@
+{
+  "study": "Accounts Phase 4.1 — Liquid Detail Critical Path Investigation",
+  "measuredAt": "2026-10-05",
+  "scope": "current Phase 4 Liquid Account Detail only",
+  "environment": {
+    "nextVersion": "16.3.1",
+    "server": "local development server in disposable source copy",
+    "browser": "Brave",
+    "warmViewportCssPixels": {
+      "width": 390,
+      "height": 844
+    },
+    "networkThrottling": "none",
+    "sameAccountAcrossWarmSamples": true,
+    "warmSamples": 10,
+    "coldishSamples": 1,
+    "coldishNavigation": "direct document navigation after temporary server restart"
+  },
+  "method": {
+    "percentile": "nearest-rank p75",
+    "browserTiming": "CDP RSC request and hero DOM/readable observation",
+    "serverTiming": "temporary safe operation spans and HTTP request-to-headers spans",
+    "payloadSizes": "decoded JSON bytes unless explicitly labeled encoded RSC bytes",
+    "sensitiveIdentifiersIncluded": false,
+    "financialValuesIncluded": false,
+    "productionCodeChanged": false,
+    "businessMutationsObserved": 0
+  },
+  "warmMs": {
+    "clickToHeroReadableSamples": [
+      2398, 1775, 1257, 1020, 1140, 1759, 1044, 1023, 1124, 1478
+    ],
+    "stages": {
+      "sessionGate": {
+        "median": 353,
+        "p75": 551,
+        "max": 1193
+      },
+      "accountAndHouseholdContext": {
+        "median": 295,
+        "p75": 345,
+        "max": 735
+      },
+      "ownerValidationHouseholdAccount": {
+        "median": 1,
+        "p75": 1,
+        "max": 1,
+        "remoteRequests": 0
+      },
+      "balanceRpcApplicationSpan": {
+        "median": 295,
+        "p75": 317,
+        "max": 711
+      },
+      "balanceRpcFetchToHeaders": {
+        "median": 284,
+        "p75": 310,
+        "max": 704
+      },
+      "getAccountTotal": {
+        "median": 588,
+        "p75": 882,
+        "max": 1063
+      },
+      "getAccountEndToRscResponseEnd": {
+        "median": 50.5,
+        "p75": 420,
+        "max": 725
+      },
+      "rscResponseEndToHeroReadable": {
+        "median": 43.5,
+        "p75": 99,
+        "max": 126,
+        "min": -655,
+        "heroBeforeResponseEndSamples": 3
+      },
+      "clickToHeroReadable": {
+        "median": 1198.5,
+        "p75": 1759,
+        "max": 2398,
+        "min": 1020
+      },
+      "clickToRscRequestStart": {
+        "median": 43.5,
+        "p75": 55,
+        "max": 60
+      },
+      "rscRequestStartToResponseHeaders": {
+        "median": 45,
+        "p75": 50,
+        "max": 200
+      },
+      "rscHeaderToResponseFinish": {
+        "median": 1433,
+        "p75": 1631,
+        "max": 2121,
+        "min": 909
+      },
+      "rscRequestStartToResponseFinish": {
+        "median": 1478.5,
+        "p75": 1683,
+        "max": 2321,
+        "min": 954
+      }
+    },
+    "remoteToHeadersMs": {
+      "getUser": {
+        "median": 291,
+        "p75": 496,
+        "max": 1153
+      },
+      "activeMembership": {
+        "median": 323.5,
+        "p75": 523,
+        "max": 1167
+      },
+      "selectedAccount": {
+        "median": 282.5,
+        "p75": 339,
+        "max": 727
+      },
+      "householdCurrency": {
+        "median": 280.5,
+        "p75": 292,
+        "max": 335
+      }
+    },
+    "requestCountsPerWarmDetail": {
+      "getUser": 1,
+      "activeMembership": 1,
+      "claimsInvocations": 2,
+      "warmJwksFetches": 0,
+      "selectedAccountGet": 1,
+      "householdGet": 1,
+      "ownerMembershipGetHouseholdAccount": 0,
+      "balanceRpc": 1,
+      "deferredRecentTransactionsGet": 1,
+      "browserRscRequest": 1
+    },
+    "warmClaimsDurationMs": {
+      "min": 2,
+      "max": 6
+    },
+    "encodedRscBytes": {
+      "median": 19603,
+      "p75": 19628,
+      "max": 19638,
+      "min": 19568
+    },
+    "heroDomToReadableMs": {
+      "median": 0,
+      "max": 0
+    },
+    "ownerValidationPersonalAccount": {
+      "conditionalRemoteRequests": 1,
+      "liveSample": false
+    }
+  },
+  "coldish": {
+    "navigationToHeroReadableMs": 5625,
+    "sessionGateMs": 1792,
+    "getUserHttpMs": 745,
+    "activeMembershipHttpMs": 1005,
+    "selectedContextMs": 679,
+    "accountGetHttpMs": 637,
+    "householdGetHttpMs": 675,
+    "ownerValidationMs": 1,
+    "balanceRpcApplicationSpanMs": 763,
+    "balanceRpcHttpToHeadersMs": 757,
+    "getAccountTotalMs": 1456,
+    "proxyJwksFetchMs": 1174,
+    "pageJwksFetchMs": 280,
+    "accountRowCount": 1,
+    "decodedAccountJsonBytes": 208,
+    "decodedHouseholdJsonBytes": 23,
+    "balanceRpcRequestJsonBytes": 58,
+    "balanceRpcRowCount": 1,
+    "decodedBalanceRpcJsonBytes": 74,
+    "deferredRecentTransactionsHttpMs": 907,
+    "contentLengthHeaderPresentForAccountAndBalance": false
+  },
+  "database": {
+    "postgresLogSourceAvailable": false,
+    "explainAnalyzeRun": false,
+    "sqlExecutionLatencyMs": null,
+    "reason": "available SQL connection did not carry the route's authenticated RLS context"
+  },
+  "smoke": {
+    "moneyPageOpened": true,
+    "accountsDirectoryOpened": true,
+    "createAccountOpened": true,
+    "createCreditCardOpened": true,
+    "liquidDetailOpened": true,
+    "creditCardDetailOpened": true,
+    "createFormsSubmitted": false,
+    "financialMutationPerformed": false
+  },
+  "decision": "ACCOUNTS PHASE 4.1 COMPLETE — OPTIMIZE LIQUID DETAIL REMOTE WAVES"
+}

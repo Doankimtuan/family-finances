@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   CaptureJarOption,
@@ -22,37 +22,85 @@ import {
 import { MotionStep } from "@/shared/motion/step";
 
 type Props = {
-  accounts: LedgerAccount[];
-  expenseTags: CategoryTag[];
-  incomeTags: CategoryTag[];
-  jars: CaptureJarOption[];
-  transactionTags: TransactionTag[];
+  accountsPromise: Promise<LedgerAccount[]>;
+  expenseTagsPromise: Promise<CategoryTag[] | null>;
+  incomeTagsPromise: Promise<CategoryTag[] | null>;
+  jarsPromise: Promise<CaptureJarOption[] | null>;
+  transactionTagsPromise: Promise<TransactionTag[] | null>;
   currency: string;
   initialMode?: MoneyCaptureMode;
   initialAccountId?: string;
 };
 
+function ReferenceDataResolver<T>({
+  promise,
+  onResolve,
+}: {
+  promise: Promise<T>;
+  onResolve: (value: T) => void;
+}) {
+  const value = use(promise);
+
+  useEffect(() => onResolve(value), [onResolve, promise, value]);
+  return null;
+}
+
 /**
  * Capture entry — expense/income fast path or owned-account transfer.
  */
 export function MoneyCaptureEntry({
-  accounts,
-  expenseTags,
-  incomeTags,
-  jars,
-  transactionTags,
+  accountsPromise,
+  expenseTagsPromise,
+  incomeTagsPromise,
+  jarsPromise,
+  transactionTagsPromise,
   currency,
   initialMode = MoneyCaptureMode.EXPENSE,
   initialAccountId,
 }: Props) {
   const t = useTranslations("money.captureForm");
   const [mode, setMode] = useState<MoneyCaptureMode>(initialMode);
+  const [accounts, setAccounts] = useState<LedgerAccount[]>();
+  const [expenseTags, setExpenseTags] = useState<CategoryTag[] | null>();
+  const [incomeTags, setIncomeTags] = useState<CategoryTag[] | null>();
+  const [jars, setJars] = useState<CaptureJarOption[] | null>();
+  const [transactionTags, setTransactionTags] = useState<
+    TransactionTag[] | null
+  >();
 
   return (
     <div
       className="flex flex-1 flex-col gap-(--space-5)"
       data-testid="money-capture-entry"
     >
+      <Suspense fallback={null}>
+        <ReferenceDataResolver
+          promise={accountsPromise}
+          onResolve={setAccounts}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ReferenceDataResolver
+          promise={expenseTagsPromise}
+          onResolve={setExpenseTags}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ReferenceDataResolver
+          promise={incomeTagsPromise}
+          onResolve={setIncomeTags}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ReferenceDataResolver promise={jarsPromise} onResolve={setJars} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ReferenceDataResolver
+          promise={transactionTagsPromise}
+          onResolve={setTransactionTags}
+        />
+      </Suspense>
+
       <fieldset className="flex flex-col gap-(--space-2)">
         <legend className="sr-only">{t("modeLabel")}</legend>
         <div
@@ -106,7 +154,8 @@ export function MoneyCaptureEntry({
         <MotionStep stepKey={mode} className="flex flex-1 flex-col">
           {mode === MoneyCaptureMode.TRANSFER ? (
             <TransferCaptureFlow
-              accounts={accounts}
+              accounts={accounts ?? []}
+              accountsReady={accounts !== undefined}
               currency={currency}
               initialSourceAccountId={initialAccountId}
               onBackToCapture={() => setMode(MoneyCaptureMode.EXPENSE)}
@@ -114,11 +163,16 @@ export function MoneyCaptureEntry({
           ) : (
             <CaptureTransactionForm
               key={mode}
-              accounts={accounts}
-              expenseTags={expenseTags}
-              incomeTags={incomeTags}
-              jars={jars}
-              transactionTags={transactionTags}
+              accounts={accounts ?? []}
+              accountsReady={accounts !== undefined}
+              expenseTags={expenseTags ?? []}
+              expenseTagsReady={expenseTags !== undefined}
+              incomeTags={incomeTags ?? []}
+              incomeTagsReady={incomeTags !== undefined}
+              jars={jars ?? []}
+              jarsReady={jars !== undefined}
+              transactionTags={transactionTags ?? []}
+              transactionTagsReady={transactionTags !== undefined}
               currency={currency}
               initialDirection={mode}
               initialAccountId={initialAccountId}

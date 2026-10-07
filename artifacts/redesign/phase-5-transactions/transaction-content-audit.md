@@ -7,7 +7,7 @@ Presentation-only audit of the existing Transactions and Add Transaction surface
 | Concept | Source | Shown on list | Shown on detail | Shown on capture |
 | --- | --- | --- | --- | --- |
 | Description / note | `TransactionActivity.note` / `LedgerTransaction.note` | Primary title when present | Subtitle + fact when present | Optional field |
-| Category | `categoryName` | Secondary line | Context fact | Required-path chips (uncategorized allowed) |
+| Category | `categoryName` | Secondary line | Context fact | Optional; uncategorized is allowed |
 | Account | source/destination names | Secondary line | Context fact | Required |
 | Amount + sign | `amount`, `sign`, `tone` | Primary right column | Hero amount | Dominant field |
 | Direction / kind | `TransactionActivityKind` / capture mode | Implied by sign, kind labels, filters | Title | Expense / income / transfer modes |
@@ -27,21 +27,23 @@ Presentation-only audit of the existing Transactions and Add Transaction surface
 - Currency code as a separate badge — already in formatted amount
 - Internal ids, transfer group ids, audit ids
 - Created-at timestamp — grouping uses effective date already on the model
-- Search box — `listTransactionEvents` has no `q`; `ListTransactionsFilter.q` is a different read path and was not wired (deferred, not invented)
+- Search notes — `listTransactionEvents` supports `q`, which matches transaction notes; do not imply search covers account names or categories
 
 ## Existing actions (unchanged)
 
-- Add transaction: `APP_PATH.MONEY_ADD` via FAB + empty-state CTA
+- Add transaction: `APP_PATH.MONEY_ADD` through the center Add action and empty-state CTA; it is a primary destination with the main-screen header, not a child form with a Back button
 - Open detail: existing `moneyTransactionPath`
-- Correct / refund: existing routes, existing eligibility (`canGenericCorrect` / `canGenericRefund`)
+- Correct / refund: existing routes, conditionally available for eligible non-transfer entries (`canGenericCorrect` / `canGenericRefund`); posted ledger entries cannot be edited or deleted
 - Manage tags: existing tags destination
 - Load more: existing cursor pagination
-- Filters: existing type chips + tag filter query params
+- Filters: existing type chips and account, category, jar, and tag filters; note search is supported
 
 ## Existing validation (unchanged)
 
-Capture still uses `recordTransactionInputSchema` (positive whole amount, account, date, optional note/category/jar). Confirm sheet still precedes the mutation. Transfer still uses `recordTransferInputSchema`. No Zod or command changes.
+Expense/income use `recordTransactionInputSchema` (positive whole amount, account, date, optional note/category/jar; tags are assigned separately). Transfer uses `recordTransferInputSchema` (positive whole amount, distinct eligible source/destination accounts, date, optional note). The confirm sheet precedes mutation and a receipt follows success. Opening balance is account setup data, not an income transaction.
 
-## Conflicts stopped
+## Transaction semantics
 
-None. Desired UX that would need a new search API or new financial metrics was deferred instead of changing contracts.
+- A transfer is one activity backed by linked ledger legs; it is neither income nor expense and cannot be independently corrected or refunded from transfer detail.
+- Posted entries are immutable. Eligible income/expense entries can use the existing correction or refund flows. There is no delete action.
+- Screen examples are mock data and must be labeled as such; unsupported behavior is not presented as implemented.

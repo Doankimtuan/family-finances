@@ -26,6 +26,8 @@ type Props = {
   value: string | null | undefined;
   tags: CategoryTag[];
   jars: CaptureJarOption[];
+  isDisabled?: boolean;
+  isLoading?: boolean;
   onChange: (value: string | null) => void;
   onBlur: () => void;
 };
@@ -36,6 +38,8 @@ export function TransactionCategoryField({
   value,
   tags,
   jars,
+  isDisabled = false,
+  isLoading = false,
   onChange,
   onBlur,
 }: Props) {
@@ -50,6 +54,12 @@ export function TransactionCategoryField({
     : undefined;
   const name = (tag: CategoryTag) =>
     localizeCatalogName(tCatalog, CatalogGroup.TAGS, tag.name);
+  let categoryLabel = t("tagNone");
+  if (isLoading) {
+    categoryLabel = t("referencesLoading");
+  } else if (selected) {
+    categoryLabel = name(selected);
+  }
   const filtered = tags.filter((tag) =>
     name(tag).toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
   );
@@ -70,6 +80,8 @@ export function TransactionCategoryField({
           {...formFieldA11y(id, false, Boolean(description))}
           type="button"
           variant={ButtonVariant.OUTLINED}
+          isDisabled={isDisabled}
+          aria-busy={isLoading || undefined}
           className="h-auto min-h-12 w-full justify-between bg-surface px-(--space-3) py-(--space-3) text-text-primary"
           aria-haspopup="dialog"
           aria-expanded={isOpen}
@@ -77,7 +89,7 @@ export function TransactionCategoryField({
           data-testid="capture-category"
         >
           <span className="flex min-w-0 items-center gap-(--space-3)">
-            {selected ? (
+            {!isLoading && selected ? (
               <IconContainer size="md">
                 <AppIcon
                   icon={
@@ -91,9 +103,7 @@ export function TransactionCategoryField({
                 />
               </IconContainer>
             ) : null}
-            <span className="truncate">
-              {selected ? name(selected) : t("tagNone")}
-            </span>
+            <span className="truncate">{categoryLabel}</span>
           </span>
           <AppIcon icon={ACTION_ICONS.forward} size="sm" />
         </Button>

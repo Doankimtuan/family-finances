@@ -1,10 +1,13 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountDetailActions } from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-actions";
 import { AccountDetailManagement } from "@/app/[locale]/(product)/money/accounts/[id]/account-detail-management";
 import { AddAccountForm } from "@/app/[locale]/(product)/money/accounts/add-account-form";
-import { AccountType } from "@/modules/ledger/application/ledger-constants";
+import {
+  AccountType,
+  DEFAULT_CURRENCY,
+} from "@/modules/ledger/application/ledger-constants";
 import { ACCOUNT_DETAIL_MODE } from "@/app/[locale]/(product)/money/accounts/[id]/detail-constants";
 
 const { updateAccountMock, archiveAccountMock, createAccountMock } = vi.hoisted(
@@ -39,6 +42,15 @@ vi.mock("@/app/[locale]/(product)/money/accounts/actions", () => ({
 }));
 
 const ACCOUNT_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+
+  return { promise, resolve };
+}
 
 function AccountActionsFixture() {
   const [mode, setMode] = useState(ACCOUNT_DETAIL_MODE.MANAGE);
@@ -180,6 +192,43 @@ describe("account create form", () => {
     expect(screen.getByLabelText("openingBalanceLabel")).toHaveValue("0");
   });
 
+  it("keeps regular account input usable while receipt currency is pending", async () => {
+    const currency = createDeferred<string>();
+    render(
+      <AddAccountForm
+        liquidAccounts={[]}
+        currency={DEFAULT_CURRENCY}
+        currencyPromise={currency.promise}
+        hideDefaultTrigger
+        presentation="page"
+      />,
+    );
+
+    const form = screen.getByTestId("account-add-page-form");
+    const nameField = screen.getByLabelText(/nameLabel/);
+    const openingBalance = screen.getByLabelText("openingBalanceLabel");
+    fireEvent.change(nameField, { target: { value: "Household cash" } });
+    fireEvent.change(openingBalance, { target: { value: "50000000" } });
+    fireEvent.click(screen.getByRole("radio", { name: "personal" }));
+
+    expect(nameField).toBeEnabled();
+    expect(openingBalance).toBeEnabled();
+
+    await act(async () => {
+      currency.resolve(DEFAULT_CURRENCY);
+      await currency.promise;
+    });
+
+    expect(screen.getByTestId("account-add-page-form")).toBe(form);
+    expect(screen.getByLabelText(/nameLabel/)).toBe(nameField);
+    expect(nameField).toHaveValue("Household cash");
+    expect(openingBalance).toHaveValue("50,000,000");
+    expect(screen.getByRole("radio", { name: "personal" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
   it("shows card settings instead of opening balance for credit cards", () => {
     render(
       <AddAccountForm
@@ -203,6 +252,68 @@ describe("account create form", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("linkedBankDescription")).toBeInTheDocument();
     expect(screen.getByTestId("account-linked-bank")).toBeInTheDocument();
+  });
+
+  it("keeps card fields mounted and usable while linked accounts load", async () => {
+    const accountData = createDeferred<{
+      currency: string;
+      liquidAccounts: { id: string; name: string }[];
+    }>();
+
+    await act(async () => {
+      render(
+        <AddAccountForm
+          liquidAccounts={[]}
+          currency={DEFAULT_CURRENCY}
+          accountDataPromise={accountData.promise}
+          fixedType={AccountType.CREDIT_CARD}
+          hideCreditCardType
+          hideDefaultTrigger
+          presentation="page"
+        />,
+      );
+    });
+
+    const nameField = screen.getByLabelText(/creditNameLabel/);
+    const form = screen.getByTestId("account-add-page-form");
+    const limitField = screen.getByLabelText("creditLimitLabel");
+    fireEvent.change(nameField, { target: { value: "Daily card" } });
+    fireEvent.change(limitField, { target: { value: "25000000" } });
+    fireEvent.click(screen.getByRole("radio", { name: "personal" }));
+    fireEvent.click(screen.getByLabelText(/statementDayLabel/));
+    fireEvent.click(screen.getByRole("option", { name: "12" }));
+    fireEvent.click(screen.getByLabelText(/dueDayLabel/));
+    fireEvent.click(screen.getByRole("option", { name: "24" }));
+
+    expect(nameField).toBeEnabled();
+    expect(limitField).toBeEnabled();
+    expect(form).toBeInTheDocument();
+    expect(screen.getByText("loading")).toHaveAttribute("role", "status");
+
+    await act(async () => {
+      accountData.resolve({
+        currency: DEFAULT_CURRENCY,
+        liquidAccounts: [{ id: "liquid-account-id", name: "Payment account" }],
+      });
+      await accountData.promise;
+    });
+
+    expect(screen.getByTestId("account-add-page-form")).toBe(form);
+    expect(screen.getByLabelText(/creditNameLabel/)).toBe(nameField);
+    expect(screen.getByLabelText(/creditNameLabel/)).toHaveValue("Daily card");
+    expect(screen.getByLabelText("creditLimitLabel")).toHaveValue("25,000,000");
+    expect(screen.getByRole("radio", { name: "personal" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByTestId("account-statement-day")).toHaveTextContent("12");
+    expect(screen.getByTestId("account-due-day")).toHaveTextContent("24");
+    expect(screen.queryByText("loading")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("linkedBankLabel"));
+    expect(
+      await screen.findByRole("option", { name: "Payment account" }),
+    ).toBeInTheDocument();
   });
 
   it("renders the dedicated credit route with its zero-debt semantics and in-flow action", () => {

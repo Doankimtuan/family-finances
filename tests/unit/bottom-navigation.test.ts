@@ -84,6 +84,7 @@ describe("BottomNavigation sub-route matching and standalone suppression", () =>
 
     // Money sub-routes
     expect(isPathInTab(APP_PATH.MONEY, APP_PATH.MONEY)).toBe(true);
+    expect(isPathInTab(APP_PATH.MONEY_ADD, APP_PATH.MONEY)).toBe(false);
     expect(isPathInTab(APP_PATH.MONEY_ACCOUNTS, APP_PATH.MONEY)).toBe(true);
     expect(
       isPathInTab(`${APP_PATH.MONEY_ACCOUNTS}/acc-123`, APP_PATH.MONEY),
