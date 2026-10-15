@@ -9,6 +9,7 @@ export {
   collectCurrentPeriodSnapshotInserts,
   jarBudgetPeriodBounds,
   type PlanBudgetHistory,
+  type PlanBudgetHistorySettings,
   type CurrentJarBudgetSummary,
   type CurrentPeriodSnapshotInserts,
   type JarBudgetPeriod,

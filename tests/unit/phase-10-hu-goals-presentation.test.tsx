@@ -287,9 +287,11 @@ describe("Phase 10 Hũ and Goals presentation", () => {
     expect(detail).toContain("FinancialNumberKind.ESTIMATE");
     expect(detail).toContain("FinancialNumberKind.CURRENT_STATE");
     expect(detail).toContain("linkedSourceHint");
+    expect(detail).toContain("goal.fundingLinks.map");
+    expect(detail).toContain("linkedTo");
     expect(detail).not.toContain("<Balance");
     expect(detail).not.toContain("Goal balance");
-    expect(controls).toContain("linkedTo");
+    expect(controls).not.toContain("linkedTo");
     expect(controls).toContain("contributeToGoalAction");
     expect(controls).toContain("goal-legacy-contribute");
     expect(controls).not.toContain("createTransaction");

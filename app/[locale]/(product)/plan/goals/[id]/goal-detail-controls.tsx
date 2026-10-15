@@ -24,7 +24,6 @@ import type { GoalFundingLink } from "@/modules/plan/application/goal-recurring-
 import { goalFundingSourceKey } from "@/modules/plan/application/goal-funding";
 import { DatePickerField, TextField } from "@/shared/ui/form";
 import { AmountField } from "@/shared/patterns/amount-field";
-import { Card } from "@/shared/patterns/card";
 import { Button } from "@/shared/ui/button";
 import { IconButton } from "@/shared/ui/icon-button";
 import { StatusAlert } from "@/shared/ui/status-alert";
@@ -35,6 +34,7 @@ import { SheetActionFooter } from "@/shared/patterns/sheet-action-footer";
 import { Sheet } from "@/shared/patterns/sheet";
 import { ChoiceTile, ChoiceTileGroup } from "@/shared/patterns/choice-tile";
 import { GoalFundingSourcePicker } from "../goal-funding-source-picker";
+import { isOpenGoal } from "../goal-presentations";
 import { useOnlineStatusClient } from "@/shared/hooks/use-online-status";
 import { AppIcon } from "@/shared/ui/app-icon";
 import { ACTION_ICONS } from "@/shared/ui/icon-registry";
@@ -149,10 +149,7 @@ export function GoalDetailControls({
   const [receipt, setReceipt] = useState<number | null>(null);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [isPending, startTransition] = useTransition();
-  const canMutate =
-    initialStatus === GoalStatus.ACTIVE ||
-    initialStatus === GoalStatus.PAUSED ||
-    initialStatus === GoalStatus.READY;
+  const canMutate = isOpenGoal(initialStatus);
   const isTerminal =
     initialStatus === GoalStatus.COMPLETED ||
     initialStatus === GoalStatus.CANCELLED;
@@ -623,51 +620,6 @@ export function GoalDetailControls({
           </ActionSheetLayout>
         </Sheet>
       ) : null}
-      {canMutate && fundingLinks.length ? (
-        <section
-          className="flex flex-col gap-(--space-3)"
-          data-testid="goal-funding-sources"
-        >
-          <Text size="sm" className="font-semibold">
-            {t("fundingHeading")}
-          </Text>
-          <Text size="xs" tone="secondary" className="text-pretty">
-            {t("linkedSourceHint")}
-          </Text>
-          <Card tone="soft" className="gap-0 overflow-hidden p-0">
-            <ul className="divide-y divide-divider">
-              {fundingLinks.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex min-h-14 items-center gap-(--space-3) p-(--space-3)"
-                  data-testid={`goal-funding-source-${item.id}`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <Text size="sm" className="truncate font-medium">
-                      {t("linkedTo", { source: item.sourceName })}
-                    </Text>
-                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
-                      {t(`fundingKind.${item.kind}`)}
-                      {item.valueStatus
-                        ? ` · ${t(
-                            `fundingValueQuality.${item.valueStatus}` as never,
-                          )}`
-                        : ""}
-                    </Text>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-      ) : canMutate && !isLegacyIntention ? (
-        <StatusAlert
-          variant="warning"
-          title={t("needsBackingTitle")}
-          description={t("needsBackingBody")}
-        />
-      ) : null}
-
       {canMutate ? (
         <>
           <Sheet isOpen={moreOpen} onOpenChange={setMoreOpen}>

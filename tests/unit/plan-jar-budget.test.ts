@@ -239,6 +239,12 @@ describe("Plan V2 jar budgets", () => {
         adjustment: 500_000,
       }),
     ).toBe(16_500_000);
+    expect(
+      calculateJarBudgetAmount(fixedJar, 0, {
+        rolloverCredit: 1_000_000,
+        adjustment: -500_000,
+      }),
+    ).toBe(15_500_000);
   });
 
   it("carries only positive unused budget and never creates first-period credit", () => {

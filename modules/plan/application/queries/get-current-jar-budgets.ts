@@ -128,6 +128,11 @@ type HouseholdSettings = {
   currency: string;
 };
 
+export type PlanBudgetHistorySettings = Pick<
+  HouseholdSettings,
+  "timezone" | "currency"
+>;
+
 type JarBudgetContext = {
   householdId: string;
   settings: HouseholdSettings;
@@ -1070,15 +1075,16 @@ export async function getCurrentJarBudgets(
 }
 
 /** Months with saved rule snapshots that the Plan overview can review. */
-export async function listPlanBudgetHistoryMonths(): Promise<string[] | null> {
+export async function listPlanBudgetHistoryMonths(
+  now = new Date(),
+  timezone?: string,
+): Promise<string[] | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok) return null;
   try {
-    const settings = await loadHouseholdSettings(gate.householdId);
-    const currentMonth = jarBudgetPeriodBounds(
-      new Date(),
-      settings.timezone,
-    ).month;
+    const selectedTimezone =
+      timezone ?? (await loadHouseholdSettings(gate.householdId)).timezone;
+    const currentMonth = jarBudgetPeriodBounds(now, selectedTimezone).month;
     const supabase = await createSupabaseServerClient();
     const snapshotResult = await supabase
       .from("jar_period_rule_snapshots")
@@ -1106,14 +1112,17 @@ export async function listPlanBudgetHistoryMonths(): Promise<string[] | null> {
 /** Read-only history reconstructed from the selected month's frozen snapshots. */
 export async function getPlanBudgetHistory(
   periodMonth: string,
+  now = new Date(),
+  settings?: PlanBudgetHistorySettings,
 ): Promise<PlanBudgetHistory | null> {
   const gate = await assertMoneyActionAllowed();
   if (!gate.ok || !isCanonicalPlanPeriodMonth(periodMonth)) return null;
   try {
-    const settings = await loadHouseholdSettings(gate.householdId);
+    const householdSettings =
+      settings ?? (await loadHouseholdSettings(gate.householdId));
     const currentMonth = jarBudgetPeriodBounds(
-      new Date(),
-      settings.timezone,
+      now,
+      householdSettings.timezone,
     ).month;
     if (periodMonth >= currentMonth) return null;
 
@@ -1139,8 +1148,10 @@ export async function getPlanBudgetHistory(
       (jarIdentityResult.data ?? [])
         .filter(
           (jar) =>
-            currentPeriodMonth(new Date(jar.created_at), settings.timezone) <=
-            periodMonth,
+            currentPeriodMonth(
+              new Date(jar.created_at),
+              householdSettings.timezone,
+            ) <= periodMonth,
         )
         .map((jar) => jar.id),
     );
@@ -1158,7 +1169,7 @@ export async function getPlanBudgetHistory(
       start: periodMonth,
       end: periodMonthEndDate(periodMonth),
       endExclusive: periodMonthExclusiveEnd(periodMonth),
-      timezone: settings.timezone,
+      timezone: householdSettings.timezone,
     };
     const jarIds = [...snapshotJarIds];
     const [transactions, adjustments] = await Promise.all([
@@ -1214,7 +1225,7 @@ export async function getPlanBudgetHistory(
     return {
       periodMonth,
       periodIncome,
-      currency: settings.currency,
+      currency: householdSettings.currency,
       period,
       missingJarSnapshotCount,
       jars,

@@ -1,6 +1,6 @@
 "use client";
 import type { MouseEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useLinkStatus } from "next/link";
 import { motion } from "motion/react";
 import { useTranslations } from "next-intl";
@@ -20,6 +20,7 @@ import { ACTION_ICONS } from "@/shared/ui/icon-registry";
 export { TABS } from "@/shared/patterns/bottom-navigation-tabs";
 const NAV_ITEM_COUNT = TABS.length + 1;
 type ProductTabPath = NavTab["href"];
+type NavigationDestination = ProductTabPath | typeof APP_PATH.MONEY_ADD;
 const TRANSACTION_ACTION_SEGMENTS = new Set<string>([
   APP_PATH_SEGMENT.EDIT,
   APP_PATH_SEGMENT.CORRECT,
@@ -110,9 +111,11 @@ function TabIcon({
 
 function NavigationPendingFeedback({
   href,
+  requested,
   onSettled,
 }: {
   href: ProductTabPath;
+  requested: boolean;
   onSettled: (href: ProductTabPath) => void;
 }) {
   const { pending } = useLinkStatus();
@@ -138,7 +141,7 @@ function NavigationPendingFeedback({
         "pointer-events-none absolute inset-x-(--space-3) top-1 z-20 h-0.5 rounded-full bg-primary",
         "transition-opacity duration-(--duration-fast) ease-(--ease-standard)",
         "motion-reduce:transition-none",
-        pending ? "opacity-100" : "opacity-0",
+        requested || pending ? "opacity-100" : "opacity-0",
       )}
     />
   );
@@ -186,7 +189,27 @@ function BottomNavigationContent({
   const { online } = useOnlineStatusClient();
   const { enabled: motionEnabled } = useMotionPolicy();
   const [pendingDestination, setPendingDestination] =
-    useState<ProductTabPath | null>(null);
+    useState<NavigationDestination | null>(null);
+  const [committedPathname, setCommittedPathname] = useState(pathname);
+  const [capturePending, startCaptureTransition] = useTransition();
+  const sawCapturePending = useRef(false);
+
+  // Cached navigation can skip useLinkStatus entirely.
+  if (committedPathname !== pathname) {
+    setCommittedPathname(pathname);
+    setPendingDestination(null);
+  }
+
+  useEffect(() => {
+    if (capturePending) {
+      sawCapturePending.current = true;
+    } else if (sawCapturePending.current) {
+      sawCapturePending.current = false;
+      setPendingDestination((current) =>
+        current === APP_PATH.MONEY_ADD ? null : current,
+      );
+    }
+  }, [capturePending]);
 
   useEffect(() => {
     const clearPendingDestination = () => setPendingDestination(null);
@@ -202,7 +225,7 @@ function BottomNavigationContent({
   const renderTab = ({ href, labelKey, icon }: NavTab) => {
     const committedActive = isPathInTab(pathname, href);
     const pendingIsUncommitted =
-      pendingDestination !== null && !isPathInTab(pathname, pendingDestination);
+      pendingDestination !== null && pathname !== pendingDestination;
     const active = pendingIsUncommitted
       ? pendingDestination === href
       : committedActive;
@@ -218,7 +241,7 @@ function BottomNavigationContent({
           prefetch={PRODUCT_LINK_PREFETCH}
           onClick={(event) => {
             if (!isNormalPrimaryClick(event)) return;
-            if (committedActive) {
+            if (committedActive && pendingDestination === null) {
               event.preventDefault();
               setPendingDestination(null);
               return;
@@ -243,9 +266,11 @@ function BottomNavigationContent({
           )}
           aria-current={committedActive ? "page" : undefined}
           data-active={active ? "true" : "false"}
+          aria-busy={pendingDestination === href || undefined}
         >
           <NavigationPendingFeedback
             href={href}
+            requested={pendingDestination === href}
             onSettled={handleNavigationSettled}
           />
           <span className="relative z-10 inline-flex shrink-0">
@@ -303,7 +328,11 @@ function BottomNavigationContent({
             }}
           >
             {TABS.slice(0, centerIndex).map(renderTab)}
-            <li key={APP_PATH.MONEY_ADD} className="relative min-h-14 min-w-0">
+            <li
+              key={APP_PATH.MONEY_ADD}
+              className="relative min-h-14 min-w-0"
+              aria-busy={pendingDestination === APP_PATH.MONEY_ADD || undefined}
+            >
               {hasContextualCreateAction ? null : (
                 <>
                   <FloatingActionButton
@@ -318,10 +347,19 @@ function BottomNavigationContent({
                     className={cn(
                       "absolute -top-(--space-3) left-1/2 z-20 size-(--space-12)",
                       "min-h-(--space-12) min-w-(--space-12) -translate-x-1/2 rounded-(--radius-overlay)",
-                      "border-2 border-surface-elevated p-0 ring-4 ring-primary-soft shadow-(--elevation-2)",
+                      "border-2 border-surface-elevated p-0 ring-4 shadow-(--elevation-2)",
+                      pendingDestination === APP_PATH.MONEY_ADD
+                        ? "ring-primary"
+                        : "ring-primary-soft",
                     )}
                     data-testid="money-capture"
-                    onPress={() => router.push(APP_PATH.MONEY_ADD)}
+                    onPress={() => {
+                      if (pendingDestination === APP_PATH.MONEY_ADD) return;
+                      setPendingDestination(APP_PATH.MONEY_ADD);
+                      startCaptureTransition(() =>
+                        router.push(APP_PATH.MONEY_ADD),
+                      );
+                    }}
                   />
                   <span
                     aria-hidden="true"

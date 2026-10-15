@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { setLocale } from "@/i18n/set-locale";
 import { redirect } from "@/i18n/navigation";
 import { hasLocale } from "next-intl";
@@ -13,6 +13,7 @@ import {
   listGoals,
 } from "@/modules/plan/application/queries/list-goals";
 import { listGoalFundingOptions } from "@/modules/plan/application/queries/list-goal-funding-options";
+import type { GoalDetail } from "@/modules/plan/application/goal-recurring-types";
 import {
   GoalStatus,
   GoalType,
@@ -38,6 +39,7 @@ import { PlanUnavailable } from "../../plan-unavailable";
 import { AppIcon, AppIconSize } from "@/shared/ui/app-icon";
 import { PLAN_ICONS } from "@/shared/ui/icon-registry";
 import { GoalDetailControls } from "./goal-detail-controls";
+import { isOpenGoal } from "../goal-presentations";
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -74,6 +76,54 @@ function moneyLeaf(
       </FinancialValue>
     ),
   });
+}
+
+async function GoalDetailActionContent({
+  goal,
+  fundingOptionsPromise,
+  listedGoalsPromise,
+}: {
+  goal: GoalDetail;
+  fundingOptionsPromise: ReturnType<typeof listGoalFundingOptions>;
+  listedGoalsPromise: ReturnType<typeof listGoals>;
+}) {
+  const [fundingOptionsResult, listedGoals] = await Promise.all([
+    fundingOptionsPromise,
+    listedGoalsPromise,
+  ]);
+  const linkableStatuses = new Set<string>(GOAL_FUNDING_LINKABLE_STATUS_VALUES);
+  const reassignmentOptions = (listedGoals?.goals ?? [])
+    .filter(
+      (candidate) =>
+        candidate.id !== goal.id &&
+        candidate.goalType === goal.goalType &&
+        linkableStatuses.has(candidate.status),
+    )
+    .map((candidate) => ({
+      id: candidate.id,
+      name: candidate.name,
+      goalType: candidate.goalType,
+    }));
+
+  return (
+    <GoalDetailControls
+      goalId={goal.id}
+      name={goal.name}
+      targetAmount={goal.targetAmount}
+      fundedAmount={goal.fundedAmount}
+      progressPercent={goal.progressPercent}
+      remainingPrincipal={goal.fundingSummary?.remainingPrincipalTotal ?? null}
+      targetDate={goal.targetDate}
+      status={goal.status}
+      goalType={goal.goalType}
+      fundingLinks={goal.fundingLinks}
+      fundingOptions={(fundingOptionsResult ?? []).filter(
+        (option) => option.linkedGoalId !== goal.id,
+      )}
+      reassignmentOptions={reassignmentOptions}
+      isLegacyIntention={goal.isLegacyIntention}
+    />
+  );
 }
 
 /**
@@ -120,27 +170,17 @@ export default async function PlanGoalDetailPage({ params }: Props) {
     );
   }
 
-  const [fundingOptionsResult, listedGoals] = await Promise.all([
-    listGoalFundingOptions({
-      goalType: goal.goalType,
-      goalId: goal.id,
-    }),
-    listGoals(),
-  ]);
-  const fundingOptions = fundingOptionsResult ?? [];
-  const linkableStatuses = new Set<string>(GOAL_FUNDING_LINKABLE_STATUS_VALUES);
-  const reassignmentOptions = (listedGoals?.goals ?? [])
-    .filter(
-      (candidate) =>
-        candidate.id !== goal.id &&
-        candidate.goalType === goal.goalType &&
-        linkableStatuses.has(candidate.status),
-    )
-    .map((candidate) => ({
-      id: candidate.id,
-      name: candidate.name,
-      goalType: candidate.goalType,
-    }));
+  const fundingOptionsPromise = listGoalFundingOptions({
+    goalType: goal.goalType,
+    goalId: goal.id,
+  });
+  const listedGoalsPromise = listGoals();
+  const showFundingSources =
+    isOpenGoal(goal.status) && goal.fundingLinks.length > 0;
+  const showMissingBacking =
+    isOpenGoal(goal.status) &&
+    goal.fundingLinks.length === 0 &&
+    !goal.isLegacyIntention;
   const translator = t as unknown as GoalTranslator;
   const targetDate = goal.targetDate
     ? formatDate(new Date(`${goal.targetDate}T00:00:00Z`), locale, {
@@ -380,25 +420,57 @@ export default async function PlanGoalDetailPage({ params }: Props) {
         </Section>
       ) : null}
 
-      <GoalDetailControls
-        goalId={goal.id}
-        name={goal.name}
-        targetAmount={goal.targetAmount}
-        fundedAmount={goal.fundedAmount}
-        progressPercent={goal.progressPercent}
-        remainingPrincipal={
-          goal.fundingSummary?.remainingPrincipalTotal ?? null
-        }
-        targetDate={goal.targetDate}
-        status={goal.status}
-        goalType={goal.goalType}
-        fundingLinks={goal.fundingLinks}
-        fundingOptions={fundingOptions.filter(
-          (option) => option.linkedGoalId !== goal.id,
-        )}
-        reassignmentOptions={reassignmentOptions}
-        isLegacyIntention={goal.isLegacyIntention}
-      />
+      <Suspense fallback={null}>
+        <GoalDetailActionContent
+          goal={goal}
+          fundingOptionsPromise={fundingOptionsPromise}
+          listedGoalsPromise={listedGoalsPromise}
+        />
+      </Suspense>
+
+      {showFundingSources ? (
+        <section
+          className="flex flex-col gap-(--space-3)"
+          data-testid="goal-funding-sources"
+        >
+          <Text size="sm" className="font-semibold">
+            {t("fundingHeading")}
+          </Text>
+          <Text size="xs" tone="secondary" className="text-pretty">
+            {t("linkedSourceHint")}
+          </Text>
+          <Card tone="soft" className="gap-0 overflow-hidden p-0">
+            <ul className="divide-y divide-divider">
+              {goal.fundingLinks.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex min-h-14 items-center gap-(--space-3) p-(--space-3)"
+                  data-testid={`goal-funding-source-${item.id}`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <Text size="sm" className="truncate font-medium">
+                      {t("linkedTo", { source: item.sourceName })}
+                    </Text>
+                    <Text size="xs" tone="secondary" className="mt-(--space-1)">
+                      {t(`fundingKind.${item.kind}`)}
+                      {item.valueStatus
+                        ? ` · ${translator(`fundingValueQuality.${item.valueStatus}`)}`
+                        : ""}
+                    </Text>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
+      ) : null}
+      {showMissingBacking ? (
+        <StatusAlert
+          variant={AlertVariant.WARNING}
+          title={t("needsBackingTitle")}
+          description={t("needsBackingBody")}
+        />
+      ) : null}
     </Page>
   );
 }

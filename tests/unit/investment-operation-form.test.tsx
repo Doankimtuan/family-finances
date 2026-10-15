@@ -91,6 +91,7 @@ function renderBuyForm() {
         title="Buy"
         holding={holding}
         holdings={[holding, otherHolding]}
+        feeHoldingOptions={[holding, otherHolding]}
         accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
       />
     </Sheet>,
@@ -114,6 +115,7 @@ function renderCryptoBuyForm() {
         title="Buy"
         holding={cryptoHolding}
         holdings={[cryptoHolding, otherHolding]}
+        feeHoldingOptions={[cryptoHolding, otherHolding]}
         accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
       />
     </Sheet>,
@@ -159,6 +161,7 @@ describe("InvestmentOperationForm", () => {
           title="Buy"
           holding={holding}
           holdings={[holding, cryptoHolding]}
+          feeHoldingOptions={[holding, cryptoHolding]}
           accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
         />
       </Sheet>,
@@ -288,6 +291,7 @@ function renderOperation(mode: InvestmentFormMode) {
         title={mode}
         holding={holding}
         holdings={[holding, otherHolding]}
+        feeHoldingOptions={[holding, otherHolding]}
         accounts={[{ id: ACCOUNT_ID, name: "Wallet", balance: 10_000_000 }]}
       />
     </Sheet>,

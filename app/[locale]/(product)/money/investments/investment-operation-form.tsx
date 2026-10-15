@@ -99,10 +99,12 @@ import { formatPercent } from "@/shared/i18n/formatters";
 import { InvestmentValuationMeta } from "./investment-valuation-meta";
 
 type AccountOption = { id: string; name: string; balance?: number };
+type HoldingOption = Pick<InvestmentHolding, "id" | "name" | "symbol">;
 type Props = {
   mode: InvestmentFormModeValue;
   holding: InvestmentHolding;
   holdings: InvestmentHolding[];
+  feeHoldingOptions: HoldingOption[];
   accounts: AccountOption[];
   title: string;
 };
@@ -269,6 +271,7 @@ const createDefaultValues = (
   mode: InvestmentFormModeValue,
   holding: InvestmentHolding,
   holdings: InvestmentHolding[],
+  feeHoldingOptions: HoldingOption[],
   accounts: AccountOption[],
 ) =>
   ({
@@ -298,7 +301,7 @@ const createDefaultValues = (
     feeQuantity: "",
     feeAsset: "",
     feeValue: null,
-    feeHoldingId: holdings[0]?.id ?? "",
+    feeHoldingId: feeHoldingOptions[0]?.id ?? "",
   }) satisfies FormValues;
 
 function resultTone(value: number | null): TextProps["tone"] {
@@ -321,6 +324,7 @@ export function InvestmentOperationForm({
   mode,
   holding,
   holdings,
+  feeHoldingOptions,
   accounts,
   title,
 }: Props) {
@@ -332,7 +336,13 @@ export function InvestmentOperationForm({
   const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [error, setError] = useState<InvestmentErrorCode | null>(null);
   const [pending, startTransition] = useTransition();
-  const defaults = createDefaultValues(mode, holding, holdings, accounts);
+  const defaults = createDefaultValues(
+    mode,
+    holding,
+    holdings,
+    feeHoldingOptions,
+    accounts,
+  );
   const {
     control,
     register,
@@ -425,6 +435,10 @@ export function InvestmentOperationForm({
     label: account.name,
   }));
   const holdingOptions = holdings.map((item) => ({
+    id: item.id,
+    label: item.symbol || item.name,
+  }));
+  const feeHoldingSelectOptions = feeHoldingOptions.map((item) => ({
     id: item.id,
     label: item.symbol || item.name,
   }));
@@ -1407,7 +1421,7 @@ export function InvestmentOperationForm({
                               id="investment-fee-holding"
                               label={t("feeHolding")}
                               value={field.value}
-                              options={holdingOptions}
+                              options={feeHoldingSelectOptions}
                               onChange={field.onChange}
                             />
                           )}

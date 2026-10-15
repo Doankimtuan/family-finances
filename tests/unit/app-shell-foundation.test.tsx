@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_PATH } from "@/modules/tenancy/application/app-path";
 import { INBOX_BADGE_MAX_DISPLAY_COUNT } from "@/modules/inbox/application/inbox-constants";
@@ -27,6 +33,7 @@ const navigationState = vi.hoisted(() => ({
   pathname: "",
   linkPending: false,
   push: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 vi.mock("next-intl", () => ({
@@ -56,6 +63,7 @@ vi.mock("@/i18n/navigation", () => ({
         {...props}
         onClick={(event) => {
           onClick?.(event);
+          if (!event.defaultPrevented) navigationState.navigate(href);
           event.preventDefault();
         }}
       >
@@ -83,6 +91,7 @@ beforeEach(() => {
   navigationState.pathname = APP_PATH.HOME;
   navigationState.linkPending = false;
   navigationState.push.mockClear();
+  navigationState.navigate.mockClear();
 });
 
 describe("Phase 2 app-shell foundation", () => {
@@ -120,6 +129,33 @@ describe("Phase 2 app-shell foundation", () => {
     );
 
     expect(navigationState.push).toHaveBeenCalledWith(APP_PATH.MONEY_ADD);
+  });
+
+  it("shows Record feedback immediately and clears it when navigation settles", async () => {
+    let settle = () => {};
+    navigationState.push.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    );
+    render(<BottomNavigation />);
+    const capture = screen.getByRole("button", {
+      name: "navigation.addTransaction",
+    });
+    fireEvent.click(capture);
+    expect(capture.closest("li")).toHaveAttribute("aria-busy", "true");
+    expect(
+      screen.getByRole("link", { name: /navigation.home/ }),
+    ).toHaveAttribute("data-active", "false");
+    fireEvent.click(capture);
+    expect(navigationState.push).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      settle();
+    });
+    expect(capture.closest("li")).not.toHaveAttribute("aria-busy");
+    expect(
+      screen.getByRole("link", { name: /navigation.home/ }),
+    ).toHaveAttribute("data-active", "true");
   });
 
   it("does not mark Money current on the transaction capture route", () => {
@@ -206,6 +242,29 @@ describe("Phase 2 app-shell foundation", () => {
     const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
     expect(moneyTab).toHaveAttribute("aria-current", "page");
     expect(moneyTab).toHaveAttribute("data-active", "true");
+  });
+
+  it("does not resurrect a cached selection after another route commits", () => {
+    const { rerender } = render(<BottomNavigation />);
+    fireEvent.click(screen.getByRole("link", { name: /navigation.money/ }));
+    navigationState.pathname = APP_PATH.MONEY;
+    rerender(<BottomNavigation />);
+    navigationState.pathname = APP_PATH.PLAN;
+    rerender(<BottomNavigation />);
+
+    expect(
+      screen.getByRole("link", { name: /navigation.plan/ }),
+    ).toHaveAttribute("data-active", "true");
+    expect(
+      screen.getByRole("link", { name: /navigation.money/ }),
+    ).toHaveAttribute("data-active", "false");
+  });
+
+  it("can navigate back to the current tab while a different tab is pending", () => {
+    render(<BottomNavigation />);
+    fireEvent.click(screen.getByRole("link", { name: /navigation.money/ }));
+    fireEvent.click(screen.getByRole("link", { name: /navigation.home/ }));
+    expect(navigationState.navigate).toHaveBeenLastCalledWith(APP_PATH.HOME);
   });
 
   it("preserves keyboard focus when the committed pathname changes", () => {

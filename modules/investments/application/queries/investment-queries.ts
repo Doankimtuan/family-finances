@@ -70,6 +70,11 @@ type HoldingRow = {
   accounting_method?: string | null;
 };
 
+type InvestmentHoldingOption = Pick<
+  InvestmentHolding,
+  "id" | "name" | "symbol"
+>;
+
 type ValuationRow = {
   holding_id: string;
   value_vnd: string | number;
@@ -1159,6 +1164,37 @@ async function loadInvestmentPortfolio(): Promise<InvestmentPortfolio | null> {
 }
 
 export const listInvestmentPortfolio = cache(loadInvestmentPortfolio);
+
+export async function listInvestmentHoldingOptions(): Promise<
+  InvestmentHoldingOption[] | null
+> {
+  const gate = await assertMoneyActionAllowed();
+  if (!gate.ok) return null;
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("investment_holdings")
+      .select("id, name, symbol")
+      .eq("household_id", gate.householdId)
+      .order("created_at", { ascending: true });
+    if (error) {
+      logActionFailure({
+        operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+        error,
+        context: { householdId: gate.householdId },
+      });
+      return null;
+    }
+    return data ?? [];
+  } catch (error) {
+    logActionFailure({
+      operation: INVESTMENT_OPERATION.LIST_HOLDINGS,
+      error,
+      context: { householdId: gate.householdId },
+    });
+    return null;
+  }
+}
 
 /**
  * Head-count of active holdings for hub-level summaries. Deliberately avoids

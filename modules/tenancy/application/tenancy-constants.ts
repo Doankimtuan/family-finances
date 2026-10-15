@@ -67,6 +67,7 @@ export const HOUSEHOLD_LOCALE_VALUES = [
 
 export const HOUSEHOLD_TIMEZONE = {
   VIETNAM: "Asia/Ho_Chi_Minh",
+  UTC: "UTC",
 } as const;
 
 export const HOUSEHOLD_TIMEZONE_UTC_OFFSET_MINUTES = {

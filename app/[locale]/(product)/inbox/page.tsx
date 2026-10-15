@@ -22,6 +22,8 @@ import {
   INBOX_RECEIPT_QUERY,
   INBOX_TAB_QUERY,
   INBOX_TEST_ID,
+  INBOX_READ_ONLY_BENCHMARK_ENABLED,
+  INBOX_READ_ONLY_BENCHMARK_ENV,
 } from "@/modules/inbox/application/inbox-constants";
 import { TopAppBar } from "@/shared/patterns/top-app-bar";
 import { Page } from "@/shared/patterns/page";
@@ -126,9 +128,14 @@ export default async function InboxPage({ params, searchParams }: Props) {
     backgroundClientPromise,
   ]);
 
+  const isReadOnlyBenchmark =
+    process.env.NODE_ENV === "development" &&
+    process.env[INBOX_READ_ONLY_BENCHMARK_ENV] ===
+      INBOX_READ_ONLY_BENCHMARK_ENABLED;
+
   // Best-effort sweep — run after the Inbox response to avoid competing with
   // the initial list query (BR-15).
-  if (!showArchived && backgroundClient) {
+  if (!showArchived && backgroundClient && !isReadOnlyBenchmark) {
     const workerContext = {
       client: backgroundClient,
       householdId: membership.householdId,

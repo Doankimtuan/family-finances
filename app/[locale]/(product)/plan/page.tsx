@@ -12,6 +12,7 @@ import {
   planJarPath,
 } from "@/modules/tenancy/application/app-path";
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
+import { getHomeHouseholdContext } from "@/modules/tenancy/application/get-home-household-context";
 import { getSessionUser } from "@/modules/tenancy/application/get-session-user";
 import { resolveActiveMembership } from "@/modules/tenancy/application/resolve-active-membership";
 import {
@@ -119,12 +120,22 @@ type LooseTranslator = {
 };
 
 type PlanPulseValue = NonNullable<Awaited<ReturnType<typeof getPlanPulse>>>;
+type PlanCurrentReads = {
+  pulse: PlanPulseValue | null;
+  budgets: Awaited<ReturnType<typeof getCurrentJarBudgets>>;
+};
 type PlanInboxResult = Awaited<ReturnType<typeof listOpenInboxItems>>;
 type PlanHistoryJar = PlanBudgetHistory["jars"][number];
+type PlanPeriodIdentity = {
+  currentPeriodMonth: string;
+  periodMonth: string;
+  isHistorical: boolean;
+  timezone: string;
+  currency: string;
+};
 type PlanHubData = {
   tCatalog: LooseTranslator;
   tJars: LooseTranslator;
-  inboxItems: PlanInboxResult;
   activeJars: PlanPulseValue["activeJars"];
   assistMode: PlanAssistMode;
   currency: string;
@@ -133,21 +144,18 @@ type PlanHubData = {
   periodIncome: number;
   budgetsByJar: Record<string, JarBudgetMetrics>;
   budgetSummary: ReturnType<typeof summarizeJarBudgets>;
-  historyMonths: string[];
   historyJars: PlanHistoryJar[];
   isHistorical: boolean;
   historyAvailable: boolean;
   historyMissingJarSnapshotCount: number;
 };
 
-type PlanHubQueryPromises = {
+type PlanHubPromises = {
+  periodPromise: Promise<PlanPeriodIdentity>;
+  currentReadsPromise: Promise<PlanCurrentReads> | null;
   tCatalogPromise: ReturnType<typeof getTranslations>;
   tJarsPromise: ReturnType<typeof getTranslations>;
-  pulsePromise: ReturnType<typeof getPlanPulse>;
-  currentJarBudgetsPromise: ReturnType<typeof getCurrentJarBudgets>;
-  historyMonthsPromise: ReturnType<typeof listPlanBudgetHistoryMonths>;
-  inboxItemsPromise: ReturnType<typeof listOpenInboxItems>;
-  historyPromise: Promise<PlanBudgetHistory | null>;
+  requestTime: Date;
 };
 
 const PLAN_EVENT_ICON_BY_SOURCE: Record<
@@ -177,6 +185,39 @@ function upcomingWithinDays(
     .slice(0, limit);
 }
 
+async function resolvePlanPeriodIdentity(
+  requestedMonth: string | undefined,
+  requestTime: Date,
+): Promise<PlanPeriodIdentity> {
+  const household = await getHomeHouseholdContext();
+  const timezone = household?.timezone ?? HOUSEHOLD_TIMEZONE.VIETNAM;
+  const currentMonth = currentPeriodMonth(requestTime, timezone);
+  const historyMonth =
+    requestedMonth &&
+    PLAN_PERIOD_MONTH_PATTERN.test(requestedMonth) &&
+    requestedMonth < currentMonth
+      ? requestedMonth
+      : null;
+
+  return {
+    currentPeriodMonth: currentMonth,
+    periodMonth: historyMonth ?? currentMonth,
+    isHistorical: historyMonth !== null,
+    timezone,
+    currency: (household?.baseCurrency ?? DEFAULT_CURRENCY).toUpperCase(),
+  };
+}
+
+async function loadCurrentPlanReads(
+  requestTime: Date,
+): Promise<PlanCurrentReads> {
+  const [pulse, budgets] = await Promise.all([
+    getPlanPulse(),
+    getCurrentJarBudgets(requestTime),
+  ]);
+  return { pulse, budgets };
+}
+
 function formatPlanPeriod(
   periodMonth: string,
   locale: string,
@@ -196,91 +237,110 @@ function formatPlanPeriod(
 }
 
 async function resolvePlanHubData({
+  periodPromise,
+  currentReadsPromise,
   tCatalogPromise,
   tJarsPromise,
-  pulsePromise,
-  currentJarBudgetsPromise,
-  historyMonthsPromise,
-  inboxItemsPromise,
-  historyPromise,
-  requestedMonth,
-}: PlanHubQueryPromises & {
-  requestedMonth?: string;
-}): Promise<PlanHubData> {
-  const [
-    tCatalogValue,
-    tJarsValue,
-    pulse,
-    currentJarBudgets,
-    historyMonthsValue,
-    inboxItems,
-    history,
-  ] = await Promise.all([
+  requestTime,
+}: PlanHubPromises): Promise<PlanHubData> {
+  const period = await periodPromise;
+  const [tCatalogValue, tJarsValue, currentReads, history] = await Promise.all([
     tCatalogPromise,
     tJarsPromise,
-    pulsePromise,
-    currentJarBudgetsPromise,
-    historyMonthsPromise,
-    inboxItemsPromise,
-    historyPromise,
+    period.isHistorical
+      ? Promise.resolve(null)
+      : (currentReadsPromise ?? loadCurrentPlanReads(requestTime)),
+    period.isHistorical
+      ? getPlanBudgetHistory(period.periodMonth, requestTime, {
+          timezone: period.timezone,
+          currency: period.currency,
+        })
+      : Promise.resolve(null),
   ]);
+  const pulse = currentReads?.pulse ?? null;
+  const currentJarBudgets = currentReads?.budgets ?? null;
+  const currentPeriodMonth =
+    currentJarBudgets?.periodMonth ?? period.currentPeriodMonth;
   const activeJars = (pulse?.activeJars ?? []).filter(
     (jar) => jar.kind !== JarKind.INCOME,
   );
-  const historyMonths = historyMonthsValue ?? [];
-  const currentMonth = currentJarBudgets?.periodMonth ?? currentPeriodMonth();
-  const historyMonth =
-    requestedMonth &&
-    PLAN_PERIOD_MONTH_PATTERN.test(requestedMonth) &&
-    requestedMonth < currentMonth
-      ? requestedMonth
-      : null;
-  const isHistorical = historyMonth !== null;
-  const selectedHistory = isHistorical ? history : null;
+  const selectedHistory = period.isHistorical ? history : null;
   const historyJars = selectedHistory?.jars ?? [];
-  const budgetsByJar = isHistorical
+  const budgetsByJar = period.isHistorical
     ? Object.fromEntries(historyJars.map((jar) => [jar.id, jar.metrics]))
     : (currentJarBudgets?.byJarId ?? {});
-  const historyAvailable = !isHistorical || selectedHistory !== null;
-  const periodMonth = historyMonth ?? currentMonth;
-  const budgetSummary = isHistorical
-    ? selectedHistory
-      ? summarizeJarBudgets(
-          historyJars.map((jar) => jar.id),
-          budgetsByJar,
-        )
-      : null
-    : currentJarBudgets
-      ? summarizeJarBudgets(
-          activeJars.map((jar) => jar.id),
-          budgetsByJar,
-        )
-      : null;
+  const historyAvailable = !period.isHistorical || selectedHistory !== null;
+  let budgetSummary: ReturnType<typeof summarizeJarBudgets> = null;
+  if (period.isHistorical && selectedHistory) {
+    budgetSummary = summarizeJarBudgets(
+      historyJars.map((jar) => jar.id),
+      budgetsByJar,
+    );
+  } else if (!period.isHistorical && currentJarBudgets) {
+    budgetSummary = summarizeJarBudgets(
+      activeJars.map((jar) => jar.id),
+      budgetsByJar,
+    );
+  }
 
   return {
     tCatalog: tCatalogValue as unknown as LooseTranslator,
     tJars: tJarsValue as unknown as LooseTranslator,
-    inboxItems,
     activeJars,
     assistMode:
       pulse?.monthCloseMode === RitualMode.MANUAL
         ? PlanAssistMode.MANUAL
         : PlanAssistMode.ASSISTED,
     currency: selectedHistory?.currency ?? pulse?.currency ?? DEFAULT_CURRENCY,
-    currentPeriodMonth: currentMonth,
-    periodMonth,
-    periodIncome: isHistorical
+    currentPeriodMonth,
+    periodMonth: period.isHistorical ? period.periodMonth : currentPeriodMonth,
+    periodIncome: period.isHistorical
       ? (selectedHistory?.periodIncome ?? 0)
       : (currentJarBudgets?.periodIncome ?? 0),
     budgetsByJar,
     budgetSummary,
-    historyMonths,
     historyJars,
-    isHistorical,
+    isHistorical: period.isHistorical,
     historyAvailable,
     historyMissingJarSnapshotCount:
       selectedHistory?.missingJarSnapshotCount ?? 0,
   };
+}
+
+async function PlanPeriodSelector({
+  data,
+  historyMonthsPromise,
+  locale,
+  t,
+}: {
+  data: PlanHubData;
+  historyMonthsPromise: ReturnType<typeof listPlanBudgetHistoryMonths>;
+  locale: string;
+  t: LooseTranslator;
+}) {
+  const historyMonths = (await historyMonthsPromise) ?? [];
+  const periodOptions = [
+    ...new Set([data.currentPeriodMonth, data.periodMonth, ...historyMonths]),
+  ].map((month) => ({
+    value: month,
+    label: formatPlanPeriod(month, locale, t),
+    shortLabel: formatDate(new Date(`${month}T00:00:00Z`), locale, {
+      month: "short",
+      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
+    }),
+  }));
+
+  return (
+    <PlanPeriodSelect
+      label={t("home.periodSelectorLabel")}
+      loadingLabel={t("home.periodLoading")}
+      options={periodOptions}
+      selectedMonth={data.periodMonth}
+      historical={data.isHistorical}
+      previousLabel={t("home.previousMonth")}
+      nextLabel={t("home.nextMonth")}
+    />
+  );
 }
 
 function intentionAmount(value: string) {
@@ -295,10 +355,12 @@ async function PlanCriticalSection({
   locale,
   t,
   dataPromise,
+  historyMonthsPromise,
 }: {
   locale: string;
   t: LooseTranslator;
   dataPromise: Promise<PlanHubData>;
+  historyMonthsPromise: ReturnType<typeof listPlanBudgetHistoryMonths>;
 }) {
   const data = await dataPromise;
   const summary = data.budgetSummary;
@@ -352,34 +414,18 @@ async function PlanCriticalSection({
   const usageLabel = usagePercentLabel
     ? t("home.monthlyUsage", { percent: usagePercentLabel })
     : undefined;
-  const periodOptions = [
-    ...new Set([
-      data.currentPeriodMonth,
-      data.periodMonth,
-      ...data.historyMonths,
-    ]),
-  ].map((month) => ({
-    value: month,
-    label: formatPlanPeriod(month, locale, t),
-    shortLabel: formatDate(new Date(`${month}T00:00:00Z`), locale, {
-      month: "short",
-      timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
-    }),
-  }));
-
   return (
     <MotionReveal>
       <div className="flex flex-col gap-(--space-3)">
         <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
-          <PlanPeriodSelect
-            label={t("home.periodSelectorLabel")}
-            loadingLabel={t("home.periodLoading")}
-            options={periodOptions}
-            selectedMonth={data.periodMonth}
-            historical={data.isHistorical}
-            previousLabel={t("home.previousMonth")}
-            nextLabel={t("home.nextMonth")}
-          />
+          <Suspense fallback={<PlanPeriodSelectFallback />}>
+            <PlanPeriodSelector
+              data={data}
+              historyMonthsPromise={historyMonthsPromise}
+              locale={locale}
+              t={t}
+            />
+          </Suspense>
           {!data.isHistorical ? (
             <StatusBadge
               tone={
@@ -531,13 +577,18 @@ async function PlanAttentionSection({
   t,
   userId,
   dataPromise,
+  inboxItemsPromise,
 }: {
   locale: string;
   t: LooseTranslator;
   userId: string;
   dataPromise: Promise<PlanHubData>;
+  inboxItemsPromise: Promise<PlanInboxResult>;
 }) {
-  const data = await dataPromise;
+  const [data, inboxItems] = await Promise.all([
+    dataPromise,
+    inboxItemsPromise,
+  ]);
   if (data.isHistorical) return null;
   const overspent = data.activeJars.flatMap((jar) => {
     const metrics = data.budgetsByJar[jar.id];
@@ -553,7 +604,7 @@ async function PlanAttentionSection({
   return (
     <>
       <EmergencyInboxBanner
-        items={data.inboxItems ?? []}
+        items={inboxItems ?? []}
         viewerUserId={userId}
         title={t("jars.reallocate.emergencyBannerTitle")}
         body={t("jars.reallocate.emergencyBannerBody")}
@@ -932,15 +983,17 @@ async function PlanJarsSection({
 async function PlanUpcomingSection({
   locale,
   t,
-  dataPromise,
+  periodPromise,
+  upcomingPromise,
 }: {
   locale: string;
   t: LooseTranslator;
-  dataPromise: Promise<PlanHubData>;
+  periodPromise: Promise<PlanPeriodIdentity>;
+  upcomingPromise: ReturnType<typeof listPlanHubUpcomingEvents>;
 }) {
-  const data = await dataPromise;
-  if (data.isHistorical) return null;
-  const upcomingPreview = await listPlanHubUpcomingEvents();
+  const period = await periodPromise;
+  if (period.isHistorical) return null;
+  const upcomingPreview = await upcomingPromise;
   const currency = upcomingPreview?.currency ?? DEFAULT_CURRENCY;
   const upcoming = upcomingWithinDays(
     (upcomingPreview?.events ?? []).filter(
@@ -1055,15 +1108,15 @@ async function PlanUpcomingSection({
 async function PlanShortcutSections({
   locale,
   t,
-  dataPromise,
+  periodPromise,
 }: {
   locale: string;
   t: LooseTranslator;
-  dataPromise: Promise<PlanHubData>;
+  periodPromise: Promise<PlanPeriodIdentity>;
 }) {
-  const data = await dataPromise;
-  if (data.isHistorical) return null;
-  const periodMonth = data.periodMonth;
+  const period = await periodPromise;
+  if (period.isHistorical) return null;
+  const periodMonth = period.periodMonth;
   const month = formatDate(new Date(`${periodMonth}T00:00:00Z`), locale, {
     month: locale === APP_LOCALE.VIETNAMESE ? "numeric" : "long",
     timeZone: HOUSEHOLD_TIMEZONE.VIETNAM,
@@ -1094,13 +1147,13 @@ async function PlanShortcutSections({
 
 async function PlanToolDestinations({
   t,
-  dataPromise,
+  periodPromise,
 }: {
   t: LooseTranslator;
-  dataPromise: Promise<PlanHubData>;
+  periodPromise: Promise<PlanPeriodIdentity>;
 }) {
-  const data = await dataPromise;
-  if (data.isHistorical) return null;
+  const period = await periodPromise;
+  if (period.isHistorical) return null;
   return (
     <PlanDestinationCard
       title={t("home.workspaceTitle")}
@@ -1127,14 +1180,14 @@ async function PlanToolDestinations({
 }
 
 async function PlanAllocationAction({
-  dataPromise,
+  periodPromise,
   t,
 }: {
-  dataPromise: Promise<PlanHubData>;
+  periodPromise: Promise<PlanPeriodIdentity>;
   t: LooseTranslator;
 }) {
-  const data = await dataPromise;
-  if (data.isHistorical)
+  const period = await periodPromise;
+  if (period.isHistorical)
     return <PlanPrivacyToggle testId="plan-history-privacy" onSurface />;
   return (
     <Link
@@ -1149,6 +1202,30 @@ async function PlanAllocationAction({
       <AppIcon icon={ACTION_ICONS.add} size={AppIconSize.XS} />
       {t("home.allocate")}
     </Link>
+  );
+}
+
+async function PlanHistoryBadge({
+  periodPromise,
+  t,
+}: {
+  periodPromise: Promise<PlanPeriodIdentity>;
+  t: LooseTranslator;
+}) {
+  const period = await periodPromise;
+  if (!period.isHistorical) return null;
+  return (
+    <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
+      {t("home.historyTitle")}
+    </StatusBadge>
+  );
+}
+
+function PlanPeriodSelectFallback() {
+  return (
+    <div className="w-full rounded-(--radius-card) border border-border-subtle bg-surface p-(--space-1)">
+      <Skeleton className="h-11 w-full" />
+    </div>
   );
 }
 
@@ -1212,39 +1289,32 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
   const queryMonth = query[PLAN_MONTH_QUERY];
   const requestedMonth =
     typeof queryMonth === "string" ? queryMonth : undefined;
-  const isHistoricalRequest =
-    requestedMonth !== undefined &&
-    PLAN_PERIOD_MONTH_PATTERN.test(requestedMonth) &&
-    requestedMonth < currentPeriodMonth();
+  const requestTime = new Date();
+  const currentReadsPromise =
+    requestedMonth === undefined ? loadCurrentPlanReads(requestTime) : null;
+  const periodPromise = resolvePlanPeriodIdentity(requestedMonth, requestTime);
 
   const tPromise = getTranslations("plan");
   const tCatalogPromise = getTranslations("catalog");
   const tJarsPromise = getTranslations("plan.jars");
-  const pulsePromise = isHistoricalRequest
-    ? Promise.resolve(null)
-    : getPlanPulse();
-  const currentJarBudgetsPromise = isHistoricalRequest
-    ? Promise.resolve(null)
-    : getCurrentJarBudgets();
-  const historyMonthsPromise = listPlanBudgetHistoryMonths();
-  const inboxItemsPromise = isHistoricalRequest
-    ? Promise.resolve([])
-    : listOpenInboxItems();
-  const historyPromise = isHistoricalRequest
-    ? getPlanBudgetHistory(requestedMonth)
-    : Promise.resolve(null);
-  const planTranslation = await tPromise;
-  const t = planTranslation as unknown as LooseTranslator;
   const dataPromise = resolvePlanHubData({
+    periodPromise,
+    currentReadsPromise,
     tCatalogPromise,
     tJarsPromise,
-    pulsePromise,
-    currentJarBudgetsPromise,
-    historyMonthsPromise,
-    inboxItemsPromise,
-    historyPromise,
-    requestedMonth,
+    requestTime,
   });
+  const historyMonthsPromise = periodPromise.then(({ timezone }) =>
+    listPlanBudgetHistoryMonths(requestTime, timezone),
+  );
+  const inboxItemsPromise = periodPromise.then(({ isHistorical }) =>
+    isHistorical ? Promise.resolve([]) : listOpenInboxItems(),
+  );
+  const upcomingPromise = periodPromise.then(({ isHistorical }) =>
+    isHistorical ? Promise.resolve(null) : listPlanHubUpcomingEvents(),
+  );
+  const planTranslation = await tPromise;
+  const t = planTranslation as unknown as LooseTranslator;
 
   return (
     <Page
@@ -1257,17 +1327,15 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
               <h1 className="text-xl font-bold tracking-tight">
                 {t("home.title")}
               </h1>
-              {isHistoricalRequest ? (
-                <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
-                  {t("home.historyTitle")}
-                </StatusBadge>
-              ) : null}
+              <Suspense fallback={null}>
+                <PlanHistoryBadge periodPromise={periodPromise} t={t} />
+              </Suspense>
             </div>
           }
           subtitle={t("home.subtitle")}
           trailing={
             <Suspense fallback={null}>
-              <PlanAllocationAction dataPromise={dataPromise} t={t} />
+              <PlanAllocationAction periodPromise={periodPromise} t={t} />
             </Suspense>
           }
         />
@@ -1276,7 +1344,12 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
     >
       <PlanOfflineBanner />
       <Suspense fallback={<PlanContextSkeleton />}>
-        <PlanCriticalSection locale={locale} t={t} dataPromise={dataPromise} />
+        <PlanCriticalSection
+          locale={locale}
+          t={t}
+          dataPromise={dataPromise}
+          historyMonthsPromise={historyMonthsPromise}
+        />
       </Suspense>
       <Suspense fallback={<PlanAttentionFallback />}>
         <PlanAttentionSection
@@ -1284,17 +1357,29 @@ export default async function PlanHubPage({ params, searchParams }: Props) {
           t={t}
           userId={user.id}
           dataPromise={dataPromise}
+          inboxItemsPromise={inboxItemsPromise}
         />
       </Suspense>
       <Suspense fallback={<PlanJarsFallback />}>
         <PlanJarsSection locale={locale} t={t} dataPromise={dataPromise} />
       </Suspense>
-      <PlanToolDestinations t={t} dataPromise={dataPromise} />
+      <Suspense fallback={null}>
+        <PlanToolDestinations t={t} periodPromise={periodPromise} />
+      </Suspense>
       <Suspense fallback={<PlanUpcomingFallback />}>
-        <PlanUpcomingSection locale={locale} t={t} dataPromise={dataPromise} />
+        <PlanUpcomingSection
+          locale={locale}
+          t={t}
+          periodPromise={periodPromise}
+          upcomingPromise={upcomingPromise}
+        />
       </Suspense>
       <Suspense fallback={<PlanShortcutTilesFallback />}>
-        <PlanShortcutSections locale={locale} t={t} dataPromise={dataPromise} />
+        <PlanShortcutSections
+          locale={locale}
+          t={t}
+          periodPromise={periodPromise}
+        />
       </Suspense>
     </Page>
   );

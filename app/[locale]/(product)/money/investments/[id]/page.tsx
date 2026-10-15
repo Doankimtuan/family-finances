@@ -31,7 +31,7 @@ import {
   formatPercent,
 } from "@/shared/i18n/formatters";
 import { Page } from "@/shared/patterns/page";
-import { TopAppBar } from "@/shared/patterns/top-app-bar";
+import { InvestmentsReturnTopAppBar } from "./investments-return-navigation";
 import { Card } from "@/shared/patterns/card";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { ErrorState } from "@/shared/patterns/error-state";
@@ -177,11 +177,7 @@ export default async function InvestmentDetailPage({
       <Page
         contentClassName="gap-(--space-3)"
         topBar={
-          <TopAppBar
-            variant="detail"
-            backHref={APP_PATH.MONEY_INVESTMENTS}
-            title={t("title")}
-          />
+          <InvestmentsReturnTopAppBar variant="detail" title={t("title")} />
         }
       >
         <ErrorState
@@ -203,11 +199,7 @@ export default async function InvestmentDetailPage({
       <Page
         contentClassName="gap-(--space-3)"
         topBar={
-          <TopAppBar
-            variant="detail"
-            backHref={APP_PATH.MONEY_INVESTMENTS}
-            title={t("title")}
-          />
+          <InvestmentsReturnTopAppBar variant="detail" title={t("title")} />
         }
       >
         <EmptyState
@@ -308,9 +300,8 @@ export default async function InvestmentDetailPage({
       testId="investment-detail"
       contentClassName="gap-(--space-3)"
       topBar={
-        <TopAppBar
+        <InvestmentsReturnTopAppBar
           variant="detail"
-          backHref={APP_PATH.MONEY_INVESTMENTS}
           title={t("title")}
           subtitle={holding.name}
           className="border-b border-border-subtle"

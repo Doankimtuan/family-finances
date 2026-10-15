@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -8,6 +9,7 @@ import {
   InvestmentHoldingsTab,
   InvestmentOverviewFilter,
   INVESTMENT_HOLDINGS_TAB_VALUES,
+  INVESTMENT_LIST_QUERY_PARAM,
   INVESTMENT_OVERVIEW_FILTER_VALUES,
   INVESTMENT_REPORTING_CURRENCY,
 } from "@/modules/investments/application/investment-constants";
@@ -53,6 +55,7 @@ import { FilterChip } from "@/shared/ui/filter-chip";
 import { Input } from "@/shared/ui/input";
 import { Text } from "@/shared/ui/text";
 import { cn } from "@/shared/utils/cn";
+import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
 import {
   InvestmentValuationMeta,
   InvestmentValuationMetaVariant,
@@ -92,6 +95,36 @@ const ASSET_VISUALS = {
 } as const;
 const BASIS_POINTS_PER_PERCENT = 100;
 const BASIS_POINTS_PER_WHOLE = 10_000;
+
+type WindowWithNavigation = Window & {
+  navigation?: { currentEntry: { key: string } | null };
+};
+
+const scrollPositionsByEntryKey = new Map<string, number>();
+
+function replaceInvestmentListState({
+  query,
+  tab,
+  filter,
+}: {
+  query: string;
+  tab: InvestmentHoldingsTab;
+  filter: InvestmentOverviewFilter;
+}) {
+  const url = new URL(window.location.href);
+  const { SEARCH, TAB, FILTER } = INVESTMENT_LIST_QUERY_PARAM;
+
+  if (query) url.searchParams.set(SEARCH, query);
+  else url.searchParams.delete(SEARCH);
+
+  if (tab === InvestmentHoldingsTab.ACTIVE) url.searchParams.delete(TAB);
+  else url.searchParams.set(TAB, tab);
+
+  if (filter === InvestmentOverviewFilter.ALL) url.searchParams.delete(FILTER);
+  else url.searchParams.set(FILTER, filter);
+
+  window.history.replaceState(null, "", url.href);
+}
 
 function Performance({
   value,
@@ -266,16 +299,42 @@ export function InvestmentsOverview({
   portfolio: InvestmentPortfolio;
   locale: string;
 }) {
+  const searchParams = useSearchParams();
   const t = useTranslations("money.investments.stitchOverview");
   const tOverview = useTranslations("money.investments.overview");
   const tMoney = useTranslations("money");
-  const [tab, setTab] = useState<InvestmentHoldingsTab>(
-    InvestmentHoldingsTab.ACTIVE,
-  );
-  const [filter, setFilter] = useState<InvestmentOverviewFilter>(
-    InvestmentOverviewFilter.ALL,
-  );
-  const [query, setQuery] = useState("");
+  const tab =
+    INVESTMENT_HOLDINGS_TAB_VALUES.find(
+      (value) => value === searchParams.get(INVESTMENT_LIST_QUERY_PARAM.TAB),
+    ) ?? InvestmentHoldingsTab.ACTIVE;
+  const filter =
+    INVESTMENT_OVERVIEW_FILTER_VALUES.find(
+      (value) => value === searchParams.get(INVESTMENT_LIST_QUERY_PARAM.FILTER),
+    ) ?? InvestmentOverviewFilter.ALL;
+  const query = searchParams.get(INVESTMENT_LIST_QUERY_PARAM.SEARCH) ?? "";
+
+  useLayoutEffect(() => {
+    const navigation = (window as WindowWithNavigation).navigation;
+    const entryKey = navigation?.currentEntry?.key;
+    const scrollRegion = document.querySelector<HTMLElement>(
+      `[data-slot="${SHELL_SCROLL_REGION_SLOT}"]`,
+    );
+    if (!navigation || !entryKey || !scrollRegion) return;
+
+    const scrollTop = scrollPositionsByEntryKey.get(entryKey);
+    if (scrollTop !== undefined) scrollRegion.scrollTop = scrollTop;
+
+    const rememberScrollPosition = () => {
+      if (navigation.currentEntry?.key === entryKey) {
+        scrollPositionsByEntryKey.set(entryKey, scrollRegion.scrollTop);
+      }
+    };
+    scrollRegion.addEventListener("scroll", rememberScrollPosition, {
+      passive: true,
+    });
+    return () =>
+      scrollRegion.removeEventListener("scroll", rememberScrollPosition);
+  }, []);
   const holdings =
     tab === InvestmentHoldingsTab.ACTIVE
       ? portfolio.activeHoldings
@@ -507,8 +566,11 @@ export function InvestmentsOverview({
                 type="button"
                 aria-pressed={tab === id}
                 onClick={() => {
-                  setTab(id);
-                  setFilter(InvestmentOverviewFilter.ALL);
+                  replaceInvestmentListState({
+                    query,
+                    tab: id,
+                    filter: InvestmentOverviewFilter.ALL,
+                  });
                 }}
                 className={cn(
                   "min-h-11 border-b-2 px-(--space-1) text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
@@ -544,7 +606,9 @@ export function InvestmentsOverview({
             <FilterChip
               key={id}
               selected={filter === id}
-              onPress={() => setFilter(id)}
+              onPress={() =>
+                replaceInvestmentListState({ query, tab, filter: id })
+              }
               className={
                 filter === id
                   ? "border-primary bg-primary text-primary-fg"
@@ -565,7 +629,13 @@ export function InvestmentsOverview({
           aria-label={tOverview("searchAria")}
           placeholder={tOverview("searchPlaceholder")}
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) =>
+            replaceInvestmentListState({
+              query: event.target.value,
+              tab,
+              filter,
+            })
+          }
           data-testid="investment-overview-search"
         />
         <div className="flex items-baseline justify-between gap-(--space-2)">

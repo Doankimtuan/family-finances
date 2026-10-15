@@ -65,6 +65,7 @@ import {
 } from "@/modules/investments/application/investment-constants";
 import {
   getInvestmentHoldingResult,
+  listInvestmentHoldingOptions,
   listInvestmentPortfolio,
 } from "@/modules/investments/application/queries/investment-queries";
 import { FINANCIAL_SCOPE } from "@/modules/shared-kernel/application/financial-scope";
@@ -658,6 +659,44 @@ describe("listInvestmentPortfolio orchestration", () => {
     expect(tables.filter((table) => table === VALUATIONS_TABLE)).toHaveLength(
       2,
     );
+  });
+});
+
+describe("investment operation holding options", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(assertMoneyActionAllowed).mockResolvedValue({
+      ok: true,
+      userId: "user-1",
+      householdId: HOUSEHOLD_ID,
+      membershipId: MEMBERSHIP_ID,
+    });
+  });
+
+  it("returns only household-scoped selector fields in portfolio order", async () => {
+    const holdingQuery = thenableQuery(
+      Promise.resolve({
+        data: [
+          { id: ACTIVE_HOLDING_ID, name: "FPT", symbol: "FPT" },
+          { id: CLOSED_HOLDING_ID, name: "Closed", symbol: "OLD" },
+        ],
+        error: null,
+      }),
+    );
+    const client = { from: vi.fn(() => holdingQuery) };
+    vi.mocked(createSupabaseServerClient).mockResolvedValue(client as never);
+
+    await expect(listInvestmentHoldingOptions()).resolves.toEqual([
+      { id: ACTIVE_HOLDING_ID, name: "FPT", symbol: "FPT" },
+      { id: CLOSED_HOLDING_ID, name: "Closed", symbol: "OLD" },
+    ]);
+
+    expect(client.from).toHaveBeenCalledWith(HOLDINGS_TABLE);
+    expect(holdingQuery.select).toHaveBeenCalledWith("id, name, symbol");
+    expect(holdingQuery.eq).toHaveBeenCalledWith("household_id", HOUSEHOLD_ID);
+    expect(holdingQuery.order).toHaveBeenCalledWith("created_at", {
+      ascending: true,
+    });
   });
 });
 

@@ -5,13 +5,14 @@ import { motion } from "motion/react";
 import { usePathname } from "@/i18n/navigation";
 import { APP_PATH } from "@/modules/shared-kernel/app-path";
 import { TABS } from "@/shared/patterns/bottom-navigation-tabs";
-import { motionTokens, springs, useMotionPolicy } from "@/shared/motion";
+import { motionTokens, useMotionPolicy } from "@/shared/motion";
 
 export function ProductRouteTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { enabled: motionEnabled, mounted } = useMotionPolicy();
   const isPrimaryProductRoute =
     pathname === APP_PATH.TOGETHER ||
+    pathname === APP_PATH.MONEY_ADD ||
     TABS.some(({ href }) => href === pathname);
   const shouldAnimate = mounted && motionEnabled && isPrimaryProductRoute;
 
@@ -27,7 +28,10 @@ export function ProductRouteTransition({ children }: { children: ReactNode }) {
       animate={{ opacity: 1 }}
       transition={
         motionEnabled
-          ? springs.snappy
+          ? {
+              duration: motionTokens.duration.fast,
+              ease: motionTokens.easing.standard,
+            }
           : { duration: motionTokens.duration.none }
       }
     >

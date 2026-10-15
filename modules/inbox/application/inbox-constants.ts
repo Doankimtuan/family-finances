@@ -232,6 +232,10 @@ export const INBOX_OPERATION = {
 
 export const INBOX_OPEN_PAGE_SIZE = 25;
 
+/** Local-only opt-in that skips Inbox write maintenance during read benchmarks. */
+export const INBOX_READ_ONLY_BENCHMARK_ENV = "INBOX_READ_ONLY_BENCHMARK";
+export const INBOX_READ_ONLY_BENCHMARK_ENABLED = "true";
+
 export const InboxEnrichmentState = {
   READY: "READY",
   UNAVAILABLE: "UNAVAILABLE",

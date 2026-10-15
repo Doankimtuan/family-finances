@@ -442,6 +442,12 @@ export const INVESTMENT_HOLDINGS_TAB_VALUES = [
   InvestmentHoldingsTab.CLOSED,
 ] as const;
 
+export const INVESTMENT_LIST_QUERY_PARAM = {
+  SEARCH: "search",
+  TAB: "tab",
+  FILTER: "filter",
+} as const;
+
 export const INVESTMENT_VALIDATION_MESSAGE = {
   INVALID_CASH_FEE: "INVALID_CASH_FEE",
   INVALID_ASSET_FEE: "INVALID_ASSET_FEE",

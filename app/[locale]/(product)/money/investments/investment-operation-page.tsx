@@ -6,6 +6,7 @@ import {
 } from "@/modules/tenancy/application/app-path";
 import {
   getInvestmentHolding,
+  listInvestmentHoldingOptions,
   listInvestmentPortfolio,
   InvestmentFormMode,
 } from "@/modules/investments/application";
@@ -25,17 +26,32 @@ import { InvestmentOperationSheet } from "./investment-operation-sheet";
 type Props = { mode: InvestmentFormModeValue; holdingId?: string };
 
 export async function InvestmentOperationPage({ mode, holdingId }: Props) {
-  const [t, tUx, portfolio, accounts, requested] = await Promise.all([
-    getTranslations("money.investments.operation"),
-    getTranslations("money.investments"),
-    listInvestmentPortfolio(),
-    listAccounts(),
-    holdingId ? getInvestmentHolding(holdingId) : Promise.resolve(null),
-  ]);
+  const needsPortfolio =
+    mode === InvestmentFormMode.CONVERSION ||
+    mode === InvestmentFormMode.INCOME;
+  const needsPeerHoldingOptions =
+    mode === InvestmentFormMode.BUY || mode === InvestmentFormMode.SELL;
+  const needsAccounts = mode !== InvestmentFormMode.VALUATION;
+  const [t, tUx, portfolio, accounts, requested, peerHoldingOptions] =
+    await Promise.all([
+      getTranslations("money.investments.operation"),
+      getTranslations("money.investments"),
+      needsPortfolio ? listInvestmentPortfolio() : Promise.resolve(null),
+      needsAccounts ? listAccounts() : Promise.resolve(null),
+      holdingId ? getInvestmentHolding(holdingId) : Promise.resolve(null),
+      needsPeerHoldingOptions
+        ? listInvestmentHoldingOptions()
+        : Promise.resolve(null),
+    ]);
   const operationHoldings =
     mode === InvestmentFormMode.CONVERSION
       ? (portfolio?.holdings.filter((item) => item.ownership.canMutate) ?? [])
-      : (portfolio?.holdings ?? []);
+      : needsPortfolio
+        ? (portfolio?.holdings ?? [])
+        : [];
+  const feeHoldingOptions =
+    peerHoldingOptions ??
+    operationHoldings.map(({ id, name, symbol }) => ({ id, name, symbol }));
   const holding = requested ?? operationHoldings[0] ?? null;
   const ux = holding ? investmentUxConfig(holding.assetClass) : null;
   const operationTitle =
@@ -51,7 +67,11 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
   const backHref = holdingId
     ? moneyInvestmentPath(holdingId)
     : APP_PATH.MONEY_INVESTMENTS;
-  if (!holding || !portfolio)
+  if (
+    !holding ||
+    (needsPortfolio && !portfolio) ||
+    (needsPeerHoldingOptions && !peerHoldingOptions)
+  )
     return (
       <Page
         contentClassName="gap-(--space-5)"
@@ -143,6 +163,7 @@ export async function InvestmentOperationPage({ mode, holdingId }: Props) {
             title={operationTitle ?? t(`title.${mode}`)}
             holding={holding}
             holdings={operationHoldings}
+            feeHoldingOptions={feeHoldingOptions}
             accounts={(accounts?.accounts ?? []).map((account) => ({
               id: account.id,
               name: account.name,

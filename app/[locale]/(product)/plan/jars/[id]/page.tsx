@@ -64,6 +64,7 @@ import { currentPeriodMonth } from "@/modules/plan/application/ritual-period";
 import { HOUSEHOLD_TIMEZONE } from "@/modules/tenancy/application/tenancy-constants";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { JarDetailControls } from "./jar-detail-controls";
+import { JarDetailLifecycleControls } from "./jar-detail-lifecycle-controls";
 import { ReallocateJarForm } from "../reallocate-jar-form";
 import {
   jarBudgetProgressPercent,
@@ -75,6 +76,12 @@ import {
 type Props = {
   params: Promise<{ locale: string; id: string }>;
 };
+
+type JarBudgetPromise = ReturnType<typeof getCurrentJarBudgets>;
+type JarCategoriesPromise = ReturnType<typeof listJarCategories>;
+type ActiveJarsPromise = ReturnType<typeof listActiveJars>;
+type HouseholdPoliciesPromise = ReturnType<typeof getHouseholdPolicies>;
+type CatalogTranslator = Parameters<typeof localizeCatalogName>[0];
 
 type JarPlanTranslator = {
   (key: string, values?: Record<string, string | number>): string;
@@ -134,7 +141,7 @@ function JarIntentionHero({
   stateLabel: string;
   state: JarStateValue;
   remainingLabel: ReactNode;
-  icon: typeof PLAN_ICONS.jar;
+  icon: ReactNode;
 }) {
   return (
     <Card
@@ -145,7 +152,7 @@ function JarIntentionHero({
       <div className="flex items-center justify-between gap-(--space-3)">
         <div className="flex min-w-0 items-center gap-(--space-3)">
           <IconContainer tone={IconContainerTone.PRIMARY} size="md">
-            <AppIcon icon={icon} size={AppIconSize.MD} />
+            {icon}
           </IconContainer>
           <div className="min-w-0">
             <Text size="sm" weight="semibold">
@@ -186,76 +193,47 @@ function JarIntentionHero({
   );
 }
 
-/**
- * plan.jar-detail — Planned amount (not Balance), state, allocation (ST-E05-002 / F3).
- */
-export default async function PlanJarDetailPage({ params }: Props) {
-  const { locale: rawLocale, id } = await params;
-  const locale = hasLocale(routing.locales, rawLocale)
-    ? rawLocale
-    : routing.defaultLocale;
-  setLocale(locale);
+function categoriesForJar(
+  categories: Awaited<JarCategoriesPromise>,
+  jarId: string,
+) {
+  return categories?.filter((category) => category.jarId === jarId) ?? [];
+}
 
-  const user = await getSessionUser();
-  if (!user) {
-    return redirect({ href: APP_PATH.LOGIN, locale });
-  }
-  const membership = await resolveActiveMembership(user.id);
-  if (!membership) {
-    return redirect({ href: APP_PATH.ONBOARD, locale });
-  }
+async function JarHeroCategoryIcon({
+  jar,
+  categoriesPromise,
+}: {
+  jar: Awaited<ReturnType<typeof getJar>> & {};
+  categoriesPromise: JarCategoriesPromise;
+}) {
+  const categories = await categoriesPromise;
+  const linkedCategory = categoriesForJar(categories, jar.id)[0];
+  const icon = linkedCategory
+    ? categoryVisualFor({
+        categoryId: linkedCategory.id,
+        categoryName: linkedCategory.name,
+      }).icon
+    : PLAN_ICONS.jar;
 
-  const [
-    t,
-    tReview,
-    tCatalog,
-    jar,
-    activeJars,
-    policies,
-    inboxItems,
-    categories,
-    budgets,
-  ] = await Promise.all([
-    getTranslations("plan.jars"),
-    getTranslations("plan.monthlyReview"),
-    getTranslations("catalog"),
-    getJar(id),
-    listActiveJars(),
-    getHouseholdPolicies(),
-    listOpenInboxItems(),
-    listJarCategories(),
-    getCurrentJarBudgets(),
-  ]);
+  return <AppIcon icon={icon} size={AppIconSize.MD} />;
+}
 
-  if (!jar) {
-    return (
-      <Page
-        testId="plan-jar-detail"
-        topBar={
-          <TopAppBar
-            variant={TopAppBarVariant.DETAIL}
-            title={t("notFound")}
-            backHref={APP_PATH.PLAN_JARS}
-            backLabel={t("backToList")}
-          />
-        }
-      >
-        <PlanUnavailable
-          title={t("notFound")}
-          description={t("detailSubtitle")}
-          actionHref={APP_PATH.PLAN_JARS}
-          actionLabel={t("backToList")}
-        />
-      </Page>
-    );
-  }
-
-  const linkedCategories =
-    categories?.filter((category) => category.jarId === jar.id) ?? [];
-  const translator = t as unknown as JarPlanTranslator;
-  const displayName = jar.isNameCustom
-    ? jar.name
-    : localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name);
+async function JarFinancialContent({
+  jar,
+  budgetsPromise,
+  categoriesPromise,
+  locale,
+  t,
+}: {
+  jar: NonNullable<Awaited<ReturnType<typeof getJar>>>;
+  budgetsPromise: JarBudgetPromise;
+  categoriesPromise: JarCategoriesPromise;
+  locale: string;
+  t: JarPlanTranslator;
+}) {
+  const translator = t;
+  const budgets = await budgetsPromise;
   const budgetMetrics: JarBudgetMetrics | undefined = budgets?.byJarId[jar.id];
   const remainingLabel =
     jarIntentionRemainingLabel(
@@ -278,12 +256,6 @@ export default async function PlanJarDetailPage({ params }: Props) {
       ? "rolloverCarry"
       : "rolloverReset",
   );
-  const heroIcon = linkedCategories.length
-    ? categoryVisualFor({
-        categoryId: linkedCategories[0].id,
-        categoryName: linkedCategories[0].name,
-      }).icon
-    : PLAN_ICONS.jar;
   const usagePercent = jarBudgetProgressPercent(budgetMetrics);
   const overspent = isJarBudgetOverspent(budgetMetrics);
 
@@ -325,55 +297,20 @@ export default async function PlanJarDetailPage({ params }: Props) {
     );
   }
 
-  const targetJars = (activeJars ?? [])
-    .filter((candidate) => candidate.id !== jar.id)
-    .map((candidate) => ({
-      id: candidate.id,
-      name: candidate.name,
-    }));
-
   return (
-    <Page
-      testId="plan-jar-detail"
-      contentClassName="gap-(--space-3) pt-(--space-2)"
-      topBar={
-        <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-(--space-2) px-(--page-gutter) py-(--space-3)">
-          <Link
-            href={APP_PATH.PLAN}
-            className="inline-flex min-h-11 items-center gap-(--space-1) text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
-          >
-            <AppIcon icon={ACTION_ICONS.back} size={AppIconSize.SM} />
-            {t("backToPlan")}
-          </Link>
-          <div className="min-w-0 text-center">
-            <Heading level={1} className="text-sm leading-snug text-pretty">
-              {displayName}
-            </Heading>
-            <Text size="xs" tone="secondary">
-              {t("detailQuotaSubtitle")}
-            </Text>
-          </div>
-          <PlanPrivacyToggle
-            testId="plan-jar-privacy-toggle"
-            onSurface
-            className="rounded-full"
-          />
-        </header>
-      }
-    >
-      <PlanOfflineBanner />
-
-      <EmergencyInboxBanner
-        items={inboxItems ?? []}
-        viewerUserId={user.id}
-        title={t("reallocate.emergencyBannerTitle")}
-        body={t("reallocate.emergencyBannerBody")}
-        openLabel={t("reallocate.emergencyBannerOpen")}
-      />
-
+    <>
       <JarIntentionHero
         periodLabel={periodLabel}
-        icon={heroIcon}
+        icon={
+          <Suspense
+            fallback={<AppIcon icon={PLAN_ICONS.jar} size={AppIconSize.MD} />}
+          >
+            <JarHeroCategoryIcon
+              jar={jar}
+              categoriesPromise={categoriesPromise}
+            />
+          </Suspense>
+        }
         rolloverLabel={rolloverLabel}
         plannedHeading={t("detailQuotaHeading")}
         plannedBody={plannedBody}
@@ -469,97 +406,326 @@ export default async function PlanJarDetailPage({ params }: Props) {
       ) : (
         <JarIntentionNotice label={t("detailInvariant")} />
       )}
+    </>
+  );
+}
 
-      <JarDetailControls
-        primaryAction={
-          jar.state === JarState.ACTIVE ? (
-            <ReallocateJarForm
-              sourceJarId={jar.id}
-              sourceJarName={displayName}
-              availableToMove={Math.max(0, budgetMetrics?.remainingAmount ?? 0)}
-              currency={jar.currency}
-              targetJars={targetJars}
-              overspendPolicy={
-                policies?.overspendPolicy ?? OverspendPolicy.WARN
-              }
-              triggerLabel={t("detailAdjust")}
-            />
-          ) : undefined
-        }
-        jarId={jar.id}
-        state={jar.state}
-        kind={jar.kind}
-        plan={jar.plan}
-        rolloverMode={jar.rolloverMode}
-        name={jar.name}
-        categories={categories ?? []}
-        availableJars={(activeJars ?? [])
-          .filter((candidate) => candidate.id !== jar.id)
-          .map((candidate) => ({ id: candidate.id, name: candidate.name }))}
-        currency={jar.currency}
-        qualifyingIncome={budgets?.qualifyingIncome ?? null}
-      >
-        <Card
-          tone="elevated"
-          className="gap-(--space-3) p-(--space-4)"
-          data-testid="jar-linked-categories"
+async function JarCreateCategoryAction({
+  jar,
+  activeJarsPromise,
+}: {
+  jar: NonNullable<Awaited<ReturnType<typeof getJar>>>;
+  activeJarsPromise: ActiveJarsPromise;
+}) {
+  const activeJars = await activeJarsPromise;
+  return (
+    <CreateCategoryForm
+      jars={(activeJars ?? []).map(({ id, name, kind }) => ({
+        id,
+        name,
+        kind,
+      }))}
+      defaultJarId={jar.id}
+      compact
+    />
+  );
+}
+
+async function JarCategoryPresentation({
+  jar,
+  displayName,
+  categoriesPromise,
+  activeJarsPromise,
+  t,
+  tCatalog,
+}: {
+  jar: NonNullable<Awaited<ReturnType<typeof getJar>>>;
+  displayName: string;
+  categoriesPromise: JarCategoriesPromise;
+  activeJarsPromise: ActiveJarsPromise;
+  t: JarPlanTranslator;
+  tCatalog: CatalogTranslator;
+}) {
+  const categories = await categoriesPromise;
+  const linkedCategories = categoriesForJar(categories, jar.id);
+
+  return (
+    <Card
+      tone="elevated"
+      className="gap-(--space-3) p-(--space-4)"
+      data-testid="jar-linked-categories"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
+        <Heading
+          level={2}
+          className="text-xs font-medium tracking-wide uppercase"
         >
-          <div className="flex flex-wrap items-center justify-between gap-(--space-2)">
-            <Heading
-              level={2}
-              className="text-xs font-medium tracking-wide uppercase"
-            >
-              {t("detailCategories", { count: linkedCategories.length })}
-            </Heading>
-            <CreateCategoryForm
-              jars={(activeJars ?? []).map(({ id, name, kind }) => ({
-                id,
-                name,
-                kind,
-              }))}
-              defaultJarId={jar.id}
-              compact
+          {t("detailCategories", { count: linkedCategories.length })}
+        </Heading>
+        <Suspense
+          fallback={<Skeleton className="h-(--space-7) w-(--space-20)" />}
+        >
+          <JarCreateCategoryAction
+            jar={jar}
+            activeJarsPromise={activeJarsPromise}
+          />
+        </Suspense>
+      </div>
+      <div className="flex flex-wrap gap-(--space-2)">
+        {linkedCategories.map((category) => (
+          <StatusBadge
+            key={category.id}
+            tone={StatusBadgeTone.NEUTRAL}
+            className="h-auto min-h-(--space-7) gap-(--space-1) rounded-(--radius-sm) px-(--space-2) py-(--space-1) font-medium"
+          >
+            <AppIcon
+              icon={
+                categoryVisualFor({
+                  categoryId: category.id,
+                  categoryName: category.name,
+                }).icon
+              }
+              size={AppIconSize.XS}
             />
-          </div>
-          <div className="flex flex-wrap gap-(--space-2)">
-            {linkedCategories.map((category) => (
-              <StatusBadge
-                key={category.id}
-                tone={StatusBadgeTone.NEUTRAL}
-                className="h-auto min-h-(--space-7) gap-(--space-1) rounded-(--radius-sm) px-(--space-2) py-(--space-1) font-medium"
-              >
-                <AppIcon
-                  icon={
-                    categoryVisualFor({
-                      categoryId: category.id,
-                      categoryName: category.name,
-                    }).icon
-                  }
-                  size={AppIconSize.XS}
-                />
-                {localizeCatalogName(
-                  tCatalog,
-                  CatalogGroup.TAGS,
-                  category.name,
-                )}
-              </StatusBadge>
-            ))}
-            {linkedCategories.length === 0 ? (
-              <Text size="sm" tone="secondary">
-                {t(
-                  categories
-                    ? "linkedCategoriesEmpty"
-                    : "linkedCategoriesUnavailable",
-                )}
-              </Text>
-            ) : null}
-          </div>
-          {linkedCategories.length > 0 ? (
-            <Text size="xs" tone="secondary" className="text-pretty">
-              {t("detailCategoriesHint", { name: displayName })}
+            {localizeCatalogName(tCatalog, CatalogGroup.TAGS, category.name)}
+          </StatusBadge>
+        ))}
+        {linkedCategories.length === 0 ? (
+          <Text size="sm" tone="secondary">
+            {t(
+              categories
+                ? "linkedCategoriesEmpty"
+                : "linkedCategoriesUnavailable",
+            )}
+          </Text>
+        ) : null}
+      </div>
+      {linkedCategories.length > 0 ? (
+        <Text size="xs" tone="secondary" className="text-pretty">
+          {t("detailCategoriesHint", { name: displayName })}
+        </Text>
+      ) : null}
+    </Card>
+  );
+}
+
+async function JarInboxAttention({
+  itemsPromise,
+  viewerUserId,
+  t,
+}: {
+  itemsPromise: ReturnType<typeof listOpenInboxItems>;
+  viewerUserId: string;
+  t: JarPlanTranslator;
+}) {
+  const items = await itemsPromise;
+  return (
+    <EmergencyInboxBanner
+      items={items ?? []}
+      viewerUserId={viewerUserId}
+      title={t("reallocate.emergencyBannerTitle")}
+      body={t("reallocate.emergencyBannerBody")}
+      openLabel={t("reallocate.emergencyBannerOpen")}
+    />
+  );
+}
+
+async function JarDetailActionContent({
+  jar,
+  displayName,
+  activeJarsPromise,
+  policiesPromise,
+  categoriesPromise,
+  budgetsPromise,
+  t,
+}: {
+  jar: NonNullable<Awaited<ReturnType<typeof getJar>>>;
+  displayName: string;
+  activeJarsPromise: ActiveJarsPromise;
+  policiesPromise: HouseholdPoliciesPromise;
+  categoriesPromise: JarCategoriesPromise;
+  budgetsPromise: JarBudgetPromise;
+  t: JarPlanTranslator;
+}) {
+  const [activeJars, policies, categories, budgets] = await Promise.all([
+    activeJarsPromise,
+    policiesPromise,
+    categoriesPromise,
+    budgetsPromise,
+  ]);
+  const budgetMetrics = budgets?.byJarId[jar.id];
+  const availableJars = (activeJars ?? [])
+    .filter((candidate) => candidate.id !== jar.id)
+    .map((candidate) => ({ id: candidate.id, name: candidate.name }));
+
+  return (
+    <JarDetailControls
+      primaryAction={
+        jar.state === JarState.ACTIVE ? (
+          <ReallocateJarForm
+            sourceJarId={jar.id}
+            sourceJarName={displayName}
+            availableToMove={Math.max(0, budgetMetrics?.remainingAmount ?? 0)}
+            currency={jar.currency}
+            targetJars={availableJars}
+            overspendPolicy={policies?.overspendPolicy ?? OverspendPolicy.WARN}
+            triggerLabel={t("detailAdjust")}
+          />
+        ) : undefined
+      }
+      jarId={jar.id}
+      state={jar.state}
+      kind={jar.kind}
+      plan={jar.plan}
+      rolloverMode={jar.rolloverMode}
+      name={jar.name}
+      categories={categories ?? []}
+      availableJars={availableJars}
+      currency={jar.currency}
+      qualifyingIncome={budgets?.qualifyingIncome ?? null}
+    />
+  );
+}
+
+/**
+ * plan.jar-detail — Planned amount (not Balance), state, allocation (ST-E05-002 / F3).
+ */
+export default async function PlanJarDetailPage({ params }: Props) {
+  const { locale: rawLocale, id } = await params;
+  const locale = hasLocale(routing.locales, rawLocale)
+    ? rawLocale
+    : routing.defaultLocale;
+  setLocale(locale);
+
+  const user = await getSessionUser();
+  if (!user) {
+    return redirect({ href: APP_PATH.LOGIN, locale });
+  }
+  const membership = await resolveActiveMembership(user.id);
+  if (!membership) {
+    return redirect({ href: APP_PATH.ONBOARD, locale });
+  }
+
+  const [t, tReview, tCatalog, jar] = await Promise.all([
+    getTranslations("plan.jars"),
+    getTranslations("plan.monthlyReview"),
+    getTranslations("catalog"),
+    getJar(id),
+  ]);
+
+  if (!jar || jar.householdId !== membership.householdId) {
+    return (
+      <Page
+        testId="plan-jar-detail"
+        topBar={
+          <TopAppBar
+            variant={TopAppBarVariant.DETAIL}
+            title={t("notFound")}
+            backHref={APP_PATH.PLAN_JARS}
+            backLabel={t("backToList")}
+          />
+        }
+      >
+        <PlanUnavailable
+          title={t("notFound")}
+          description={t("detailSubtitle")}
+          actionHref={APP_PATH.PLAN_JARS}
+          actionLabel={t("backToList")}
+        />
+      </Page>
+    );
+  }
+
+  const activeJarsPromise = listActiveJars();
+  const policiesPromise = getHouseholdPolicies();
+  const inboxItemsPromise = listOpenInboxItems();
+  const categoriesPromise = listJarCategories();
+  const budgetsPromise = getCurrentJarBudgets();
+  const translator = t as unknown as JarPlanTranslator;
+  const displayName = jar.isNameCustom
+    ? jar.name
+    : localizeCatalogName(tCatalog, CatalogGroup.JARS, jar.name);
+
+  return (
+    <Page
+      testId="plan-jar-detail"
+      contentClassName="gap-(--space-3) pt-(--space-2)"
+      topBar={
+        <header className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-(--space-2) px-(--page-gutter) py-(--space-3)">
+          <Link
+            href={APP_PATH.PLAN}
+            className="inline-flex min-h-11 items-center gap-(--space-1) text-xs font-medium text-primary focus-visible:outline-2 focus-visible:outline-focus-ring"
+          >
+            <AppIcon icon={ACTION_ICONS.back} size={AppIconSize.SM} />
+            {t("backToPlan")}
+          </Link>
+          <div className="min-w-0 text-center">
+            <Heading level={1} className="text-sm leading-snug text-pretty">
+              {displayName}
+            </Heading>
+            <Text size="xs" tone="secondary">
+              {t("detailQuotaSubtitle")}
             </Text>
-          ) : null}
-        </Card>
+          </div>
+          <PlanPrivacyToggle
+            testId="plan-jar-privacy-toggle"
+            onSurface
+            className="rounded-full"
+          />
+        </header>
+      }
+    >
+      <PlanOfflineBanner />
+
+      <Suspense fallback={<Skeleton className="h-(--space-20) w-full" />}>
+        <JarInboxAttention
+          itemsPromise={inboxItemsPromise}
+          viewerUserId={user.id}
+          t={translator}
+        />
+      </Suspense>
+
+      <Suspense
+        fallback={
+          <div className="flex flex-col gap-(--space-3)">
+            <Skeleton className="h-(--space-28) w-full" />
+            <Skeleton className="h-(--space-28) w-full" />
+          </div>
+        }
+      >
+        <JarFinancialContent
+          jar={jar}
+          budgetsPromise={budgetsPromise}
+          categoriesPromise={categoriesPromise}
+          locale={locale}
+          t={translator}
+        />
+      </Suspense>
+
+      <div className="flex flex-col gap-(--space-4)">
+        <Suspense fallback={<Skeleton className="h-(--space-12) w-full" />}>
+          <JarDetailActionContent
+            jar={jar}
+            displayName={displayName}
+            activeJarsPromise={activeJarsPromise}
+            policiesPromise={policiesPromise}
+            categoriesPromise={categoriesPromise}
+            budgetsPromise={budgetsPromise}
+            t={translator}
+          />
+        </Suspense>
+
+        <Suspense fallback={<Skeleton className="h-(--space-20) w-full" />}>
+          <JarCategoryPresentation
+            jar={jar}
+            displayName={displayName}
+            categoriesPromise={categoriesPromise}
+            activeJarsPromise={activeJarsPromise}
+            t={translator}
+            tCatalog={tCatalog}
+          />
+        </Suspense>
+
         <Suspense fallback={<Skeleton className="h-(--space-16) w-full" />}>
           <JarRecentActivity jarId={jar.id} locale={locale} />
         </Suspense>
@@ -612,7 +778,8 @@ export default async function PlanJarDetailPage({ params }: Props) {
             </Text>
           </Section>
         </PlanDisclosure>
-      </JarDetailControls>
+        <JarDetailLifecycleControls jarId={jar.id} state={jar.state} />
+      </div>
     </Page>
   );
 }

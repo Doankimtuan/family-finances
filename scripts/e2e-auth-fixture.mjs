@@ -135,7 +135,9 @@ async function setup() {
     await assertOwnedState(existing);
     await ensurePlanSeed(existing.householdId);
     await ensureTransferAccounts(existing.householdId, existing.userId);
-    process.stdout.write(`${JSON.stringify(existing)}\n`);
+    process.stdout.write(
+      `${JSON.stringify({ email: existing.email, userId: existing.userId, householdId: existing.householdId })}\n`,
+    );
     return;
   }
 
@@ -263,7 +265,9 @@ async function setup() {
   await writeFile(STATE_PATH, `${JSON.stringify(state, null, 2)}\n`, {
     mode: 0o600,
   });
-  process.stdout.write(`${JSON.stringify(state)}\n`);
+  process.stdout.write(
+    `${JSON.stringify({ email: state.email, userId: state.userId, householdId: state.householdId })}\n`,
+  );
 }
 
 async function deleteByHousehold(table, householdId) {

@@ -36,12 +36,19 @@ describe("Inbox queue contract", () => {
       "modules/inbox/application/commands/review-items.ts",
       "utf8",
     );
+    const authorizationIndex = source.indexOf(
+      "const gate = await assertMoneyActionAllowed()",
+    );
+    const updateIndex = source.indexOf(".update({ read_at: readAt })");
+
     expect(source).toContain(".update({ read_at: readAt })");
     expect(source).toContain("setInboxReadState");
     expect(source).toContain(
       "return setInboxReadState(\n    parsed.data.inboxItemId,\n    null",
     );
     expect(source).not.toContain("status: InboxItemStatus.PENDING");
+    expect(authorizationIndex).toBeGreaterThanOrEqual(0);
+    expect(updateIndex).toBeGreaterThan(authorizationIndex);
   });
 
   it("maps a failed linked source to an unavailable, readable state", () => {
