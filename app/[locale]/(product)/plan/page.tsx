@@ -32,6 +32,8 @@ import {
   PLAN_HUB_UPCOMING_DAYS,
   PLAN_HUB_UPCOMING_EVENT_LIMIT,
   summarizeJarBudgets,
+  PlanBudgetAvailability,
+  resolvePlanBudgetAvailability,
   JAR_BUDGET_PERCENT_SCALE,
   PLAN_PERIOD_MONTH_PATTERN,
   type CalendarEvent,
@@ -59,6 +61,7 @@ import { Section } from "@/shared/patterns/section";
 import { EmptyState } from "@/shared/patterns/empty-state";
 import { JarCard } from "@/shared/patterns/jar-card";
 import { StatusAlert } from "@/shared/ui/status-alert";
+import { AlertVariant } from "@/shared/ui/alert";
 import { InlineAlert } from "@/shared/ui/inline-alert";
 import { InlineAlertVariant } from "@/shared/ui/inline-alert-constants";
 import { Text } from "@/shared/ui/text";
@@ -144,6 +147,7 @@ type PlanHubData = {
   periodIncome: number;
   budgetsByJar: Record<string, JarBudgetMetrics>;
   budgetSummary: ReturnType<typeof summarizeJarBudgets>;
+  budgetAvailability: (typeof PlanBudgetAvailability)[keyof typeof PlanBudgetAvailability];
   historyJars: PlanHistoryJar[];
   isHistorical: boolean;
   historyAvailable: boolean;
@@ -211,10 +215,8 @@ async function resolvePlanPeriodIdentity(
 async function loadCurrentPlanReads(
   requestTime: Date,
 ): Promise<PlanCurrentReads> {
-  const [pulse, budgets] = await Promise.all([
-    getPlanPulse(),
-    getCurrentJarBudgets(requestTime),
-  ]);
+  const budgets = await getCurrentJarBudgets(requestTime);
+  const pulse = budgets?.pulse ?? (await getPlanPulse());
   return { pulse, budgets };
 }
 
@@ -282,6 +284,12 @@ async function resolvePlanHubData({
       budgetsByJar,
     );
   }
+  const budgetAvailability = period.isHistorical
+    ? PlanBudgetAvailability.READY
+    : resolvePlanBudgetAvailability({
+        readsAvailable: pulse !== null && currentJarBudgets !== null,
+        hasConfiguredBudgets: budgetSummary !== null,
+      });
 
   return {
     tCatalog: tCatalogValue as unknown as LooseTranslator,
@@ -299,6 +307,7 @@ async function resolvePlanHubData({
       : (currentJarBudgets?.periodIncome ?? 0),
     budgetsByJar,
     budgetSummary,
+    budgetAvailability,
     historyJars,
     isHistorical: period.isHistorical,
     historyAvailable,
@@ -516,7 +525,7 @@ async function PlanCriticalSection({
                 usageLabel={usageLabel}
                 usagePercent={summary?.usagePercent ?? null}
               />
-            ) : (
+            ) : data.budgetAvailability === PlanBudgetAvailability.READY ? (
               <PlanHubHero
                 attentionLabel={t(
                   overBudgetJars.length > 0
@@ -562,6 +571,44 @@ async function PlanCriticalSection({
                 remainingLabel={t("home.metricRemaining")}
                 remainingValue={
                   summary ? amount(summary.remainingAmount) : summaryUnavailable
+                }
+              />
+            ) : (
+              <StatusAlert
+                variant={
+                  data.budgetAvailability === PlanBudgetAvailability.UNAVAILABLE
+                    ? AlertVariant.DANGER
+                    : AlertVariant.INFO
+                }
+                className="w-full flex-col items-stretch sm:flex-row sm:items-center"
+                title={t(
+                  data.budgetAvailability === PlanBudgetAvailability.UNAVAILABLE
+                    ? "home.budgetUnavailableTitle"
+                    : "home.budgetNotConfiguredTitle",
+                )}
+                description={t(
+                  data.budgetAvailability === PlanBudgetAvailability.UNAVAILABLE
+                    ? "home.budgetUnavailableBody"
+                    : "home.budgetNotConfiguredBody",
+                )}
+                action={
+                  <Link
+                    href={
+                      data.budgetAvailability ===
+                      PlanBudgetAvailability.NOT_CONFIGURED
+                        ? APP_PATH.PLAN_JARS
+                        : APP_PATH.PLAN
+                    }
+                    prefetch={PRODUCT_LINK_PREFETCH}
+                    className={PLAN_ACCENT_LINK_CLASS}
+                  >
+                    {t(
+                      data.budgetAvailability ===
+                        PlanBudgetAvailability.NOT_CONFIGURED
+                        ? "home.budgetSetupAction"
+                        : "home.budgetRetryAction",
+                    )}
+                  </Link>
                 }
               />
             )}
@@ -874,15 +921,12 @@ async function PlanJarsSection({
     );
   }
 
+  if (data.budgetAvailability === PlanBudgetAvailability.UNAVAILABLE) {
+    return null;
+  }
+
   return (
     <Section contentClassName="gap-0" testId="plan-home-jars">
-      {!data.budgetSummary ? (
-        <StatusAlert
-          variant="warning"
-          title={t("home.jarsUnavailableTitle")}
-          description={t("home.jarsUnavailableBody")}
-        />
-      ) : null}
       {data.activeJars.length === 0 ? (
         <EmptyState
           title={t("jars.emptyTitle")}

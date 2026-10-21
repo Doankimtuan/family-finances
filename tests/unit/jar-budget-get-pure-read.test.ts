@@ -94,6 +94,9 @@ describe("getCurrentJarBudgets", () => {
       new Date("2026-09-08T00:00:00Z"),
     );
     expect(writes).toEqual([]);
+    expect(summary?.pulse.activeJars).toMatchObject([
+      { id: JAR_ID, name: "Needs" },
+    ]);
     expect(summary?.byJarId[JAR_ID]).toMatchObject({
       budgetAmount: 15_000_000,
       spentAmount: 0,

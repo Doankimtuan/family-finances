@@ -3,6 +3,8 @@ import {
   type AllocationHealthStatus as AllocationHealthStatusValue,
   JarBudgetState,
   type JarBudgetState as JarBudgetStateValue,
+  PlanBudgetAvailability,
+  type PlanBudgetAvailability as PlanBudgetAvailabilityValue,
 } from "./plan-constants";
 import type { JarBudgetMetrics } from "./jar-budget";
 
@@ -15,6 +17,16 @@ export const PlanHomeHealthStatus = {
 
 export type PlanHomeHealthStatus =
   (typeof PlanHomeHealthStatus)[keyof typeof PlanHomeHealthStatus];
+
+export function resolvePlanBudgetAvailability(input: {
+  readsAvailable: boolean;
+  hasConfiguredBudgets: boolean;
+}): PlanBudgetAvailabilityValue {
+  if (!input.readsAvailable) return PlanBudgetAvailability.UNAVAILABLE;
+  return input.hasConfiguredBudgets
+    ? PlanBudgetAvailability.READY
+    : PlanBudgetAvailability.NOT_CONFIGURED;
+}
 
 export const PlanHomeExceptionKind = {
   OVERSPENT_JAR: "overspent_jar",

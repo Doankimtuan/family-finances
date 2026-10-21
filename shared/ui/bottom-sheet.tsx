@@ -2,16 +2,29 @@
 
 import { Drawer } from "@heroui/react";
 import type { ComponentProps, ReactNode } from "react";
+import { usePress } from "react-aria";
 import { cn } from "@/shared/utils/cn";
 
 export type BottomSheetProps = ComponentProps<typeof Drawer>;
+
+function ControlledTriggerSink() {
+  const { pressProps } = usePress({});
+  return (
+    <span {...pressProps} aria-hidden="true" className="hidden" tabIndex={-1} />
+  );
+}
 
 /**
  * ViNha Canonical Bottom Sheet — HeroUI Drawer (bottom placement).
  * Primary container for mobile sub-flows, creation forms, and selection lists.
  */
 export function BottomSheet({ children, ...props }: BottomSheetProps) {
-  return <Drawer {...props}>{children}</Drawer>;
+  return (
+    <Drawer {...props}>
+      <ControlledTriggerSink />
+      {children}
+    </Drawer>
+  );
 }
 
 export type BottomSheetContentProps = {

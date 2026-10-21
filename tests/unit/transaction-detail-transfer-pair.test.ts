@@ -39,7 +39,7 @@ import {
 import { MONEY_ACTION_DENIED_REASON } from "@/modules/tenancy/application/tenancy-constants";
 
 const DETAIL_ROWS_MIGRATION = readFileSync(
-  "supabase/migrations/20261007033708_transaction_detail_rows.sql",
+  "supabase/migrations/20261007061514_transaction_detail_rows.sql",
   "utf8",
 );
 

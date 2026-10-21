@@ -1,0 +1,20 @@
+- generic [active] [ref=f2e1] [box=0,0,1280,900]:
+    - main [ref=f2e6] [box=420,16,440,868]:
+        - main [ref=f2e7] [box=420,16,440,338]:
+            - generic "Outstanding" [ref=f2e8] [box=436,32,408,306]:
+                - generic [ref=f2e15] [box=505,49,322,40]:
+                    - paragraph [ref=f2e16] [box=505,49,322,20]: Household travel and emergency credit card
+                    - paragraph [ref=f2e17] [box=505,73,322,16]: "Credit card · Credit limit: Amount hidden"
+                - paragraph [ref=f2e19] [box=453,101,68,16]: Outstanding
+                - paragraph [ref=f2e21] [box=453,121,374,36]: Amount hidden
+                - alert [ref=f2e22] [box=453,169,374,47]:
+                    - generic [ref=f2e27] [box=500,182,312,21]: Card debt is a liability.
+                - paragraph [ref=f2e29] [box=453,228,374,20]: No credit limit
+                - generic [ref=f2e30] [box=453,260,374,61]:
+                    - generic [ref=f2e31] [box=453,273,111,48]:
+                        - paragraph [ref=f2e32] [box=453,273,111,20]: Available credit
+                        - paragraph [ref=f2e33] [box=453,297,111,24]: Amount hidden
+                    - generic [ref=f2e34] [box=716,273,111,48]:
+                        - paragraph [ref=f2e35] [box=757,273,70,20]: Credit limit
+                        - paragraph [ref=f2e36] [box=716,297,111,24]: Amount hidden
+    - alert [ref=f2e37] [box=-1,899,1,1]

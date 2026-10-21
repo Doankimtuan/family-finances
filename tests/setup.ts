@@ -10,6 +10,7 @@ vi.mock("@/i18n/navigation", () => ({
   Link: ({
     href,
     children,
+    prefetch,
     ...props
   }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string | { pathname?: string };
@@ -19,6 +20,7 @@ vi.mock("@/i18n/navigation", () => ({
       "a",
       {
         href: typeof href === "string" ? href : (href?.pathname ?? "#"),
+        ...(prefetch === false ? { "data-prefetch": "false" } : {}),
         ...props,
       },
       children,

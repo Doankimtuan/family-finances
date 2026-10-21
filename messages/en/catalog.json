@@ -18,5 +18,17 @@
     "savings": "Savings",
     "needs": "Needs",
     "wants": "Wants"
+  },
+  "systemNotes": {
+    "savings_deposit": "Savings deposit: {product}",
+    "savings_deposit_bare": "Savings deposit",
+    "savings_withdrawal": "Savings withdrawal: {product}",
+    "savings_withdrawal_bare": "Savings withdrawal",
+    "savings_interest": "Savings interest: {product}",
+    "savings_interest_bare": "Savings interest",
+    "savings_tax": "Savings interest tax: {product}",
+    "savings_tax_bare": "Savings interest tax",
+    "savings_penalty": "Savings penalty: {product}",
+    "savings_penalty_bare": "Savings penalty"
   }
 }

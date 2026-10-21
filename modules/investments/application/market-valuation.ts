@@ -12,6 +12,7 @@ import {
   InvestmentInputRateSource,
 } from "./investment-constants";
 import { deriveUnrealizedResult } from "./investment-accounting";
+import { multiplyQuantityByUnitPrice } from "./investment-operation-view-model";
 import type {
   InvestmentValuationResolution,
   MarketCurrencyRate,
@@ -155,7 +156,10 @@ function manualResolution(
   input: ResolveInvestmentValuationInput,
 ): InvestmentValuationResolution {
   const manual = input.manualValuation;
-  const currentValue = manual?.valueVnd ?? null;
+  const currentValue =
+    manual?.unitPriceVnd == null
+      ? (manual?.valueVnd ?? null)
+      : multiplyQuantityByUnitPrice(input.quantity, manual.unitPriceVnd);
   return {
     currentValue,
     ...calculatePnl(currentValue, input.remainingCostBasis),

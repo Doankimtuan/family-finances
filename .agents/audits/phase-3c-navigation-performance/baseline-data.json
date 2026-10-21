@@ -1,0 +1,2253 @@
+{
+  "timestamp": "2026-10-21T06:53:37.236Z",
+  "viewports": {
+    "390x844": [
+      {
+        "label": "Home → Money",
+        "from": "home",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 54.8,
+          "p95": 57
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1381,
+          "p95": 1382
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 6,
+        "samples": [
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 57,
+            "firstVisualChange": 57,
+            "shellVisible": 65,
+            "contentVisible": 1382,
+            "navigationComplete": 1382,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 54.8,
+            "firstVisualChange": 54.8,
+            "shellVisible": 63,
+            "contentVisible": 1381,
+            "navigationComplete": 1381,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 51.4,
+            "firstVisualChange": 51.4,
+            "shellVisible": 64,
+            "contentVisible": 1381,
+            "navigationComplete": 1381,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction",
+        "from": "money",
+        "to": "add",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.2,
+          "p95": 14.5
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 66
+        },
+        "contentVisible": {
+          "median": 880,
+          "p95": 886
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 14.5,
+            "firstVisualChange": 14.5,
+            "shellVisible": 64,
+            "contentVisible": 857,
+            "navigationComplete": 857,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 4,
+            "firstVisualChange": 4,
+            "shellVisible": 64,
+            "contentVisible": 880,
+            "navigationComplete": 880,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 5.2,
+            "firstVisualChange": 5.2,
+            "shellVisible": 66,
+            "contentVisible": 886,
+            "navigationComplete": 886,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan",
+        "from": "add",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 10.4,
+          "p95": 18.2
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 63
+        },
+        "contentVisible": {
+          "median": 2032,
+          "p95": 2564
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 18.2,
+            "firstVisualChange": 18.2,
+            "shellVisible": 62,
+            "contentVisible": 1729,
+            "navigationComplete": 1729,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.285,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 10.4,
+            "firstVisualChange": 10.4,
+            "shellVisible": 63,
+            "contentVisible": 2032,
+            "navigationComplete": 2032,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.305,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 6.6,
+            "firstVisualChange": 6.6,
+            "shellVisible": 63,
+            "contentVisible": 2564,
+            "navigationComplete": 2564,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.112,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox",
+        "from": "plan",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 3.4,
+          "p95": 11.2
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1389,
+          "p95": 1389
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 11.2,
+            "firstVisualChange": 11.2,
+            "shellVisible": 65,
+            "contentVisible": 1359,
+            "navigationComplete": 1359,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 3.4,
+            "firstVisualChange": 3.4,
+            "shellVisible": 63,
+            "contentVisible": 1389,
+            "navigationComplete": 1389,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 3.3,
+            "firstVisualChange": 3.3,
+            "shellVisible": 61,
+            "contentVisible": 1389,
+            "navigationComplete": 1389,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home",
+        "from": "inbox",
+        "to": "home",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 4.9,
+          "p95": 7.5
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 64
+        },
+        "contentVisible": {
+          "median": 1251,
+          "p95": 1504
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 13,
+        "samples": [
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 4.9,
+            "firstVisualChange": 4.9,
+            "shellVisible": 64,
+            "contentVisible": 1251,
+            "navigationComplete": 1251,
+            "requestsCount": 12,
+            "rscRequestsCount": 2,
+            "cls": 0.019,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 3.6,
+            "firstVisualChange": 3.6,
+            "shellVisible": 62,
+            "contentVisible": 1205,
+            "navigationComplete": 1205,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.313,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 7.5,
+            "firstVisualChange": 7.5,
+            "shellVisible": 63,
+            "contentVisible": 1504,
+            "navigationComplete": 1504,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.063,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan",
+        "from": "home",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 3.9,
+          "p95": 5.5
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 67
+        },
+        "contentVisible": {
+          "median": 1576,
+          "p95": 1853
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 3.5,
+            "firstVisualChange": 3.5,
+            "shellVisible": 63,
+            "contentVisible": 1853,
+            "navigationComplete": 1853,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.386,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 3.9,
+            "firstVisualChange": 3.9,
+            "shellVisible": 67,
+            "contentVisible": 1554,
+            "navigationComplete": 1554,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.305,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 5.5,
+            "firstVisualChange": 5.5,
+            "shellVisible": 64,
+            "contentVisible": 1576,
+            "navigationComplete": 1576,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.003,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Money",
+        "from": "plan",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 2.9,
+          "p95": 3.1
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 63
+        },
+        "contentVisible": {
+          "median": 1384,
+          "p95": 2367
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 9,
+        "samples": [
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 2.1,
+            "firstVisualChange": 2.1,
+            "shellVisible": 63,
+            "contentVisible": 2367,
+            "navigationComplete": 2367,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 3.1,
+            "firstVisualChange": 3.1,
+            "shellVisible": 63,
+            "contentVisible": 1374,
+            "navigationComplete": 1374,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 2.9,
+            "firstVisualChange": 2.9,
+            "shellVisible": 63,
+            "contentVisible": 1384,
+            "navigationComplete": 1384,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox",
+        "from": "money",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 12,
+          "p95": 14.4
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1393,
+          "p95": 1864
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 3,
+        "samples": [
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 12,
+            "firstVisualChange": 12,
+            "shellVisible": 65,
+            "contentVisible": 1864,
+            "navigationComplete": 1864,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 14.4,
+            "firstVisualChange": 14.4,
+            "shellVisible": 63,
+            "contentVisible": 1393,
+            "navigationComplete": 1393,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 5.9,
+            "firstVisualChange": 5.9,
+            "shellVisible": 61,
+            "contentVisible": 1392,
+            "navigationComplete": 1392,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return)",
+        "from": "inbox",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 4.6,
+          "p95": 5
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 67
+        },
+        "contentVisible": {
+          "median": 1546,
+          "p95": 1774
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 4.6,
+            "firstVisualChange": 4.6,
+            "shellVisible": 63,
+            "contentVisible": 1774,
+            "navigationComplete": 1774,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.111,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 1.8,
+            "firstVisualChange": 1.8,
+            "shellVisible": 67,
+            "contentVisible": 1546,
+            "navigationComplete": 1546,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.247,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 5,
+            "firstVisualChange": 5,
+            "shellVisible": 63,
+            "contentVisible": 1506,
+            "navigationComplete": 1506,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.27,
+            "fabShift": 0,
+            "initialFabY": 769,
+            "midFabY": 769,
+            "finalFabY": 769,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      }
+    ],
+    "440x900": [
+      {
+        "label": "Home → Money",
+        "from": "home",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 58,
+          "p95": 62.1
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1376,
+          "p95": 3383
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 6,
+        "samples": [
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 55.2,
+            "firstVisualChange": 55.2,
+            "shellVisible": 65,
+            "contentVisible": 1376,
+            "navigationComplete": 1376,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 62.1,
+            "firstVisualChange": 62.1,
+            "shellVisible": 63,
+            "contentVisible": 3383,
+            "navigationComplete": 3383,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 58,
+            "firstVisualChange": 58,
+            "shellVisible": 64,
+            "contentVisible": 1371,
+            "navigationComplete": 1371,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction",
+        "from": "money",
+        "to": "add",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.4,
+          "p95": 51.9
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 64
+        },
+        "contentVisible": {
+          "median": 881,
+          "p95": 884
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 51.9,
+            "firstVisualChange": 51.9,
+            "shellVisible": 64,
+            "contentVisible": 853,
+            "navigationComplete": 853,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 5.4,
+            "firstVisualChange": 5.4,
+            "shellVisible": 63,
+            "contentVisible": 884,
+            "navigationComplete": 884,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0.001,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 3.4,
+            "firstVisualChange": 3.4,
+            "shellVisible": 64,
+            "contentVisible": 881,
+            "navigationComplete": 881,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan",
+        "from": "add",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 12.1,
+          "p95": 15.4
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 68
+        },
+        "contentVisible": {
+          "median": 1633,
+          "p95": 1663
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 15.4,
+            "firstVisualChange": 15.4,
+            "shellVisible": 68,
+            "contentVisible": 1633,
+            "navigationComplete": 1633,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.134,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 11.3,
+            "firstVisualChange": 11.3,
+            "shellVisible": 62,
+            "contentVisible": 1529,
+            "navigationComplete": 1529,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.278,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 12.1,
+            "firstVisualChange": 12.1,
+            "shellVisible": 63,
+            "contentVisible": 1663,
+            "navigationComplete": 1663,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.26,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox",
+        "from": "plan",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 2.3,
+          "p95": 9.1
+        },
+        "shellVisible": {
+          "median": 66,
+          "p95": 68
+        },
+        "contentVisible": {
+          "median": 1386,
+          "p95": 1387
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 9.1,
+            "firstVisualChange": 9.1,
+            "shellVisible": 66,
+            "contentVisible": 856,
+            "navigationComplete": 856,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 1.7,
+            "firstVisualChange": 1.7,
+            "shellVisible": 63,
+            "contentVisible": 1387,
+            "navigationComplete": 1387,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 2.3,
+            "firstVisualChange": 2.3,
+            "shellVisible": 68,
+            "contentVisible": 1386,
+            "navigationComplete": 1386,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home",
+        "from": "inbox",
+        "to": "home",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.1,
+          "p95": 5.7
+        },
+        "shellVisible": {
+          "median": 65,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1257,
+          "p95": 1575
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 13,
+        "samples": [
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 5.1,
+            "firstVisualChange": 5.1,
+            "shellVisible": 65,
+            "contentVisible": 926,
+            "navigationComplete": 926,
+            "requestsCount": 12,
+            "rscRequestsCount": 2,
+            "cls": 0.344,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 2.9,
+            "firstVisualChange": 2.9,
+            "shellVisible": 65,
+            "contentVisible": 1575,
+            "navigationComplete": 1575,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.344,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 5.7,
+            "firstVisualChange": 5.7,
+            "shellVisible": 62,
+            "contentVisible": 1257,
+            "navigationComplete": 1257,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.344,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan",
+        "from": "home",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.8,
+          "p95": 7
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 68
+        },
+        "contentVisible": {
+          "median": 1524,
+          "p95": 1529
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 7,
+            "firstVisualChange": 7,
+            "shellVisible": 62,
+            "contentVisible": 1324,
+            "navigationComplete": 1324,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.233,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 5.8,
+            "firstVisualChange": 5.8,
+            "shellVisible": 68,
+            "contentVisible": 1529,
+            "navigationComplete": 1529,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.26,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 5.2,
+            "firstVisualChange": 5.2,
+            "shellVisible": 64,
+            "contentVisible": 1524,
+            "navigationComplete": 1524,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.278,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Money",
+        "from": "plan",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 3.2,
+          "p95": 4.5
+        },
+        "shellVisible": {
+          "median": 65,
+          "p95": 66
+        },
+        "contentVisible": {
+          "median": 1389,
+          "p95": 1393
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 9,
+        "samples": [
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 3.2,
+            "firstVisualChange": 3.2,
+            "shellVisible": 65,
+            "contentVisible": 1353,
+            "navigationComplete": 1353,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 2.9,
+            "firstVisualChange": 2.9,
+            "shellVisible": 63,
+            "contentVisible": 1393,
+            "navigationComplete": 1393,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 4.5,
+            "firstVisualChange": 4.5,
+            "shellVisible": 66,
+            "contentVisible": 1389,
+            "navigationComplete": 1389,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox",
+        "from": "money",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 2.5,
+          "p95": 14.2
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 1405,
+          "p95": 2905
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 3,
+        "samples": [
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 2.5,
+            "firstVisualChange": 2.5,
+            "shellVisible": 62,
+            "contentVisible": 1356,
+            "navigationComplete": 1356,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 1.9,
+            "firstVisualChange": 1.9,
+            "shellVisible": 65,
+            "contentVisible": 1405,
+            "navigationComplete": 1405,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 14.2,
+            "firstVisualChange": 14.2,
+            "shellVisible": 63,
+            "contentVisible": 2905,
+            "navigationComplete": 2905,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return)",
+        "from": "inbox",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 4.1,
+          "p95": 5.2
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 64
+        },
+        "contentVisible": {
+          "median": 1479,
+          "p95": 1859
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 5.2,
+            "firstVisualChange": 5.2,
+            "shellVisible": 63,
+            "contentVisible": 1474,
+            "navigationComplete": 1474,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.283,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 3.6,
+            "firstVisualChange": 3.6,
+            "shellVisible": 64,
+            "contentVisible": 1859,
+            "navigationComplete": 1859,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.456,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 4.1,
+            "firstVisualChange": 4.1,
+            "shellVisible": 61,
+            "contentVisible": 1479,
+            "navigationComplete": 1479,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.132,
+            "fabShift": 0,
+            "initialFabY": 825,
+            "midFabY": 825,
+            "finalFabY": 825,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      }
+    ],
+    "360x640": [
+      {
+        "label": "Home → Money",
+        "from": "home",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 53.4,
+          "p95": 59
+        },
+        "shellVisible": {
+          "median": 62,
+          "p95": 113
+        },
+        "contentVisible": {
+          "median": 1385,
+          "p95": 1460
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 6,
+        "samples": [
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 53.4,
+            "firstVisualChange": 53.4,
+            "shellVisible": 62,
+            "contentVisible": 1376,
+            "navigationComplete": 1376,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 59,
+            "firstVisualChange": 59,
+            "shellVisible": 62,
+            "contentVisible": 1385,
+            "navigationComplete": 1385,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Money",
+            "from": "home",
+            "to": "money",
+            "activeStateLatency": 52.2,
+            "firstVisualChange": 52.2,
+            "shellVisible": 113,
+            "contentVisible": 1460,
+            "navigationComplete": 1460,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction",
+        "from": "money",
+        "to": "add",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5,
+          "p95": 7
+        },
+        "shellVisible": {
+          "median": 62,
+          "p95": 65
+        },
+        "contentVisible": {
+          "median": 885,
+          "p95": 903
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 7,
+            "firstVisualChange": 7,
+            "shellVisible": 62,
+            "contentVisible": 862,
+            "navigationComplete": 862,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 3,
+            "firstVisualChange": 3,
+            "shellVisible": 62,
+            "contentVisible": 885,
+            "navigationComplete": 885,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Add Transaction",
+            "from": "money",
+            "to": "add",
+            "activeStateLatency": 5,
+            "firstVisualChange": 5,
+            "shellVisible": 65,
+            "contentVisible": 903,
+            "navigationComplete": 903,
+            "requestsCount": 5,
+            "rscRequestsCount": 2,
+            "cls": 0.001,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan",
+        "from": "add",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 11.5,
+          "p95": 11.7
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 67
+        },
+        "contentVisible": {
+          "median": 1725,
+          "p95": 1848
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 8.7,
+            "firstVisualChange": 8.7,
+            "shellVisible": 63,
+            "contentVisible": 1472,
+            "navigationComplete": 1472,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.317,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 11.7,
+            "firstVisualChange": 11.7,
+            "shellVisible": 62,
+            "contentVisible": 1725,
+            "navigationComplete": 1725,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.317,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Add Transaction → Plan",
+            "from": "add",
+            "to": "plan",
+            "activeStateLatency": 11.5,
+            "firstVisualChange": 11.5,
+            "shellVisible": 67,
+            "contentVisible": 1848,
+            "navigationComplete": 1848,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.34,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox",
+        "from": "plan",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.5,
+          "p95": 11.4
+        },
+        "shellVisible": {
+          "median": 62,
+          "p95": 63
+        },
+        "contentVisible": {
+          "median": 1392,
+          "p95": 1506
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 11.4,
+            "firstVisualChange": 11.4,
+            "shellVisible": 61,
+            "contentVisible": 1355,
+            "navigationComplete": 1355,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 5.5,
+            "firstVisualChange": 5.5,
+            "shellVisible": 63,
+            "contentVisible": 1506,
+            "navigationComplete": 1506,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Inbox",
+            "from": "plan",
+            "to": "inbox",
+            "activeStateLatency": 5.3,
+            "firstVisualChange": 5.3,
+            "shellVisible": 62,
+            "contentVisible": 1392,
+            "navigationComplete": 1392,
+            "requestsCount": 4,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home",
+        "from": "inbox",
+        "to": "home",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 4.8,
+          "p95": 15.9
+        },
+        "shellVisible": {
+          "median": 64,
+          "p95": 67
+        },
+        "contentVisible": {
+          "median": 1189,
+          "p95": 1286
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 13,
+        "samples": [
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 4.8,
+            "firstVisualChange": 4.8,
+            "shellVisible": 64,
+            "contentVisible": 1286,
+            "navigationComplete": 1286,
+            "requestsCount": 12,
+            "rscRequestsCount": 2,
+            "cls": 0.065,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 4,
+            "firstVisualChange": 4,
+            "shellVisible": 63,
+            "contentVisible": 1000,
+            "navigationComplete": 1000,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.024,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Home",
+            "from": "inbox",
+            "to": "home",
+            "activeStateLatency": 15.9,
+            "firstVisualChange": 15.9,
+            "shellVisible": 67,
+            "contentVisible": 1189,
+            "navigationComplete": 1189,
+            "requestsCount": 14,
+            "rscRequestsCount": 2,
+            "cls": 0.347,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan",
+        "from": "home",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.7,
+          "p95": 8.5
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 66
+        },
+        "contentVisible": {
+          "median": 1671,
+          "p95": 1912
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 4,
+        "samples": [
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 8.5,
+            "firstVisualChange": 8.5,
+            "shellVisible": 63,
+            "contentVisible": 1558,
+            "navigationComplete": 1558,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.34,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 4,
+            "firstVisualChange": 4,
+            "shellVisible": 62,
+            "contentVisible": 1671,
+            "navigationComplete": 1671,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.125,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Home → Plan",
+            "from": "home",
+            "to": "plan",
+            "activeStateLatency": 5.7,
+            "firstVisualChange": 5.7,
+            "shellVisible": 66,
+            "contentVisible": 1912,
+            "navigationComplete": 1912,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.364,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Plan → Money",
+        "from": "plan",
+        "to": "money",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 3.5,
+          "p95": 4.3
+        },
+        "shellVisible": {
+          "median": 62,
+          "p95": 66
+        },
+        "contentVisible": {
+          "median": 1379,
+          "p95": 1859
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 9,
+        "samples": [
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 1.7,
+            "firstVisualChange": 1.7,
+            "shellVisible": 66,
+            "contentVisible": 1859,
+            "navigationComplete": 1859,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 3.5,
+            "firstVisualChange": 3.5,
+            "shellVisible": 62,
+            "contentVisible": 871,
+            "navigationComplete": 871,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Plan → Money",
+            "from": "plan",
+            "to": "money",
+            "activeStateLatency": 4.3,
+            "firstVisualChange": 4.3,
+            "shellVisible": 62,
+            "contentVisible": 1379,
+            "navigationComplete": 1379,
+            "requestsCount": 10,
+            "rscRequestsCount": 1,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox",
+        "from": "money",
+        "to": "inbox",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 5.6,
+          "p95": 26.1
+        },
+        "shellVisible": {
+          "median": 62,
+          "p95": 64
+        },
+        "contentVisible": {
+          "median": 1368,
+          "p95": 1377
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 3,
+        "samples": [
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 26.1,
+            "firstVisualChange": 26.1,
+            "shellVisible": 62,
+            "contentVisible": 1355,
+            "navigationComplete": 1355,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 4.2,
+            "firstVisualChange": 4.2,
+            "shellVisible": 62,
+            "contentVisible": 1368,
+            "navigationComplete": 1368,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Money → Inbox",
+            "from": "money",
+            "to": "inbox",
+            "activeStateLatency": 5.6,
+            "firstVisualChange": 5.6,
+            "shellVisible": 64,
+            "contentVisible": 1377,
+            "navigationComplete": 1377,
+            "requestsCount": 3,
+            "rscRequestsCount": 2,
+            "cls": 0,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return)",
+        "from": "inbox",
+        "to": "plan",
+        "samplesCount": 3,
+        "activeStateLatency": {
+          "median": 4.1,
+          "p95": 4.2
+        },
+        "shellVisible": {
+          "median": 63,
+          "p95": 66
+        },
+        "contentVisible": {
+          "median": 1524,
+          "p95": 1606
+        },
+        "fabShift": {
+          "median": 0,
+          "max": 0
+        },
+        "avgRequests": 5,
+        "samples": [
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 4.1,
+            "firstVisualChange": 4.1,
+            "shellVisible": 63,
+            "contentVisible": 1524,
+            "navigationComplete": 1524,
+            "requestsCount": 4,
+            "rscRequestsCount": 1,
+            "cls": 0.34,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 2.2,
+            "firstVisualChange": 2.2,
+            "shellVisible": 66,
+            "contentVisible": 1606,
+            "navigationComplete": 1606,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.27,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          },
+          {
+            "label": "Inbox → Plan (Return)",
+            "from": "inbox",
+            "to": "plan",
+            "activeStateLatency": 4.2,
+            "firstVisualChange": 4.2,
+            "shellVisible": 63,
+            "contentVisible": 1272,
+            "navigationComplete": 1272,
+            "requestsCount": 6,
+            "rscRequestsCount": 1,
+            "cls": 0.317,
+            "fabShift": 0,
+            "initialFabY": 565,
+            "midFabY": 565,
+            "finalFabY": 565,
+            "longTaskCount": 0,
+            "maxLongTask": 0
+          }
+        ]
+      }
+    ]
+  },
+  "rapidSwitching": {
+    "finalUrl": "http://localhost:3100/vi/plan",
+    "activeTabs": ["/vi/plan"],
+    "busyTabs": [],
+    "resolvedCorrectly": true
+  },
+  "repeatedTapping": {
+    "tab": "money",
+    "rscRequestsTriggered": 0,
+    "suppressedDuplicate": true
+  },
+  "coldNavigation": [
+    {
+      "label": "Cold Home → Money",
+      "shellTime": 84,
+      "contentTime": 1077
+    },
+    {
+      "label": "Cold Money → Add Transaction",
+      "shellTime": 101,
+      "contentTime": 720
+    },
+    {
+      "label": "Cold Add Transaction → Plan",
+      "shellTime": 101,
+      "contentTime": 1588
+    }
+  ]
+}

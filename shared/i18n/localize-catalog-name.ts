@@ -16,7 +16,8 @@ export type CatalogGroup = (typeof CatalogGroup)[keyof typeof CatalogGroup];
 type CatalogKey =
   | `accounts.${keyof typeof enCatalog.accounts}`
   | `tags.${keyof typeof enCatalog.tags}`
-  | `jars.${keyof typeof enCatalog.jars}`;
+  | `jars.${keyof typeof enCatalog.jars}`
+  | `systemNotes.${keyof typeof enCatalog.systemNotes}`;
 
 const KNOWN: Record<CatalogGroup, ReadonlySet<string>> = {
   [CatalogGroup.ACCOUNTS]: new Set(["cash"]),

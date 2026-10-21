@@ -137,9 +137,9 @@ function HomeRecentActivityRow({
   locale: string;
   dateLabels: { today: string; yesterday: string };
 }) {
-  const title = activityTitle(activity, labels, tCatalog);
+  const title = activityTitle(activity, labels, tCatalog, locale);
   const subtitle = [
-    activitySubtitle(activity, title, labels, tCatalog),
+    activitySubtitle(activity, title, labels, tCatalog, locale),
     dateGroupLabel(activity.effectiveDate, locale, dateLabels),
   ]
     .filter(Boolean)

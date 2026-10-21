@@ -6,6 +6,11 @@ import {
   calculateValuation,
 } from "@/modules/investments/domain/investment-domain";
 import {
+  InvestmentAssetClass,
+  InvestmentValuationSource,
+} from "@/modules/investments/application/investment-constants";
+import { resolveInvestmentValuation } from "@/modules/investments/application/market-valuation";
+import {
   classifyInvestmentEvent,
   previewCryptoBuy,
   previewFundRedemption,
@@ -75,6 +80,99 @@ describe("Prompt 09.1 investment lifecycle", () => {
         unitPrice: 100,
       }),
     ).toThrow();
+  });
+
+  it("revalues the remaining position after consecutive partial and full sales", () => {
+    const valuation = (quantity: string, remainingCostBasis: number) =>
+      resolveInvestmentValuation({
+        assetClass: InvestmentAssetClass.STOCK,
+        quantity,
+        remainingCostBasis,
+        instrument: null,
+        price: null,
+        fxRate: null,
+        manualValuation: {
+          valueVnd: 12_000_000,
+          valuationDate: "2026-10-20",
+          unitPriceVnd: 120_000,
+          source: InvestmentValuationSource.MANUAL,
+        },
+      });
+
+    const purchase = previewSecurityBuy({
+      position: security,
+      quantity: "100",
+      unitPrice: 100_000,
+    });
+    expect(purchase.resultingQuantity).toBe("100");
+    expect(purchase.resultingCostBasis).toBe(10_000_000);
+    expect(
+      valuation(purchase.resultingQuantity, purchase.resultingCostBasis)
+        .currentValue,
+    ).toBe(12_000_000);
+    const firstSale = previewSecuritySell({
+      position: {
+        quantity: purchase.resultingQuantity,
+        remainingCostBasis: purchase.resultingCostBasis,
+        accountingMethod: AccountingMethod.WEIGHTED_AVERAGE,
+      },
+      quantity: "40",
+      unitPrice: 120_000,
+    });
+    const afterFirstSale = valuation(
+      firstSale.resultingQuantity,
+      firstSale.resultingCostBasis,
+    );
+
+    expect(firstSale.grossValue).toBe(4_800_000);
+    expect(firstSale.netCashFlow).toBe(4_800_000);
+    expect(firstSale.realizedPnl).toBe(800_000);
+    expect(firstSale.resultingQuantity).toBe("60");
+    expect(firstSale.resultingCostBasis).toBe(6_000_000);
+    expect(afterFirstSale.currentValue).toBe(7_200_000);
+    expect(afterFirstSale.estimatedUnrealizedPnl).toBe(1_200_000);
+
+    const secondSale = previewSecuritySell({
+      position: {
+        quantity: firstSale.resultingQuantity,
+        remainingCostBasis: firstSale.resultingCostBasis,
+        accountingMethod: AccountingMethod.WEIGHTED_AVERAGE,
+      },
+      quantity: "10",
+      unitPrice: 120_000,
+    });
+    const afterSecondSale = valuation(
+      secondSale.resultingQuantity,
+      secondSale.resultingCostBasis,
+    );
+
+    expect(secondSale.grossValue).toBe(1_200_000);
+    expect(secondSale.realizedPnl).toBe(200_000);
+    expect(secondSale.resultingQuantity).toBe("50");
+    expect(secondSale.resultingCostBasis).toBe(5_000_000);
+    expect(afterSecondSale.currentValue).toBe(6_000_000);
+    expect(afterSecondSale.estimatedUnrealizedPnl).toBe(1_000_000);
+
+    const fullSale = previewSecuritySell({
+      position: {
+        quantity: secondSale.resultingQuantity,
+        remainingCostBasis: secondSale.resultingCostBasis,
+        accountingMethod: AccountingMethod.WEIGHTED_AVERAGE,
+      },
+      quantity: "50",
+      unitPrice: 120_000,
+    });
+    const afterFullSale = valuation(
+      fullSale.resultingQuantity,
+      fullSale.resultingCostBasis,
+    );
+
+    expect(fullSale.grossValue).toBe(6_000_000);
+    expect(fullSale.realizedPnl).toBe(1_000_000);
+    expect(fullSale.resultingQuantity).toBe("0");
+    expect(fullSale.resultingCostBasis).toBe(0);
+    expect(afterFullSale.currentValue).toBe(0);
+    expect(afterFullSale.estimatedUnrealizedPnl).toBe(0);
   });
 
   it("includes acquisition fees in basis and disposal fees in realized result", () => {

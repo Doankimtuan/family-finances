@@ -136,6 +136,54 @@ describe("transactions list presentation", () => {
     );
   });
 
+  it("localizes system-generated savings transaction notes at display time (F5)", () => {
+    const [savingsActivity] = createTransactionActivities([
+      row({
+        note: "Gửi tiết kiệm: Vietcombank",
+        savingsEventKind: "SAVINGS_PRINCIPAL_PLACEMENT",
+      }),
+    ]);
+
+    const titleEn = activityTitle(savingsActivity, KIND_LABELS, tCatalog, "en");
+    expect(titleEn).toBe("Savings deposit: Vietcombank");
+
+    const titleVi = activityTitle(savingsActivity, KIND_LABELS, tCatalog, "vi");
+    expect(titleVi).toBe("Gửi tiết kiệm: Vietcombank");
+  });
+
+  it("localizes savings transfer note in subtitle at display time (F5)", () => {
+    const [transferActivity] = createTransactionActivities([
+      row({
+        type: "transfer_out",
+        transferGroupId: "grp-1",
+        note: "Gửi tiết kiệm: BIDV",
+      }),
+      row({
+        type: "transfer_in",
+        transferGroupId: "grp-1",
+        note: "Tiền gửi tiết kiệm: BIDV",
+      }),
+    ]);
+
+    const subtitleEn = activitySubtitle(
+      transferActivity,
+      "Checking → Savings",
+      KIND_LABELS,
+      tCatalog,
+      "en",
+    );
+    expect(subtitleEn).toContain("Savings deposit: BIDV");
+
+    const subtitleVi = activitySubtitle(
+      transferActivity,
+      "Checking → Savings",
+      KIND_LABELS,
+      tCatalog,
+      "vi",
+    );
+    expect(subtitleVi).toContain("Gửi tiết kiệm: BIDV");
+  });
+
   it("groups consecutive activities by effective date", () => {
     const today = todayIsoDate();
     const [first] = createTransactionActivities([

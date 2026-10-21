@@ -18,6 +18,7 @@ import {
   CatalogGroup,
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
+import { localizeTransactionNote } from "@/shared/i18n/localize-transaction-note";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { TransactionRow } from "@/shared/patterns/transaction-row";
 import { Text } from "@/shared/ui/text";
@@ -97,7 +98,13 @@ export async function JarRecentActivity({
                     activity.relatedTransactionIds[0] ?? activity.id,
                   )}
                   title={
-                    activity.note || categoryName || t("recentActivityFallback")
+                    localizeTransactionNote(activity.note, {
+                      savingsEventKind: activity.savingsEventKind,
+                      tCatalog,
+                      locale,
+                    }) ||
+                    categoryName ||
+                    t("recentActivityFallback")
                   }
                   subtitle={[date, categoryName, accountNames.join(" → ")]
                     .filter(Boolean)

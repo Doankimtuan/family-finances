@@ -20,6 +20,7 @@ import {
   CatalogGroup,
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
+import { localizeTransactionNote } from "@/shared/i18n/localize-transaction-note";
 import {
   differenceInUtcCalendarDays,
   todayIsoDate,
@@ -82,6 +83,7 @@ export function activityTitle(
   activity: TransactionActivity,
   labels: Record<TransactionActivityKind, string>,
   tCatalog: CatalogTranslator,
+  locale?: string,
 ) {
   if (activity.kind === TransactionActivityKind.TRANSFER) {
     return (
@@ -99,8 +101,13 @@ export function activityTitle(
       : "";
     return [labels[activity.kind], category].filter(Boolean).join(" · ");
   }
+  const localizedNote = localizeTransactionNote(activity.note, {
+    savingsEventKind: activity.savingsEventKind,
+    tCatalog,
+    locale,
+  });
   return (
-    activity.note ||
+    localizedNote ||
     localizeCatalogName(tCatalog, CatalogGroup.TAGS, activity.categoryName) ||
     labels[activity.kind]
   );
@@ -111,9 +118,15 @@ export function activitySubtitle(
   title: string,
   labels: Record<TransactionActivityKind, string>,
   tCatalog: CatalogTranslator,
+  locale?: string,
 ) {
   if (activity.kind === TransactionActivityKind.TRANSFER) {
-    return [activity.note, labels[activity.kind]].filter(Boolean).join(" · ");
+    const note = localizeTransactionNote(activity.note, {
+      savingsEventKind: activity.savingsEventKind,
+      tCatalog,
+      locale,
+    });
+    return [note, labels[activity.kind]].filter(Boolean).join(" · ");
   }
   const category = activity.categoryName
     ? localizeCatalogName(tCatalog, CatalogGroup.TAGS, activity.categoryName)

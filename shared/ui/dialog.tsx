@@ -2,6 +2,7 @@
 
 import { Modal } from "@heroui/react";
 import type { ComponentProps, ReactNode } from "react";
+import { usePress } from "react-aria";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { Button, ButtonVariant } from "@/shared/ui/button";
@@ -18,12 +19,24 @@ type ModalRootProps = ComponentProps<typeof Modal>;
 
 export type DialogProps = ModalRootProps;
 
+function ControlledTriggerSink() {
+  const { pressProps } = usePress({});
+  return (
+    <span {...pressProps} aria-hidden="true" className="hidden" tabIndex={-1} />
+  );
+}
+
 /**
  * ViNha Canonical Dialog — HeroUI Modal wrapper.
  * Constrained to AppViewport (440px) with centered placement.
  */
 export function Dialog({ children, ...props }: DialogProps) {
-  return <Modal {...props}>{children}</Modal>;
+  return (
+    <Modal {...props}>
+      <ControlledTriggerSink />
+      {children}
+    </Modal>
+  );
 }
 
 export type DialogContentProps = {

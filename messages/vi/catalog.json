@@ -18,5 +18,17 @@
     "savings": "Tiết kiệm",
     "needs": "Cần thiết",
     "wants": "Mong muốn"
+  },
+  "systemNotes": {
+    "savings_deposit": "Gửi tiết kiệm: {product}",
+    "savings_deposit_bare": "Gửi tiết kiệm",
+    "savings_withdrawal": "Rút tiền tiết kiệm: {product}",
+    "savings_withdrawal_bare": "Rút tiền tiết kiệm",
+    "savings_interest": "Lãi tiết kiệm: {product}",
+    "savings_interest_bare": "Lãi tiết kiệm",
+    "savings_tax": "Thuế lãi tiết kiệm: {product}",
+    "savings_tax_bare": "Thuế lãi tiết kiệm",
+    "savings_penalty": "Phí rút trước hạn: {product}",
+    "savings_penalty_bare": "Phí rút trước hạn"
   }
 }

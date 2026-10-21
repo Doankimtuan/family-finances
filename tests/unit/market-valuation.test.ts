@@ -229,6 +229,25 @@ describe("MARKET 04 valuation resolver", () => {
     expect(result.priceType).toBe(MarketPriceType.MANUAL);
   });
 
+  it("recalculates a manual unit-price valuation for the current quantity", () => {
+    const result = resolve({
+      instrument: null,
+      price: null,
+      quantity: "60",
+      remainingCostBasis: 6_000_000,
+      manualValuation: {
+        valueVnd: 12_000_000,
+        valuationDate: "2026-10-20",
+        unitPriceVnd: 120_000,
+        source: InvestmentValuationSource.MANUAL,
+      },
+    });
+
+    expect(result.currentValue).toBe(7_200_000);
+    expect(result.estimatedUnrealizedPnl).toBe(1_200_000);
+    expect(result.estimatedUnrealizedPnlPercent).toBe(0.2);
+  });
+
   it("preserves manual and unknown states without inventing value", () => {
     const manual = resolve({
       instrument: null,

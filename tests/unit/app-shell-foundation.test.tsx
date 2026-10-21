@@ -34,6 +34,7 @@ const navigationState = vi.hoisted(() => ({
   linkPending: false,
   push: vi.fn(),
   navigate: vi.fn(),
+  prefetch: vi.fn(),
 }));
 
 vi.mock("next-intl", () => ({
@@ -44,7 +45,10 @@ vi.mock("next-intl", () => ({
 
 vi.mock("@/i18n/navigation", () => ({
   usePathname: () => navigationState.pathname,
-  useRouter: () => ({ push: navigationState.push }),
+  useRouter: () => ({
+    push: navigationState.push,
+    prefetch: navigationState.prefetch,
+  }),
   Link: ({
     href,
     children,
@@ -92,6 +96,7 @@ beforeEach(() => {
   navigationState.linkPending = false;
   navigationState.push.mockClear();
   navigationState.navigate.mockClear();
+  navigationState.prefetch.mockClear();
 });
 
 describe("Phase 2 app-shell foundation", () => {
@@ -425,5 +430,41 @@ describe("Phase 2 app-shell foundation", () => {
     expect(tokens).toContain("--radius-control: 10px;");
     expect(tokens).toContain("--radius-card: 12px;");
     expect(tokens).toContain("--radius-overlay: 16px;");
+  });
+
+  it("marks Add Transaction current when committed on /money/transactions/new and prevents duplicate push", () => {
+    navigationState.pathname = APP_PATH.MONEY_ADD;
+    render(<BottomNavigation />);
+
+    const captureButton = screen.getByRole("button", {
+      name: "navigation.addTransaction",
+    });
+    expect(captureButton).toHaveAttribute("aria-current", "page");
+    expect(captureButton).toHaveClass("ring-primary");
+
+    const captureLi = captureButton.closest("li");
+    expect(captureLi).toHaveAttribute("data-active", "true");
+
+    const homeTab = screen.getByRole("link", { name: /navigation.home/ });
+    expect(homeTab).toHaveAttribute("data-active", "false");
+    expect(homeTab).not.toHaveAttribute("aria-current");
+
+    // Clicking while already on Add Transaction suppresses duplicate navigation
+    fireEvent.click(captureButton);
+    expect(navigationState.push).not.toHaveBeenCalled();
+  });
+
+  it("does not prefetch route on pointerdown, respecting PRODUCT_LINK_PREFETCH policy", () => {
+    render(<BottomNavigation />);
+
+    const moneyTab = screen.getByRole("link", { name: /navigation.money/ });
+    fireEvent.pointerDown(moneyTab);
+    expect(navigationState.prefetch).not.toHaveBeenCalled();
+
+    const captureButton = screen.getByRole("button", {
+      name: "navigation.addTransaction",
+    });
+    fireEvent.pointerDown(captureButton);
+    expect(navigationState.prefetch).not.toHaveBeenCalled();
   });
 });

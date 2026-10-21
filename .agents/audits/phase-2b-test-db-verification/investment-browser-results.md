@@ -1,0 +1,15 @@
+# Phase 2B — Investment Browser Results
+
+**F3 status:** BLOCKED for completion; deterministic calculations pass, but the authenticated investment workflow and persisted household aggregate were not verified in a browser/database.
+
+## Local browser evidence
+
+| Check                                                                                                 | Result                                                                                                                                            | Evidence                                                                                                              |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Long credit-card title presentation at 390, 440, 768, and 1280px                                      | PASS — local unauthenticated harness rendered the title without clipping; the app shell remained centered and capped at 440px on wider viewports. | [390px screenshot](evidence/credit-card-title-390.png), [accessibility snapshot](evidence/credit-card-title-390.yml). |
+| F3 buy, price update, partial sale, refresh, and investment detail                                    | BLOCKED — no authenticated safe database session.                                                                                                 | No investment browser flow was run.                                                                                   |
+| Portfolio overview and Home after refresh                                                             | BLOCKED — no authenticated safe database session.                                                                                                 | No investment browser flow was run.                                                                                   |
+| Account B shared-value visibility                                                                     | BLOCKED — no separate authenticated identity.                                                                                                     | No investment browser flow was run.                                                                                   |
+| Persisted cash proceeds exactly once, duplicate submission, full liquidation, and household net worth | BLOCKED — no safe database target; unit previews are not persisted-state evidence.                                                                | See [financial reconciliation](financial-reconciliation.md).                                                          |
+
+The local screenshot verifies only the separate title-wrapping UI fix. It is not evidence that F3's financial journey was tested in the browser. No F3 browser flow is marked PASS or FIXED.

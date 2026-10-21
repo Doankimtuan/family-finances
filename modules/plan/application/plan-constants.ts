@@ -18,6 +18,15 @@ export const JarKind = {
   INCOME: "income",
 } as const;
 
+export const PlanBudgetAvailability = {
+  READY: "ready",
+  NOT_CONFIGURED: "not_configured",
+  UNAVAILABLE: "unavailable",
+} as const;
+
+export type PlanBudgetAvailability =
+  (typeof PlanBudgetAvailability)[keyof typeof PlanBudgetAvailability];
+
 /** A budget usage ratio is displayed on a 0–100 percent scale. */
 export const JAR_BUDGET_PERCENT_SCALE = 100;
 

@@ -132,6 +132,15 @@ const BUDGET_METRICS: JarBudgetMetrics = {
 };
 
 const BUDGETS: CurrentJarBudgetSummary = {
+  pulse: {
+    householdId: HOUSEHOLD_ID,
+    currency: DEFAULT_CURRENCY,
+    monthCloseMode: RitualMode.MANUAL,
+    incomeAllocateMode: IncomeAllocateMode.OFF,
+    activeJars: [JAR],
+    pausedJarCount: 0,
+    archivedJarCount: 0,
+  },
   periodMonth: PERIOD_MONTH,
   periodIncome: 300_000,
   qualifyingIncome: 300_000,

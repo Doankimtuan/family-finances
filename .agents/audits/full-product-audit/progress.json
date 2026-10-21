@@ -1,0 +1,143 @@
+{
+  "audit": "ViNha Autonomous Real-User Product Audit V2",
+  "status": "PASS_WITH_FRICTION",
+  "completedAt": "2026-10-20T22:35:00+07:00",
+  "environment": {
+    "appUrl": "http://localhost:3100 (localhost origin preserved for Next.js 16 dev chunk hydration)",
+    "build": "Next.js 16.3.1 dev server (port 3100)",
+    "backend": "Hosted Supabase project bbzffxvgocjwsdbujvgn",
+    "isolation": "Strictly verified: all test mutations confined to test accounts codex.test.1 and codex.test.2 in household 'Tuan Audit Household'"
+  },
+  "sessions": [
+    "vinha-a (codex.test.1@family-finances.test, Household Owner / Admin)",
+    "vinha-b (codex.test.2@family-finances.test, Partner)"
+  ],
+  "accounts": {
+    "A": "codex.test.1@family-finances.test",
+    "B": "codex.test.2@family-finances.test"
+  },
+  "fixture": {
+    "household": "Tuan Audit Household",
+    "members": [
+      {
+        "email": "codex.test.1@family-finances.test",
+        "role": "Admin",
+        "status": "Active"
+      },
+      {
+        "email": "codex.test.2@family-finances.test",
+        "role": "Partner",
+        "status": "Active"
+      }
+    ],
+    "accounts": [
+      { "name": "Cash", "type": "cash", "owner": "A", "balance": 33300000 },
+      {
+        "name": "B Checking",
+        "type": "checking",
+        "owner": "B",
+        "balance": 16300000
+      }
+    ],
+    "savings": [
+      {
+        "provider": "Vietcombank",
+        "deposit": 10000000,
+        "rate": 5.5,
+        "tenureMonths": 12,
+        "expectedInterest": 550000,
+        "status": "Active"
+      }
+    ],
+    "investments": [
+      {
+        "symbol": "FPT",
+        "initialQuantity": 100,
+        "purchasePrice": 100000,
+        "updatedPrice": 120000,
+        "soldQuantity": 40,
+        "remainingUnits": 60,
+        "trueMarketValue": 7200000,
+        "appBugMarketValue": 12000000
+      }
+    ],
+    "jars": "Balanced starter set (Essentials, Lifestyle, Buffer, Savings)",
+    "goals": [
+      {
+        "name": "Emergency Fund 6 Months",
+        "target": 60000000,
+        "linkedFunding": 10000000,
+        "progress": 16.67
+      }
+    ]
+  },
+  "phases": {
+    "P0_discovery_safety": "PASS",
+    "P1_onboarding_household": "PASS",
+    "P2_accounts_transactions": "PASS",
+    "P3_savings_investments_loans": "FAIL_BLOCKER",
+    "P4_plan_inbox_together": "PASS",
+    "P5_uiux_mobile": "PASS",
+    "P6_performance_reliability": "PASS",
+    "P7_long_term_usage": "PASS",
+    "P8_product_strategy": "PASS"
+  },
+  "journeys": [
+    {
+      "id": "J1-onboarding",
+      "status": "PASS",
+      "summary": "Account A onboarded 2-step setup: household created, Cash account opening 30M, starter jars created."
+    },
+    {
+      "id": "J2-invitation-collaboration",
+      "status": "PASS",
+      "summary": "Account A created invite, Account B accepted token at /en/invite/<token>, joined household as Partner with shared visibility."
+    },
+    {
+      "id": "J3-transactions-reversal",
+      "status": "PASS",
+      "summary": "Recorded salary (25M), grocery (1.5M), B checking (12M), transfer (5M), transport (600K -> corrected to 700K via double-entry reversal). Double-entry accounting verified."
+    },
+    {
+      "id": "J4-savings",
+      "status": "PASS",
+      "summary": "Custom provider Vietcombank created, term deposit 10M recorded, interest 5.5% / 550K accurately projected."
+    },
+    {
+      "id": "J5-investments",
+      "status": "FAIL",
+      "summary": "Bought 100 FPT at 100k (10M), updated price to 120k (12M), sold 40 at 120k (4.8M). Holding valuation remained stuck at 12M instead of 7.2M (Issue F3)."
+    },
+    {
+      "id": "J6-loans",
+      "status": "BLOCKED",
+      "summary": "Loan creation fails completely due to missing PostgreSQL RPC _loan_insert_schedule_entries (Issue F4)."
+    },
+    {
+      "id": "J7-inbox-and-jars",
+      "status": "PASS",
+      "summary": "3 action items resolved cross-account into jars, jar activity synchronized, goal progress updated."
+    },
+    {
+      "id": "J8-together-permissions",
+      "status": "PASS",
+      "summary": "Role separation confirmed: Partner cannot invite members or edit household policies. Admin has full controls."
+    },
+    {
+      "id": "J9-mobile-ux-performance",
+      "status": "PASS",
+      "summary": "390x844 and 360x640 mobile viewports verified without horizontal overflow. Dark/light theme and Vietnamese locale tested."
+    }
+  ],
+  "issuesCount": {
+    "P0": 0,
+    "P1": 2,
+    "P2": 2,
+    "P3": 2,
+    "total": 6
+  },
+  "blockers": [
+    "F4: Loans module creation blocked by missing DB RPC function public._loan_insert_schedule_entries"
+  ],
+  "nextAction": "Publish audit deliverables to workspace"
+}

@@ -6,6 +6,11 @@ import {
   createHousehold,
   type CreateHouseholdErrorCode,
 } from "@/modules/tenancy/application/create-household";
+import {
+  acceptInvitationById,
+  type AcceptInvitationResult,
+} from "@/modules/tenancy/application/accept-invitation";
+import { INVITATION_ERROR_CODE } from "@/modules/tenancy/application/tenancy-constants";
 import type { CreateHouseholdInput } from "@/modules/tenancy/application/create-household.schema";
 import { pathForAuthEntry } from "@/modules/tenancy/application/auth-entry-path";
 import { HOUSEHOLD_ERROR_CODE } from "@/modules/tenancy/application/tenancy-constants";
@@ -33,4 +38,15 @@ export async function createHouseholdAction(
     return redirect({ href: pathForAuthEntry("home"), locale });
   }
   return { status: "error", code: result.code };
+}
+
+export async function acceptOnboardingInvitationAction(
+  invitationId: string,
+): Promise<AcceptInvitationResult> {
+  const result = await acceptInvitationById(invitationId);
+  if (result.ok || result.code === INVITATION_ERROR_CODE.ALREADY_MEMBER) {
+    const locale = await getLocale();
+    return redirect({ href: pathForAuthEntry("home"), locale });
+  }
+  return result;
 }

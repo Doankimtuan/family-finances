@@ -84,6 +84,7 @@ export type JarBudgetPeriod = {
 };
 
 export type CurrentJarBudgetSummary = {
+  pulse: PlanPulse;
   periodMonth: string;
   periodIncome: number;
   qualifyingIncome: number;
@@ -1022,6 +1023,7 @@ function summaryFromContext(
     summarySource = source;
   }
   return {
+    pulse: context.pulse,
     periodMonth: context.selectedPeriod.month,
     periodIncome: summaryIncome,
     qualifyingIncome: summaryIncome,

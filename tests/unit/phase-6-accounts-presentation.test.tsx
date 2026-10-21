@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CreditCardHero } from "@/app/[locale]/(product)/money/accounts/[id]/credit-card-hero";
 import { isCreditFacilityComplete } from "@/modules/ledger/ui/credit-facility-presentation";
 import { CreditCardCard } from "@/modules/ledger/ui/credit-card-card";
@@ -9,6 +9,10 @@ import {
 } from "@/modules/ledger/ui/credit-facility-presentation";
 import { FinancialPrivacyProvider } from "@/providers/financial-privacy-provider";
 import { FINANCIAL_PRIVACY_MASK } from "@/shared/constants/financial-privacy";
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}));
 
 describe("credit facility completeness", () => {
   it("treats a positive limit as complete and a zero limit as incomplete", () => {

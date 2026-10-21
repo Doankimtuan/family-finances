@@ -120,6 +120,7 @@ const pulse: PlanPulse = {
 };
 
 const currentJarBudgets: CurrentJarBudgetSummary = {
+  pulse,
   periodMonth: PERIOD_MONTH,
   periodIncome: 300_000,
   qualifyingIncome: 300_000,
@@ -235,15 +236,10 @@ describe("Plan hub progressive overview", () => {
   it("overlaps default-current reads with the household timezone lookup", async () => {
     const household = deferred<HomeHouseholdContext | null>();
     const householdStarted = deferred<void>();
-    const pulseStarted = deferred<void>();
     const budgetStarted = deferred<void>();
     vi.mocked(getHomeHouseholdContext).mockImplementation(() => {
       householdStarted.resolve();
       return household.promise;
-    });
-    vi.mocked(getPlanPulse).mockImplementation(() => {
-      pulseStarted.resolve();
-      return Promise.resolve(pulse);
     });
     vi.mocked(getCurrentJarBudgets).mockImplementation(() => {
       budgetStarted.resolve();
@@ -253,18 +249,24 @@ describe("Plan hub progressive overview", () => {
     const page = await createPage();
     const critical = section(page, "PlanCriticalSection");
     const criticalResult = renderSection(critical);
-    await Promise.all([
-      householdStarted.promise,
-      pulseStarted.promise,
-      budgetStarted.promise,
-    ]);
+    await Promise.all([householdStarted.promise, budgetStarted.promise]);
 
     expect(getCurrentJarBudgets).toHaveBeenCalledTimes(1);
-    expect(getPlanPulse).toHaveBeenCalledTimes(1);
+    expect(getPlanPulse).not.toHaveBeenCalled();
     expect(await isSettled(criticalResult)).toBe(false);
 
     household.resolve(householdContext);
     await criticalResult;
+  });
+
+  it("falls back to the standalone pulse when current budgets are unavailable", async () => {
+    vi.mocked(getCurrentJarBudgets).mockResolvedValue(null);
+
+    const page = await createPage();
+    await renderSection(section(page, "PlanCriticalSection"));
+
+    expect(getCurrentJarBudgets).toHaveBeenCalledTimes(1);
+    expect(getPlanPulse).toHaveBeenCalledTimes(1);
   });
 
   it("renders the financial summary and jars while Inbox remains pending", async () => {

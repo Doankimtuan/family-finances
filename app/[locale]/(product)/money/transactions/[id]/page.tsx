@@ -44,6 +44,7 @@ import {
   CatalogGroup,
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
+import { localizeTransactionNote } from "@/shared/i18n/localize-transaction-note";
 import {
   TRANSACTION_ACCENT_LINK_CLASS,
   TRANSACTION_SURFACE_LINK_CLASS,
@@ -181,9 +182,15 @@ function transactionContextTitle(
   tx: NonNullable<Awaited<ReturnType<typeof getTransaction>>>,
   tCatalog: CatalogTranslator,
   t: MoneyTranslator,
+  locale?: string,
 ) {
+  const note = localizeTransactionNote(tx.note, {
+    savingsEventKind: tx.savingsEventKind,
+    tCatalog,
+    locale,
+  });
   return (
-    tx.note ||
+    note ||
     (tx.categoryName
       ? localizeCatalogName(tCatalog, CatalogGroup.TAGS, tx.categoryName)
       : null) ||
@@ -308,7 +315,11 @@ function TransferDetail({
         {activity.note ? (
           <TransactionFactRow
             label={t("transferDetail.note")}
-            value={activity.note}
+            value={localizeTransactionNote(activity.note, {
+              savingsEventKind: activity.savingsEventKind,
+              tCatalog,
+              locale,
+            })}
           />
         ) : null}
       </TransactionFactsCard>
@@ -428,7 +439,12 @@ async function TransactionAuditHistory({
                 className="font-medium text-accent underline-offset-2 hover:underline"
               >
                 {t.rich("detailPage.refundOriginal", {
-                  title: transactionContextTitle(chain.original, tCatalog, t),
+                  title: transactionContextTitle(
+                    chain.original,
+                    tCatalog,
+                    t,
+                    locale,
+                  ),
                   amount: () => (
                     <FinancialValue>
                       {formatCurrency(
@@ -480,7 +496,12 @@ async function TransactionAuditHistory({
                   className="text-accent underline-offset-2 hover:underline"
                 >
                   {t.rich("detailPage.correctionOriginal", {
-                    title: transactionContextTitle(chain.original, tCatalog, t),
+                    title: transactionContextTitle(
+                      chain.original,
+                      tCatalog,
+                      t,
+                      locale,
+                    ),
                     amount: () => (
                       <FinancialValue>
                         {formatCurrency(
@@ -692,7 +713,7 @@ async function renderTransactionDetailPage({ params }: Props) {
         <TransactionsReturnTopAppBar
           variant="detail"
           title={detailLabel}
-          subtitle={transactionContextTitle(tx, tCatalog, t)}
+          subtitle={transactionContextTitle(tx, tCatalog, t, locale)}
           trailing={
             <FinancialPrivacyToggle
               hideLabel={t("financialPrivacy.hide")}
@@ -714,7 +735,7 @@ async function renderTransactionDetailPage({ params }: Props) {
           tone={ACTIVITY_TONE_TO_AMOUNT_TONE[activity.tone]}
         />
         <Text size="sm" weight="medium">
-          {transactionContextTitle(tx, tCatalog, t)}
+          {transactionContextTitle(tx, tCatalog, t, locale)}
         </Text>
         <StatusBadge tone={StatusBadgeTone.NEUTRAL}>
           {t(`status.${statusKey}`)}
@@ -817,7 +838,14 @@ async function renderTransactionDetailPage({ params }: Props) {
           value={jarFactValue}
         />
         {tx.note ? (
-          <TransactionFactRow label={t("detailPage.note")} value={tx.note} />
+          <TransactionFactRow
+            label={t("detailPage.note")}
+            value={localizeTransactionNote(tx.note, {
+              savingsEventKind: tx.savingsEventKind,
+              tCatalog,
+              locale,
+            })}
+          />
         ) : null}
       </TransactionFactsCard>
 

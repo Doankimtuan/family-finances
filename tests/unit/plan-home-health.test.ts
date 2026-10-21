@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { AllocationHealthStatus } from "@/modules/plan/application/plan-constants";
+import {
+  AllocationHealthStatus,
+  PlanBudgetAvailability,
+} from "@/modules/plan/application/plan-constants";
 import {
   collectPlanHomeExceptions,
   prioritizePlanHomeExceptions,
   resolvePlanHomeHealth,
+  resolvePlanBudgetAvailability,
   PlanHomeHealthStatus,
 } from "@/modules/plan/application/plan-home-health";
 
@@ -24,6 +28,27 @@ const metric = (state: Metrics["state"], remainingAmount = 100): Metrics => ({
 });
 
 describe("Plan Home health", () => {
+  it("separates missing configuration from failed reads", () => {
+    expect(
+      resolvePlanBudgetAvailability({
+        readsAvailable: true,
+        hasConfiguredBudgets: false,
+      }),
+    ).toBe(PlanBudgetAvailability.NOT_CONFIGURED);
+    expect(
+      resolvePlanBudgetAvailability({
+        readsAvailable: false,
+        hasConfiguredBudgets: false,
+      }),
+    ).toBe(PlanBudgetAvailability.UNAVAILABLE);
+    expect(
+      resolvePlanBudgetAvailability({
+        readsAvailable: true,
+        hasConfiguredBudgets: true,
+      }),
+    ).toBe(PlanBudgetAvailability.READY);
+  });
+
   it("returns no_plan when there are no active Jars", () => {
     expect(
       resolvePlanHomeHealth({

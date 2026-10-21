@@ -133,7 +133,7 @@ export function CreditCardHero({
             <AppIcon icon={FINANCE_ICONS.card} size={AppIconSize.MD} />
           </IconContainer>
           <div className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
-            <Text size="sm" weight="semibold" className="truncate">
+            <Text size="sm" weight="semibold" className="break-words">
               {title}
             </Text>
             <Text size="xs" tone="secondary" className="truncate">

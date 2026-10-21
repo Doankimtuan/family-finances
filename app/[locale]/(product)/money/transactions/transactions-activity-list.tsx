@@ -26,6 +26,7 @@ import {
   CatalogGroup,
   localizeCatalogName,
 } from "@/shared/i18n/localize-catalog-name";
+import { localizeTransactionNote } from "@/shared/i18n/localize-transaction-note";
 import { UTILITY_ICONS, categoryVisualFor } from "@/shared/ui/icon-registry";
 import { moneyTransactionPath } from "@/modules/tenancy/application/app-path";
 import { SHELL_SCROLL_REGION_SLOT } from "@/shared/patterns/shell-scroll-region";
@@ -337,6 +338,7 @@ export function TransactionsActivityList({
                 activity,
                 activityKindLabels,
                 tCatalog,
+                locale,
               );
               const amount = formatCurrency(
                 activity.amount,
@@ -349,6 +351,7 @@ export function TransactionsActivityList({
                 title,
                 activityKindLabels,
                 tCatalog,
+                locale,
               );
               const category = activity.categoryName
                 ? localizeCatalogName(
@@ -371,7 +374,11 @@ export function TransactionsActivityList({
                       </span>
                       <span>{` · ${[
                         activity.kind === TransactionActivityKind.TRANSFER
-                          ? activity.note
+                          ? localizeTransactionNote(activity.note, {
+                              savingsEventKind: activity.savingsEventKind,
+                              tCatalog,
+                              locale,
+                            })
                           : localizedAccountName(
                               activity.sourceAccount?.name ??
                                 activity.destinationAccount?.name,

@@ -7,7 +7,9 @@ import {
   InvestmentAssetClass,
   InvestmentLifecycleStatus,
   InvestmentHistoryStatus,
+  InvestmentValuationSource,
 } from "@/modules/investments/application/investment-constants";
+import { resolveInvestmentValuation } from "@/modules/investments/application/market-valuation";
 import type { InvestmentHolding } from "@/modules/investments/application/investment-types";
 const holding = (
   overrides: Partial<InvestmentHolding> = {},
@@ -81,5 +83,36 @@ describe("Prompt 09.3 portfolio view model", () => {
         0,
       ),
     ).toBe(10_000);
+  });
+
+  it("aggregates the remaining manual unit-price value after a partial sale", () => {
+    const valuation = resolveInvestmentValuation({
+      assetClass: InvestmentAssetClass.STOCK,
+      quantity: "60",
+      remainingCostBasis: 6_000_000,
+      instrument: null,
+      price: null,
+      fxRate: null,
+      manualValuation: {
+        valueVnd: 12_000_000,
+        valuationDate: "2026-10-20",
+        unitPriceVnd: 120_000,
+        source: InvestmentValuationSource.MANUAL,
+      },
+    });
+    const portfolio = summarizeActivePortfolio(
+      [
+        holding({
+          quantity: "60",
+          remainingTotalCostBasis: 6_000_000,
+          currentValue: valuation.currentValue,
+        }),
+      ],
+      [],
+    );
+
+    expect(portfolio.totalCurrentValue).toBe(7_200_000);
+    expect(portfolio.totalRemainingCostBasis).toBe(6_000_000);
+    expect(portfolio.unrealizedResult).toBe(1_200_000);
   });
 });

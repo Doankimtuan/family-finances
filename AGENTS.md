@@ -117,3 +117,62 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Product audit mode (only when an audit is requested)
+
+AUDIT ONLY: leave application code and production data unchanged. Use isolated
+synthetic data in a verified non-production environment; no destructive database
+operations. Never expose credentials or tokens. Browser evidence outranks code
+assumptions; financial correctness outranks visual polish.
+
+Before auditing, read `.agents/audits/OPERATING.md` and resume from the single
+`.agents/audits/progress.md` manifest. Save reports/checkpoints in `.agents/audits/`.
+Resume unfinished steps; retain completed journeys unless the build, fixture, or
+relevant behavior changed. Audit skills live in `.agents/skills/vinhna-*/` with
+compatibility links in `.zcode/skills/`; maintain only the canonical files.
+
+# ViNha — Multi-Agent Ownership Rules
+
+This repository is developed using two agents:
+
+**Codex — Backend & Financial Owner**
+
+- Supabase MCP operations
+- PostgreSQL migrations, RPCs, and RLS
+- Authentication and household membership logic
+- Financial domain calculations
+- Ledger and financial data integrity
+- Backend security and database integration tests
+
+**Antigravity — Frontend & UX Owner**
+
+- UI components and styling
+- Layout and responsive design
+- Client-side interactions and animations
+- Localization and microcopy
+- Browser-based UX testing
+- Frontend rendering and navigation performance
+
+## Boundaries
+
+Antigravity must not modify:
+
+- Supabase migrations
+- RLS policies
+- RPC implementations
+- Financial calculation logic
+- Ledger mutations
+- Authentication security logic
+- Backend authorization
+
+Codex may modify frontend code when it is necessary for backend-integrated features such as invitations and financial planning.
+
+If a frontend task requires backend or database changes, Antigravity must document the dependency and hand it to Codex.
+
+Neither agent should overwrite unrelated changes made by the other.
+
+Before beginning work, inspect the current git status and relevant uncommitted changes.
+
+When completing a task, document all changed files, verification results, and remaining risks.
+
+Never claim full financial or database verification based solely on frontend tests.

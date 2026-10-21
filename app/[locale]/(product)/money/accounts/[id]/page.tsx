@@ -24,6 +24,7 @@ import {
 import { requireProductSession } from "@/modules/tenancy/application/require-product-session";
 import { formatCurrency, formatDate } from "@/shared/i18n/formatters";
 import { localizeCatalogName } from "@/shared/i18n/localize-catalog-name";
+import { localizeTransactionNote } from "@/shared/i18n/localize-transaction-note";
 import { MotionReveal } from "@/shared/motion";
 import { Card } from "@/shared/patterns/card";
 import { Balance } from "@/shared/patterns/balance";
@@ -705,7 +706,11 @@ async function AccountRecentActivitySection({
                         </IconContainer>
                       }
                       title={
-                        transaction.note ||
+                        localizeTransactionNote(transaction.note, {
+                          savingsEventKind: transaction.savingsEventKind,
+                          tCatalog,
+                          locale,
+                        }) ||
                         localizeCatalogName(
                           tCatalog,
                           "tags",

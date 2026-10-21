@@ -222,6 +222,12 @@ function BottomNavigationContent({
     setPendingDestination((current) => (current === href ? null : current));
   };
 
+  const isCaptureCommitted = pathname === APP_PATH.MONEY_ADD;
+  const isCaptureActive =
+    pendingDestination !== null
+      ? pendingDestination === APP_PATH.MONEY_ADD
+      : isCaptureCommitted;
+
   const renderTab = ({ href, labelKey, icon }: NavTab) => {
     const committedActive = isPathInTab(pathname, href);
     const pendingIsUncommitted =
@@ -286,13 +292,13 @@ function BottomNavigationContent({
               </span>
             ) : null}
           </span>
-          <span className="relative z-10 max-w-full whitespace-nowrap">
-            {label}
+          <span className="relative z-10 flex max-w-full items-center justify-center truncate">
+            <span className="truncate">{label}</span>
             {active ? (
               <span
                 data-slot="nav-tab-active-dot"
                 aria-hidden="true"
-                className="ms-(--space-1) inline-block size-(--space-1) rounded-full bg-current align-middle"
+                className="ms-(--space-1) inline-block size-(--space-1) shrink-0 rounded-full bg-current align-middle"
               />
             ) : null}
           </span>
@@ -332,6 +338,7 @@ function BottomNavigationContent({
               key={APP_PATH.MONEY_ADD}
               className="relative min-h-14 min-w-0"
               aria-busy={pendingDestination === APP_PATH.MONEY_ADD || undefined}
+              data-active={isCaptureActive ? "true" : "false"}
             >
               {hasContextualCreateAction ? null : (
                 <>
@@ -339,6 +346,7 @@ function BottomNavigationContent({
                     aria-label={t(
                       online ? "addTransaction" : "offlineAddTransaction",
                     )}
+                    aria-current={isCaptureCommitted ? "page" : undefined}
                     isDisabled={!online}
                     isIconOnly
                     leadingIcon={
@@ -348,12 +356,12 @@ function BottomNavigationContent({
                       "absolute -top-(--space-3) left-1/2 z-20 size-(--space-12)",
                       "min-h-(--space-12) min-w-(--space-12) -translate-x-1/2 rounded-(--radius-overlay)",
                       "border-2 border-surface-elevated p-0 ring-4 shadow-(--elevation-2)",
-                      pendingDestination === APP_PATH.MONEY_ADD
-                        ? "ring-primary"
-                        : "ring-primary-soft",
+                      isCaptureActive ? "ring-primary" : "ring-primary-soft",
                     )}
                     data-testid="money-capture"
                     onPress={() => {
+                      if (isCaptureCommitted && pendingDestination === null)
+                        return;
                       if (pendingDestination === APP_PATH.MONEY_ADD) return;
                       setPendingDestination(APP_PATH.MONEY_ADD);
                       startCaptureTransition(() =>
@@ -363,9 +371,21 @@ function BottomNavigationContent({
                   />
                   <span
                     aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0 z-10 whitespace-nowrap text-center text-label-sm font-semibold leading-tight text-primary"
+                    className={cn(
+                      "absolute inset-x-0 bottom-0 z-10 flex max-w-full items-center justify-center truncate px-(--space-1) text-center text-label-sm leading-tight transition-colors duration-(--duration-normal)",
+                      isCaptureActive
+                        ? "font-semibold text-primary"
+                        : "font-medium text-text-secondary",
+                    )}
                   >
-                    {t("record")}
+                    <span className="truncate">{t("record")}</span>
+                    {isCaptureActive ? (
+                      <span
+                        data-slot="nav-tab-active-dot"
+                        aria-hidden="true"
+                        className="ms-(--space-1) inline-block size-(--space-1) shrink-0 rounded-full bg-current align-middle"
+                      />
+                    ) : null}
                   </span>
                 </>
               )}

@@ -1,10 +1,11 @@
 import { getSupabaseEnv } from "@/modules/platform/supabase/env";
 import { createSupabaseServerClient } from "@/modules/platform/supabase/server";
 import type { Result } from "@/modules/shared-kernel/application/result";
-import { inviteTokenSchema } from "./invitation.schema";
+import { invitationIdSchema, inviteTokenSchema } from "./invitation.schema";
 import { getSessionUser } from "./get-session-user";
 import {
   INVITATION_ERROR_CODE,
+  INVITATION_STATUS,
   type InvitationErrorCode,
 } from "./tenancy-constants";
 import { classifyInvitationRpcError, logTenancyFailure } from "./tenancy-error";
@@ -69,6 +70,55 @@ export async function acceptInvitation(
     }
 
     return { ok: true, householdId: data };
+  } catch (error) {
+    logTenancyFailure(TENANCY_OPERATION.INVITATION_ACCEPT, error);
+    return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
+  }
+}
+
+/** Accept a recipient invitation without sending its token to the browser. */
+export async function acceptInvitationById(
+  invitationId: string,
+): Promise<AcceptInvitationResult> {
+  const parsed = invitationIdSchema.safeParse(invitationId);
+  if (!parsed.success) {
+    return { ok: false, code: INVITATION_ERROR_CODE.INVALID };
+  }
+  if (!getSupabaseEnv().isConfigured) {
+    return { ok: false, code: INVITATION_ERROR_CODE.UNCONFIGURED };
+  }
+
+  const user = await getSessionUser();
+  if (!user) {
+    return { ok: false, code: INVITATION_ERROR_CODE.UNAUTHENTICATED };
+  }
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("household_invitations")
+      .select("email, token, status, expires_at")
+      .eq("id", parsed.data)
+      .maybeSingle();
+
+    if (error) {
+      logTenancyFailure(TENANCY_OPERATION.INVITATION_QUERY, error);
+      return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };
+    }
+    if (!data) {
+      return { ok: false, code: INVITATION_ERROR_CODE.NOT_FOUND };
+    }
+    if (data.email.toLowerCase() !== user.email?.toLowerCase()) {
+      return { ok: false, code: INVITATION_ERROR_CODE.EMAIL_MISMATCH };
+    }
+    if (data.status !== INVITATION_STATUS.PENDING) {
+      return { ok: false, code: INVITATION_ERROR_CODE.NOT_PENDING };
+    }
+    if (Date.parse(data.expires_at) <= Date.now()) {
+      return { ok: false, code: INVITATION_ERROR_CODE.EXPIRED };
+    }
+
+    return acceptInvitation(data.token);
   } catch (error) {
     logTenancyFailure(TENANCY_OPERATION.INVITATION_ACCEPT, error);
     return { ok: false, code: INVITATION_ERROR_CODE.UNKNOWN };

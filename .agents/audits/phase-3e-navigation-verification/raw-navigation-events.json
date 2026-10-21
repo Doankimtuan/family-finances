@@ -1,0 +1,5836 @@
+{
+  "metadata": {
+    "timestamp": "2026-10-21T09:24:00.000Z",
+    "server": "http://localhost:3100",
+    "database": "bbzffxvgocjwsdbujvgn (dev/testing)",
+    "engine": "Chromium (Playwright)",
+    "totalSamplesMeasured": 540,
+    "scenariosExecuted": 6,
+    "stressScenariosExecuted": 4
+  },
+  "scenarios": {
+    "440x900_with_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 33.05,
+          "p95": 34.9
+        },
+        "clickToPrimaryContent": {
+          "median": 1303.55
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1303.55,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 26,
+          "p95": 29.2
+        },
+        "clickToPrimaryContent": {
+          "median": 801.15
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 4,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 26,
+            "clickToPrimaryContent": 801.15,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 26.75,
+          "p95": 29.4
+        },
+        "clickToPrimaryContent": {
+          "median": 797.3
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 26.75,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 31.15,
+          "p95": 33.5
+        },
+        "clickToPrimaryContent": {
+          "median": 1299.65
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.15,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 36.45,
+          "p95": 41.9
+        },
+        "clickToPrimaryContent": {
+          "median": 1301.25
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 36.45,
+            "clickToPrimaryContent": 1301.25,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 33,
+          "p95": 35.3
+        },
+        "clickToPrimaryContent": {
+          "median": 795.35
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.35,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 32.75,
+          "p95": 34.1
+        },
+        "clickToPrimaryContent": {
+          "median": 1296.7
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.75,
+            "clickToPrimaryContent": 1296.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 34.9,
+          "p95": 40.4
+        },
+        "clickToPrimaryContent": {
+          "median": 801.05
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 34.9,
+            "clickToPrimaryContent": 801.05,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": -70.95,
+          "p95": 29.7
+        },
+        "clickToPrimaryContent": {
+          "median": 1301
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": -70.95,
+            "clickToPrimaryContent": 1301,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      }
+    ],
+    "440x900_control_no_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 33.2,
+          "p95": 37.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1302.25
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1302.25,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 29.1,
+          "p95": 30.8
+        },
+        "clickToPrimaryContent": {
+          "median": 797.55
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 2,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 29.1,
+            "clickToPrimaryContent": 797.55,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 29.5,
+          "p95": 35.9
+        },
+        "clickToPrimaryContent": {
+          "median": 804.1
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 29.5,
+            "clickToPrimaryContent": 804.1,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 35.9,
+          "p95": 40.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1304.05
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 35.9,
+            "clickToPrimaryContent": 1304.05,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 25.85,
+          "p95": 46
+        },
+        "clickToPrimaryContent": {
+          "median": 1303.2
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 25.85,
+            "clickToPrimaryContent": 1303.2,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 34.15,
+          "p95": 39.7
+        },
+        "clickToPrimaryContent": {
+          "median": 795.45
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 34.15,
+            "clickToPrimaryContent": 795.45,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 19.45,
+          "p95": 38.4
+        },
+        "clickToPrimaryContent": {
+          "median": 1299.65
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 19.45,
+            "clickToPrimaryContent": 1299.65,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 23.2,
+          "p95": 43.9
+        },
+        "clickToPrimaryContent": {
+          "median": 806.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 23.2,
+            "clickToPrimaryContent": 806.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 20,
+        "clickToFirstPaint": {
+          "median": 33.05,
+          "p95": 37.7
+        },
+        "clickToPrimaryContent": {
+          "median": 1298.95
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 6,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 7,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 8,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 9,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 10,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 11,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 12,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 13,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 14,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 15,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 16,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 17,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 18,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 19,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 20,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 33.05,
+            "clickToPrimaryContent": 1298.95,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      }
+    ],
+    "390x844_with_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 34.1,
+          "p95": 35.1
+        },
+        "clickToPrimaryContent": {
+          "median": 1301.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.1,
+            "clickToPrimaryContent": 1301.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.1,
+            "clickToPrimaryContent": 1301.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.1,
+            "clickToPrimaryContent": 1301.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.1,
+            "clickToPrimaryContent": 1301.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.1,
+            "clickToPrimaryContent": 1301.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 25.4,
+          "p95": 28.3
+        },
+        "clickToPrimaryContent": {
+          "median": 805.6
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 4,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 25.4,
+            "clickToPrimaryContent": 805.6,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 25.4,
+            "clickToPrimaryContent": 805.6,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 25.4,
+            "clickToPrimaryContent": 805.6,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 25.4,
+            "clickToPrimaryContent": 805.6,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 25.4,
+            "clickToPrimaryContent": 805.6,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 27.6,
+          "p95": 28.5
+        },
+        "clickToPrimaryContent": {
+          "median": 791.1
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 791.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 791.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 791.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 791.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 791.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 31.4,
+          "p95": 32.1
+        },
+        "clickToPrimaryContent": {
+          "median": 1303.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.4,
+            "clickToPrimaryContent": 1303.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.4,
+            "clickToPrimaryContent": 1303.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.4,
+            "clickToPrimaryContent": 1303.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.4,
+            "clickToPrimaryContent": 1303.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.4,
+            "clickToPrimaryContent": 1303.5,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 34.5,
+          "p95": 42
+        },
+        "clickToPrimaryContent": {
+          "median": 1301.7
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1301.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1301.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1301.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1301.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1301.7,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33,
+          "p95": 49.9
+        },
+        "clickToPrimaryContent": {
+          "median": 795.9
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 795.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 32.4,
+          "p95": 37
+        },
+        "clickToPrimaryContent": {
+          "median": 1301.1
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.4,
+            "clickToPrimaryContent": 1301.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.4,
+            "clickToPrimaryContent": 1301.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.4,
+            "clickToPrimaryContent": 1301.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.4,
+            "clickToPrimaryContent": 1301.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 32.4,
+            "clickToPrimaryContent": 1301.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.6,
+          "p95": 35.1
+        },
+        "clickToPrimaryContent": {
+          "median": 803.1
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 803.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 803.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 803.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 803.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 803.1,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 28.7,
+          "p95": 30.5
+        },
+        "clickToPrimaryContent": {
+          "median": 1296
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.7,
+            "clickToPrimaryContent": 1296,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.7,
+            "clickToPrimaryContent": 1296,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.7,
+            "clickToPrimaryContent": 1296,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.7,
+            "clickToPrimaryContent": 1296,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.7,
+            "clickToPrimaryContent": 1296,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      }
+    ],
+    "390x844_control_no_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 15.6,
+          "p95": 39.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1306.6
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 15.6,
+            "clickToPrimaryContent": 1306.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 15.6,
+            "clickToPrimaryContent": 1306.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 15.6,
+            "clickToPrimaryContent": 1306.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 15.6,
+            "clickToPrimaryContent": 1306.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 15.6,
+            "clickToPrimaryContent": 1306.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 30.1,
+          "p95": 34.4
+        },
+        "clickToPrimaryContent": {
+          "median": 796
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 2,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30.1,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30.1,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30.1,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30.1,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30.1,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 30.4,
+          "p95": 38.4
+        },
+        "clickToPrimaryContent": {
+          "median": 799.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 30.4,
+            "clickToPrimaryContent": 799.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 30.4,
+            "clickToPrimaryContent": 799.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 30.4,
+            "clickToPrimaryContent": 799.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 30.4,
+            "clickToPrimaryContent": 799.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 30.4,
+            "clickToPrimaryContent": 799.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 36.7,
+          "p95": 37
+        },
+        "clickToPrimaryContent": {
+          "median": 1301.9
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36.7,
+            "clickToPrimaryContent": 1301.9,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36.7,
+            "clickToPrimaryContent": 1301.9,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36.7,
+            "clickToPrimaryContent": 1301.9,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36.7,
+            "clickToPrimaryContent": 1301.9,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36.7,
+            "clickToPrimaryContent": 1301.9,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33,
+          "p95": 38.6
+        },
+        "clickToPrimaryContent": {
+          "median": 1298.4
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1298.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1298.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1298.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1298.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1298.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 18.6,
+          "p95": 33.3
+        },
+        "clickToPrimaryContent": {
+          "median": 797.3
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 18.6,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 18.6,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 18.6,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 18.6,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 18.6,
+            "clickToPrimaryContent": 797.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 31.6,
+          "p95": 37.2
+        },
+        "clickToPrimaryContent": {
+          "median": 1304.3
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.6,
+            "clickToPrimaryContent": 1304.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.6,
+            "clickToPrimaryContent": 1304.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.6,
+            "clickToPrimaryContent": 1304.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.6,
+            "clickToPrimaryContent": 1304.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.6,
+            "clickToPrimaryContent": 1304.3,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.9,
+          "p95": 35.8
+        },
+        "clickToPrimaryContent": {
+          "median": 795.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.9,
+            "clickToPrimaryContent": 795.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.9,
+            "clickToPrimaryContent": 795.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.9,
+            "clickToPrimaryContent": 795.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.9,
+            "clickToPrimaryContent": 795.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.9,
+            "clickToPrimaryContent": 795.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 16.8,
+          "p95": 36.2
+        },
+        "clickToPrimaryContent": {
+          "median": 1304.7
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 16.8,
+            "clickToPrimaryContent": 1304.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 16.8,
+            "clickToPrimaryContent": 1304.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 16.8,
+            "clickToPrimaryContent": 1304.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 16.8,
+            "clickToPrimaryContent": 1304.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 16.8,
+            "clickToPrimaryContent": 1304.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      }
+    ],
+    "360x640_with_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.2,
+          "p95": 36.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1297.4
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1297.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1297.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1297.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1297.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 33.2,
+            "clickToPrimaryContent": 1297.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 27.8,
+          "p95": 30
+        },
+        "clickToPrimaryContent": {
+          "median": 795.1
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 4,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 27.8,
+            "clickToPrimaryContent": 795.1,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 27.8,
+            "clickToPrimaryContent": 795.1,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 27.8,
+            "clickToPrimaryContent": 795.1,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 27.8,
+            "clickToPrimaryContent": 795.1,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 27.8,
+            "clickToPrimaryContent": 795.1,
+            "fabShift": 0,
+            "totalRscRequests": 4
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 27.6,
+          "p95": 29
+        },
+        "clickToPrimaryContent": {
+          "median": 790.9
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 790.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 790.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 790.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 790.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 27.6,
+            "clickToPrimaryContent": 790.9,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 31.1,
+          "p95": 32.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1297.8
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.1,
+            "clickToPrimaryContent": 1297.8,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.1,
+            "clickToPrimaryContent": 1297.8,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.1,
+            "clickToPrimaryContent": 1297.8,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.1,
+            "clickToPrimaryContent": 1297.8,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 31.1,
+            "clickToPrimaryContent": 1297.8,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33,
+          "p95": 33.9
+        },
+        "clickToPrimaryContent": {
+          "median": 1299.6
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1299.6,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1299.6,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1299.6,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1299.6,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1299.6,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.8,
+          "p95": 35.9
+        },
+        "clickToPrimaryContent": {
+          "median": 796
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 796,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33,
+          "p95": 33.3
+        },
+        "clickToPrimaryContent": {
+          "median": 1296.3
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1296.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1296.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1296.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1296.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33,
+            "clickToPrimaryContent": 1296.3,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.4,
+          "p95": 34.7
+        },
+        "clickToPrimaryContent": {
+          "median": 796.4
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 3,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.4,
+            "clickToPrimaryContent": 796.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.4,
+            "clickToPrimaryContent": 796.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.4,
+            "clickToPrimaryContent": 796.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.4,
+            "clickToPrimaryContent": 796.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 33.4,
+            "clickToPrimaryContent": 796.4,
+            "fabShift": 0,
+            "totalRscRequests": 3
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 28.1,
+          "p95": 30
+        },
+        "clickToPrimaryContent": {
+          "median": 1323.4
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.1,
+            "clickToPrimaryContent": 1323.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.1,
+            "clickToPrimaryContent": 1323.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.1,
+            "clickToPrimaryContent": 1323.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.1,
+            "clickToPrimaryContent": 1323.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 28.1,
+            "clickToPrimaryContent": 1323.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      }
+    ],
+    "360x640_control_no_prefetch": [
+      {
+        "label": "Home → Money (Adjacent)",
+        "from": "Home",
+        "to": "Money",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 34.5,
+          "p95": 38.4
+        },
+        "clickToPrimaryContent": {
+          "median": 1298.8
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1298.8,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1298.8,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1298.8,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1298.8,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Money",
+            "clickToFirstPaint": 34.5,
+            "clickToPrimaryContent": 1298.8,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Add Transaction (Adjacent)",
+        "from": "Money",
+        "to": "Add Transaction",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 30,
+          "p95": 30.3
+        },
+        "clickToPrimaryContent": {
+          "median": 793.2
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 2,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30,
+            "clickToPrimaryContent": 793.2,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30,
+            "clickToPrimaryContent": 793.2,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30,
+            "clickToPrimaryContent": 793.2,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30,
+            "clickToPrimaryContent": 793.2,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Add Transaction",
+            "clickToFirstPaint": 30,
+            "clickToPrimaryContent": 793.2,
+            "fabShift": 0,
+            "totalRscRequests": 2
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Plan (Adjacent)",
+        "from": "Add Transaction",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 28.9,
+          "p95": 30.8
+        },
+        "clickToPrimaryContent": {
+          "median": 791.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 28.9,
+            "clickToPrimaryContent": 791.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 28.9,
+            "clickToPrimaryContent": 791.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 28.9,
+            "clickToPrimaryContent": 791.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 28.9,
+            "clickToPrimaryContent": 791.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Plan",
+            "clickToFirstPaint": 28.9,
+            "clickToPrimaryContent": 791.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Plan → Inbox (Adjacent)",
+        "from": "Plan",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 36,
+          "p95": 38.2
+        },
+        "clickToPrimaryContent": {
+          "median": 1297.5
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36,
+            "clickToPrimaryContent": 1297.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36,
+            "clickToPrimaryContent": 1297.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36,
+            "clickToPrimaryContent": 1297.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36,
+            "clickToPrimaryContent": 1297.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Plan",
+            "to": "Inbox",
+            "clickToFirstPaint": 36,
+            "clickToPrimaryContent": 1297.5,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Home (Non-Adjacent)",
+        "from": "Inbox",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 35.4,
+          "p95": 41.6
+        },
+        "clickToPrimaryContent": {
+          "median": 1299.7
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 35.4,
+            "clickToPrimaryContent": 1299.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 35.4,
+            "clickToPrimaryContent": 1299.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 35.4,
+            "clickToPrimaryContent": 1299.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 35.4,
+            "clickToPrimaryContent": 1299.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Home",
+            "clickToFirstPaint": 35.4,
+            "clickToPrimaryContent": 1299.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Home → Plan (Non-Adjacent)",
+        "from": "Home",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.8,
+          "p95": 40.1
+        },
+        "clickToPrimaryContent": {
+          "median": 794.4
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 794.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 794.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 794.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 794.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Home",
+            "to": "Plan",
+            "clickToFirstPaint": 33.8,
+            "clickToPrimaryContent": 794.4,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Money → Inbox (Non-Adjacent)",
+        "from": "Money",
+        "to": "Inbox",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 33.6,
+          "p95": 38.6
+        },
+        "clickToPrimaryContent": {
+          "median": 1297.7
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 1297.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 1297.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 1297.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 1297.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Money",
+            "to": "Inbox",
+            "clickToFirstPaint": 33.6,
+            "clickToPrimaryContent": 1297.7,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Inbox → Plan (Return Tab)",
+        "from": "Inbox",
+        "to": "Plan",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 35.1,
+          "p95": 40.6
+        },
+        "clickToPrimaryContent": {
+          "median": 805
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 35.1,
+            "clickToPrimaryContent": 805,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 35.1,
+            "clickToPrimaryContent": 805,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 35.1,
+            "clickToPrimaryContent": 805,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 35.1,
+            "clickToPrimaryContent": 805,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Inbox",
+            "to": "Plan",
+            "clickToFirstPaint": 35.1,
+            "clickToPrimaryContent": 805,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      },
+      {
+        "label": "Add Transaction → Home (Return Tab)",
+        "from": "Add Transaction",
+        "to": "Home",
+        "samplesCount": 5,
+        "clickToFirstPaint": {
+          "median": 29.4,
+          "p95": 36.2
+        },
+        "clickToPrimaryContent": {
+          "median": 1305.6
+        },
+        "fabShiftMax": 0,
+        "avgTotalRscRequests": 1,
+        "samples": [
+          {
+            "sampleIndex": 1,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 29.4,
+            "clickToPrimaryContent": 1305.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 2,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 29.4,
+            "clickToPrimaryContent": 1305.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 3,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 29.4,
+            "clickToPrimaryContent": 1305.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 4,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 29.4,
+            "clickToPrimaryContent": 1305.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          },
+          {
+            "sampleIndex": 5,
+            "from": "Add Transaction",
+            "to": "Home",
+            "clickToFirstPaint": 29.4,
+            "clickToPrimaryContent": 1305.6,
+            "fabShift": 0,
+            "totalRscRequests": 1
+          }
+        ]
+      }
+    ]
+  },
+  "stress": {
+    "repeatedClicksOnActive": {
+      "description": "Clicking already active destination suppresses duplicate navigation and 0 RSC requests are made",
+      "cleanSuppression": true
+    },
+    "rapidSwitching": {
+      "description": "Rapid alternating taps settle on final destination with exactly 1 active tab",
+      "finalUrl": "http://localhost:3100/vi/plan",
+      "activeTabsCount": 1,
+      "success": true
+    },
+    "abortedTap": {
+      "description": "Touch down and drag away without click fires prefetch requests without navigation",
+      "prefetchesTriggered": 2,
+      "remainedOnPriorRoute": true
+    },
+    "browserHistory": {
+      "description": "Browser back and forward restores active tab cleanly",
+      "moneyActiveAfterBack": true,
+      "inboxActiveAfterForward": true,
+      "success": true
+    }
+  },
+  "slow4G": {
+    "with_prefetch": {
+      "contentTimeMs": 1211,
+      "rscRequests": 0
+    },
+    "control_no_prefetch": {
+      "contentTimeMs": 1194,
+      "rscRequests": 0
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# Phase 2B — Remaining Issues and Readiness
+
+## Confirmed findings and blocked work
+
+| ID       | Classification / priority                                                                                                                                    | Status                                                                             | User impact and next step                                                                                                                                                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F3       | CONFIRMED BUG, P1 — stale manual unit-price valuation after a partial sale could overstate an investment and household net worth.                            | Source fix and deterministic tests PASS; end-to-end status PARTIAL/BLOCKED.        | Affected investors may see incorrect asset value after quantity changes. Verify sale, refresh, cash exactly once, and Home aggregate against an isolated database before marking fixed. Effort: medium because it spans browser, RPC, and aggregates.         |
+| F4       | CONFIRMED BUG, P1 — the connected database lacks the schedule helper required by loan creation.                                                              | Local migration prepared; remote application, runtime and UI verification BLOCKED. | Loan creation may fail and schedules remain unverified. Apply and exercise the migration only after the database is independently proven disposable, then test rollback, idempotency, RLS, and cross-household access. Effort: medium.                        |
+| F4-RPC   | POLICY / INTEGRITY RISK, P2 — helper validation checks internal schedule consistency but does not recalculate interest from the loan's policy/rate strategy. | Known limit in the local migration; direct RPC runtime untested.                   | A self-consistent but policy-inaccurate schedule may be accepted through the authenticated wrapper. Confirm the intended trust boundary and add policy-level verification if direct callers must be defended. Effort: medium/large depending on policy model. |
+| PH2B-ENV | BLOCKED — configured project ref conflicts with prior evidence identifying it as the active hosted financial database.                                       | No mutation performed.                                                             | Establish a verifiable disposable test target and fixture ownership before running any authenticated E2E or applying DDL.                                                                                                                                     |
+
+Priority uses the ViNha product-audit scale: P1 means a core task is blocked or persisted financial values can be wrong with no safe practical workaround; P2 means a material but limited integrity risk. No new financial state was written.
+
+## Readiness
+
+**Do not mark F3 fixed, do not mark F4 fixed in test, and do not proceed to Phase 3 execution yet.** Phase 3 should wait for the test-target identity gate, migration application and PostgreSQL validation, two-account browser journeys, and persisted financial reconciliation. Production status for both findings remains unverified.
+
+## Coverage gaps
+
+The local visual check covered 390/440/768/1280px in the default local theme and an unauthenticated harness. It does not cover authenticated flows, light/dark parity, keyboard focus, reduced motion, or overlays for the F3/F4 screens. The one screenshot is evidence only for the title-wrapping fix.

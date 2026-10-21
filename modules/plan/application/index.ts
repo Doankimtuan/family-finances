@@ -50,6 +50,7 @@ export {
   resolvePlanHomeHealth,
   collectPlanHomeExceptions,
   prioritizePlanHomeExceptions,
+  resolvePlanBudgetAvailability,
   PlanHomeHealthStatus,
   PlanHomeExceptionKind,
 } from "./plan-home-health";
@@ -281,6 +282,7 @@ export {
   MISCELLANEOUS_JAR_NAME,
   GOAL_FUNDING_LINKABLE_STATUS_VALUES,
   PlanAssistMode,
+  PlanBudgetAvailability,
   PlanHubJarFilter,
   PLAN_HUB_JAR_FILTER_VALUES,
   PLAN_ASSIST_MODE_VALUES,

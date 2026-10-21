@@ -7,3 +7,4 @@ export const inviteEmailSchema = z.object({
 export type InviteEmailInput = z.infer<typeof inviteEmailSchema>;
 
 export const inviteTokenSchema = z.string().uuid();
+export const invitationIdSchema = z.string().uuid();
