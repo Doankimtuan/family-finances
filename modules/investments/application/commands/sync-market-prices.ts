@@ -294,6 +294,7 @@ export async function syncMarketPrices(
       successCount: 0,
       failedCount: 0,
       providers: [],
+      fxSyncSucceeded: null,
     };
   }
 
@@ -312,7 +313,7 @@ export async function syncMarketPrices(
         syncProvider(admin, provider, providerTargets, ownerId),
       ),
     );
-    await syncMarketFxRates([
+    const fxSyncSucceeded = await syncMarketFxRates([
       ...targets.map((target) => target.currency),
       ...INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES,
     ]);
@@ -326,12 +327,13 @@ export async function syncMarketPrices(
     );
     const failedCount = requestedCount - successCount;
     return {
-      status: statusFor(successCount, failedCount),
+      status: statusFor(successCount, failedCount + (fxSyncSucceeded ? 0 : 1)),
       skipped: false,
       requestedCount,
       successCount,
       failedCount,
       providers,
+      fxSyncSucceeded,
     };
   } finally {
     const { error } = await admin.rpc(MARKET_PRICE_SYNC_RPC.RELEASE_LOCK, {

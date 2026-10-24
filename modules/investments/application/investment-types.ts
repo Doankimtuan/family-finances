@@ -233,6 +233,7 @@ export type MarketPriceSyncResult = {
   successCount: number;
   failedCount: number;
   providers: MarketPriceSyncProviderResult[];
+  fxSyncSucceeded: boolean | null;
 };
 
 export type MarketCatalogSearchInput = {

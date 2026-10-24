@@ -36,11 +36,12 @@ export async function syncMarketFxRates(
   )
     return true;
 
+  const stablecoinPairs = STABLECOIN_TO_VND_PAIRS.filter((pair) =>
+    requested.has(pair.baseCurrency),
+  );
   const pairs = [
     ...(requested.has(MARKET_FX_BASE_CURRENCY) ? [USD_TO_VND_PAIR] : []),
-    ...STABLECOIN_TO_VND_PAIRS.filter((pair) =>
-      requested.has(pair.baseCurrency),
-    ),
+    ...stablecoinPairs,
   ];
   if (pairs.length === 0) return true;
 
@@ -53,10 +54,31 @@ export async function syncMarketFxRates(
         pair.baseCurrency as (typeof INVESTMENT_INPUT_CURRENCY_RATE_CURRENCIES)[number],
       ),
     )
-      ? coingeckoFxAdapter.fetchRates(STABLECOIN_TO_VND_PAIRS)
+      ? coingeckoFxAdapter.fetchRates(stablecoinPairs)
       : Promise.resolve({ rates: [], failures: [] }),
   ]);
   const rates = [...fiatResult.rates, ...stablecoinResult.rates];
+  const failures = [
+    ...fiatResult.failures,
+    ...stablecoinResult.failures,
+    ...pairs
+      .filter(
+        (pair) =>
+          !rates.some(
+            (rate) =>
+              rate.baseCurrency === pair.baseCurrency &&
+              rate.quoteCurrency === pair.quoteCurrency,
+          ),
+      )
+      .map((pair) => `${pair.baseCurrency}/${pair.quoteCurrency}`),
+  ];
+  if (failures.length > 0) {
+    logActionFailure({
+      operation: MARKET_FX_OPERATION.SYNC,
+      error: new Error("Market FX provider returned incomplete rates"),
+      context: { pair: [...new Set(failures)].join(",") },
+    });
+  }
   if (rates.length === 0) return false;
 
   const admin = createSupabaseAdminClient();
@@ -84,5 +106,5 @@ export async function syncMarketFxRates(
     });
     return false;
   }
-  return true;
+  return failures.length === 0;
 }

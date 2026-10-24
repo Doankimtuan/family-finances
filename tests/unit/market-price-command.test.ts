@@ -1,9 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MarketSyncStatus } from "@/modules/investments/application/investment-constants";
 
 const state = vi.hoisted(() => {
   const prices = new Map<string, unknown>();
   const runs: Array<Record<string, unknown>> = [];
   const acquireResults: boolean[] = [];
+  const defaultTargets = [
+    {
+      instrumentId: "instrument-1",
+      providerInstrumentId: "bitcoin",
+      symbol: "BTC",
+      assetClass: "crypto",
+      pricingMode: "UNIT_PRICE",
+      currency: "USD",
+      provider: "COINGECKO",
+    },
+    {
+      instrumentId: "instrument-2",
+      providerInstrumentId: "ethereum",
+      symbol: "ETH",
+      assetClass: "crypto",
+      pricingMode: "UNIT_PRICE",
+      currency: "USD",
+      provider: "COINGECKO",
+    },
+  ];
+  const targets = [...defaultTargets];
+  const syncFxRates = vi.fn(async () => true);
   const fetchPrices = vi.fn(async () => ({
     prices: [
       {
@@ -19,7 +42,15 @@ const state = vi.hoisted(() => {
     ],
     failures: [{ instrumentId: "instrument-2", error: "Provider unavailable" }],
   }));
-  return { prices, runs, acquireResults, fetchPrices };
+  return {
+    prices,
+    runs,
+    acquireResults,
+    defaultTargets,
+    targets,
+    syncFxRates,
+    fetchPrices,
+  };
 });
 
 vi.mock("@/modules/platform/supabase/admin", () => ({
@@ -64,26 +95,7 @@ vi.mock("@/modules/platform/supabase/admin", () => ({
 vi.mock(
   "@/modules/investments/application/queries/list-active-market-price-targets",
   () => ({
-    listActiveMarketPriceTargets: vi.fn(async () => [
-      {
-        instrumentId: "instrument-1",
-        providerInstrumentId: "bitcoin",
-        symbol: "BTC",
-        assetClass: "crypto",
-        pricingMode: "UNIT_PRICE",
-        currency: "USD",
-        provider: "COINGECKO",
-      },
-      {
-        instrumentId: "instrument-2",
-        providerInstrumentId: "ethereum",
-        symbol: "ETH",
-        assetClass: "crypto",
-        pricingMode: "UNIT_PRICE",
-        currency: "USD",
-        provider: "COINGECKO",
-      },
-    ]),
+    listActiveMarketPriceTargets: vi.fn(async () => state.targets),
   }),
 );
 
@@ -97,7 +109,7 @@ vi.mock("@/modules/investments/infrastructure/market-providers", () => ({
 }));
 
 vi.mock("@/modules/investments/application/commands/sync-market-fx", () => ({
-  syncMarketFxRates: vi.fn(async () => true),
+  syncMarketFxRates: () => state.syncFxRates(),
 }));
 
 import { syncMarketPrices } from "@/modules/investments/application/commands/sync-market-prices";
@@ -106,6 +118,9 @@ beforeEach(() => {
   state.prices.clear();
   state.runs.length = 0;
   state.acquireResults.length = 0;
+  state.targets.splice(0, state.targets.length, ...state.defaultTargets);
+  state.syncFxRates.mockReset();
+  state.syncFxRates.mockResolvedValue(true);
   state.fetchPrices.mockClear();
 });
 
@@ -113,7 +128,7 @@ describe("MARKET 03 sync command", () => {
   it("persists successful prices and records partial provider failure", async () => {
     const result = await syncMarketPrices({});
     expect(result).toMatchObject({
-      status: "partial",
+      status: MarketSyncStatus.PARTIAL,
       requestedCount: 2,
       successCount: 1,
       failedCount: 1,
@@ -138,5 +153,19 @@ describe("MARKET 03 sync command", () => {
     ]);
     expect([first.skipped, second.skipped].sort()).toEqual([false, true]);
     expect(state.fetchPrices).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports an FX failure when no price targets exist", async () => {
+    state.targets.length = 0;
+    state.syncFxRates.mockResolvedValue(false);
+
+    const result = await syncMarketPrices({});
+
+    expect(result).toMatchObject({
+      status: MarketSyncStatus.FAILED,
+      requestedCount: 0,
+      failedCount: 0,
+      fxSyncSucceeded: false,
+    });
   });
 });

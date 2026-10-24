@@ -25,6 +25,7 @@ import {
 
 const COINGECKO_API_BASE_URL = "https://api.coingecko.com/api/v3";
 const COINGECKO_PAGE_SIZE = 250;
+// shortcut: top 500 by market cap, switch to on-demand CoinGecko search for long-tail assets.
 
 function isCrypto(assetClass?: InvestmentAssetClass): boolean {
   return assetClass == null || assetClass === InvestmentAssetClass.CRYPTO;

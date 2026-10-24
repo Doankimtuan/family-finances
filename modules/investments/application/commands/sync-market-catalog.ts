@@ -5,6 +5,7 @@ import { logActionFailure } from "@/modules/shared-kernel/application/log-action
 import {
   MARKET_CATALOG_SYNC_OPERATION,
   MARKET_SYNC_PROVIDER_VALUES,
+  MarketSyncStatus,
   type MarketSyncProvider,
 } from "../investment-constants";
 import type {
@@ -24,6 +25,18 @@ type ExistingSourceRow = {
   instrument_id: string;
   provider_instrument_id: string;
 };
+
+function catalogRunStatus(result: MarketCatalogSyncProviderResult) {
+  if (
+    result.error ||
+    (result.failedCount > 0 && result.insertedCount + result.updatedCount === 0)
+  ) {
+    return MarketSyncStatus.FAILED;
+  }
+  return result.failedCount > 0
+    ? MarketSyncStatus.PARTIAL
+    : MarketSyncStatus.SUCCEEDED;
+}
 
 function errorText(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -57,7 +70,11 @@ async function recordRunStart(
 ): Promise<string | null> {
   const { data, error } = await admin
     .from(MARKET_SYNC_RUNS_TABLE)
-    .insert({ provider, started_at: startedAt })
+    .insert({
+      provider,
+      started_at: startedAt,
+      status: MarketSyncStatus.RUNNING,
+    })
     .select("id")
     .single();
   if (error || !data) {
@@ -86,6 +103,7 @@ async function recordRunFinish(
       updated_count: result.updatedCount,
       failed_count: result.failedCount,
       error: result.error,
+      status: catalogRunStatus(result),
     })
     .eq("id", runId);
   if (error) {
