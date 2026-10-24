@@ -144,8 +144,10 @@ function Performance({
         {t("insufficientData")}
       </Text>
     );
-  const tone =
-    value >= 0 ? FinancialAmountTone.INCOME : FinancialAmountTone.EXPENSE;
+  const isLoss = value < 0;
+  const tone = isLoss
+    ? FinancialAmountTone.EXPENSE
+    : FinancialAmountTone.INCOME;
   return (
     <div className="flex flex-wrap items-baseline justify-end gap-x-(--space-1) text-xs tabular-nums">
       <FinancialAmount
@@ -153,7 +155,7 @@ function Performance({
         size={FinancialAmountSize.MICRO_AMOUNT}
         tone={tone}
         showSign
-        className="flex-wrap"
+        className={cn("flex-wrap", isLoss && "text-danger")}
         amountLabel={
           compact
             ? formatCurrency(
@@ -167,7 +169,7 @@ function Performance({
         currency={compact ? "" : undefined}
       />
       {percent != null ? (
-        <span className={value >= 0 ? "text-income" : "text-expense"}>
+        <span className={isLoss ? "text-danger" : "text-income"}>
           <FinancialValue>
             ({formatPercent(percent, locale, { maximumFractionDigits: 1 })})
           </FinancialValue>
